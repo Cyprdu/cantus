@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cantus Pro</title>
+    <title>Cantus Pro - Reconnaissance Faciale</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#090909">
+    <link rel="icon" type="image/x-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favico.ico">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cantus Pro">
-    <link rel="icon" type="image/x-icon" href="/favicon.svg">
-    <link rel="apple-touch-icon" href="/favico.ico">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -323,7 +323,6 @@
         <symbol id="ico-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
         <symbol id="ico-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></symbol>
         <symbol id="ico-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
-        <!-- Icône visage rajoutée pour la modale -->
         <symbol id="ico-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 3H5a2 2 0 0 0-2 2v4"></path>
             <path d="M15 3h4a2 2 0 0 1 2 2v4"></path>
@@ -545,9 +544,6 @@
     }
 
     /* ══════════════════════════════════════════
-       LIBRARY SYNC & OFFLINE CACHING
-    ══════════════════════════════════════════ */
-    /* ══════════════════════════════════════════
        LIBRARY SYNC & PRE-CACHING ALL PDFS
     ══════════════════════════════════════════ */
     async function loadLibrary() {
@@ -565,7 +561,7 @@
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
             
-            // TÉLÉCHARGEMENT AUTOMATIQUE DE TOUTES LES PARTITIONS EN ARRIÈRE-PLAN
+            // Téléchargement automatique de toutes les partitions en arrière-plan
             preloadAllPDFs(state.songs);
         } catch(e) {
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
@@ -578,13 +574,9 @@
         if (!('caches' in window)) return;
         try {
             const cache = await caches.open('cantus-pdfs-v1');
-            console.log("📥 Démarrage du téléchargement hors-ligne de toutes les partitions...");
-            
-            // Télécharge chaque PDF de la liste en parallèle pour que tout soit disponible hors-ligne
             await Promise.all(songs.map(async (song) => {
                 try {
                     const response = await cache.match(song.url);
-                    // Si le PDF n'est pas déjà en cache, on le télécharge
                     if (!response) {
                         const networkResponse = await fetch(song.url);
                         if (networkResponse.ok) {
@@ -595,33 +587,8 @@
                     console.warn(`Échec du pré-chargement pour : ${song.name}`);
                 }
             }));
-            console.log("✅ Toutes les partitions sont disponibles hors-ligne !");
         } catch (e) {
             console.error('Erreur lors du pré-chargement global des PDF', e);
-        }
-    }
-
-    
-    async function syncOfflinePDFs(songs) {
-        if (!('caches' in window)) return;
-        try {
-            const cache = await caches.open('cantus-pdfs-v1');
-            const cachedRequests = await cache.keys();
-            const cachedUrls = cachedRequests.map(req => req.url);
-            const currentUrls = songs.map(s => s.url);
-
-            const urlsToAdd = currentUrls.filter(url => !cachedUrls.includes(url));
-            urlsToAdd.forEach(async url => {
-                try {
-                    const response = await fetch(url);
-                    if(response.ok) await cache.put(url, response);
-                } catch(err) { console.warn("Erreur de mise en cache du PDF", url); }
-            });
-
-            const urlsToRemove = cachedUrls.filter(url => !currentUrls.includes(url) && url.includes('github'));
-            urlsToRemove.forEach(url => cache.delete(url));
-        } catch (e) {
-            console.error('Erreur lors de la synchronisation du cache PDF', e);
         }
     }
 
@@ -1402,7 +1369,7 @@
             </div>
             
             <div id="pl-songs-list">
-                ${renderList(p.songs, 'ico-music', 'Cette playlist est vide.')}
+                ${renderList(p.songs, 'ico-music', 'Cette playlist is vide.')}
             </div>
         `;
     }
