@@ -3,16 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Hochement de Tête - MediaPipe</title>
+    <title>Calibration & Contrôle par Inclinaison de Tête</title>
     <!-- Scripts MediaPipe Face Mesh -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <style>
+        :root {
+            --bg: #090909;
+            --surface: #141414;
+            --surface-2: #1c1c1c;
+            --border: #2a2a2a;
+            --accent: #c8956c;
+            --text: #e8e8e8;
+            --text-2: #888;
+            --danger: #e05050;
+            --success: #6dab6d;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
-            margin: 0;
-            padding: 0;
-            background: #111;
-            color: #eee;
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
@@ -21,86 +32,234 @@
             height: 100vh;
             overflow: hidden;
         }
-        h2 {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            letter-spacing: 0.05em;
-        }
-        .container {
+        .main-container {
             position: relative;
             width: 640px;
             max-width: 95vw;
             aspect-ratio: 4 / 3;
-            background: #000;
-            border-radius: 12px;
+            background: var(--surface);
+            border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-            border: 1px solid #333;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        video {
-            display: none;
-        }
+        video { display: none; }
         canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
         }
-        #nod-indicator {
+        
+        /* ─── HUD INDICATORS (DROITE / GAUCHE) ─── */
+        .hud-indicators {
             position: absolute;
             top: 20px;
+            left: 20px;
             right: 20px;
-            width: 24px;
-            height: 24px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .indicator-pill {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 200ms ease;
+        }
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: #e05050;
-            border: 2px solid rgba(255,255,255,0.3);
-            transition: background 150ms ease, transform 150ms ease;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            background: var(--danger);
+            transition: background 200ms ease, transform 200ms ease;
         }
-        #nod-indicator.active {
-            background: #6dab6d;
-            transform: scale(1.25);
-            box-shadow: 0 0 16px #6dab6d;
+        .indicator-pill.active {
+            color: var(--text);
+            border-color: var(--accent);
         }
-        .info {
+        .indicator-pill.active .indicator-dot {
+            background: var(--success);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        /* ─── OVERLAY CALIBRATION / TRAINING ─── */
+        #calibration-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(9,9,9,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+        }
+        .calib-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+            letter-spacing: 0.02em;
+        }
+        .calib-desc {
+            font-size: 0.95rem;
+            color: var(--text-2);
+            max-width: 420px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .btn {
+            background: var(--accent);
+            color: #090909;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 150ms ease, opacity 150ms ease;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .status-bar {
             margin-top: 15px;
             font-size: 0.9rem;
-            color: #888;
+            color: var(--text-2);
         }
     </style>
 </head>
 <body>
 
-    <h2>Test de Hochement de Tête Conséquent</h2>
-    <div class="container">
+    <div class="main-container">
+        <!-- Overlay d'apprentissage / calibration interactive -->
+        <div id="calibration-overlay">
+            <div class="calib-title" id="calib-title">Calibration Initiale</div>
+            <div class="calib-desc" id="calib-desc">
+                Installez-vous confortablement face à la caméra. Restez bien droit, regardez votre partition, puis cliquez pour lancer l'analyse de votre posture neutre.
+            </div>
+            <button class="btn" id="calib-btn" onclick="startCalibrationStep()">Démarrer la calibration</button>
+        </div>
+
+        <!-- Indicateurs visuels Droite / Gauche en mode actif -->
+        <div class="hud-indicators">
+            <div class="indicator-pill" id="ind-left">
+                <div class="indicator-dot"></div> Précédent (Gauche)
+            </div>
+            <div class="indicator-pill" id="ind-right">
+                Suivant (Droite) <div class="indicator-dot"></div>
+            </div>
+        </div>
+
         <video id="webcam" playsinline></video>
         <canvas id="output-canvas"></canvas>
-        <div id="nod-indicator" title="Indicateur de hochement de tête"></div>
     </div>
-    <div class="info" id="status-text">Initialisation de la caméra et du modèle...</div>
+    <div class="status-bar" id="status-text">En attente de démarrage...</div>
 
     <script>
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output-canvas');
         const canvasCtx = canvasElement.getContext('2d');
-        const indicator = document.getElementById('nod-indicator');
         const statusText = document.getElementById('status-text');
-
-        let indicatorTimeout = null;
-        let lastNodTime = 0;
-
-        // Variables pour la détection d'amplitude du geste
-        let noseYHistory = [];
-        const HISTORY_SIZE = 15; // Fenêtre d'analyse de ~0.5s
         
-        function triggerNodIndicator() {
-            indicator.classList.add('active');
-            clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => {
-                indicator.classList.remove('active');
-            }, 500);
+        const overlay = document.getElementById('calibration-overlay');
+        const calibTitle = document.getElementById('calib-title');
+        const calibDesc = document.getElementById('calib-desc');
+        const calibBtn = document.getElementById('calib-btn');
+        const indLeft = document.getElementById('ind-left');
+        const indRight = document.getElementById('ind-right');
+
+        // États de calibration et de détection
+        let calibrationState = 'IDLE'; // IDLE, NEUTRAL, RIGHT, LEFT, ACTIVE
+        let neutralAngle = 0;
+        let rightThresholdOffset = 0.15; // Valeur par défaut affinée après calibration
+        let leftThresholdOffset = -0.15;
+
+        let samplesBuffer = [];
+        let lastActionTime = 0;
+        let actionTimeout = null;
+
+        function triggerIndicator(side) {
+            const el = side === 'right' ? indRight : indLeft;
+            el.classList.add('active');
+            clearTimeout(actionTimeout);
+            actionTimeout = setTimeout(() => {
+                indRight.classList.remove('active');
+                indLeft.classList.remove('active');
+            }, 400);
         }
+
+        // Calcul de l'inclinaison de la tête (Roll) basé sur les yeux (points 33 et 263 de MediaPipe)
+        function getHeadRoll(landmarks) {
+            const leftEye = landmarks[33];
+            const rightEye = landmarks[263];
+            const dy = rightEye.y - leftEye.y;
+            const dx = rightEye.x - leftEye.x;
+            return Math.atan2(dy, dx); // Angle en radians
+        }
+
+        function startCalibrationStep() {
+            calibrationState = 'NEUTRAL';
+            samplesBuffer = [];
+            calibBtn.style.display = 'none';
+            calibTitle.textContent = "1/3 - Posture Neutre";
+            calibDesc.textContent = "Regardez bien droit vers votre écran / partition pendant 2 secondes...";
+            
+            setTimeout(() => {
+                if (samplesBuffer.length > 0) {
+                    neutralAngle = samplesBuffer.reduce((a, b) => a + b, 0) / samplesBuffer.length;
+                }
+                
+                // Étape 2 : Pencher à droite
+                calibrationState = 'RIGHT_PROMPT';
+                samplesBuffer = [];
+                calibTitle.textContent = "2/3 - Mouvement à Droite";
+                calibDesc.textContent = "Panchez nettement la tête vers la DROITE (pour tourner la page), puis revenez au centre.";
+                calibBtn.style.display = 'inline-block';
+                calibBtn.textContent = "Enregistrer la position Droite";
+            }, 2000);
+        }
+
+        // Gestion du clic pour valider les étapes d'entraînement dynamique
+        calibBtn.addEventListener('click', () => {
+            if (calibrationState === 'RIGHT_PROMPT') {
+                if (samplesBuffer.length > 0) {
+                    const maxRight = Math.max(...samplesBuffer);
+                    rightThresholdOffset = Math.max(0.08, (maxRight - neutralAngle) * 0.7);
+                }
+                calibrationState = 'LEFT_PROMPT';
+                samplesBuffer = [];
+                calibTitle.textContent = "3/3 - Mouvement à Gauche";
+                calibDesc.textContent = "Panchez nettement la tête vers la GAUCHE (page précédente), puis revenez au centre.";
+                calibBtn.textContent = "Terminer l'entraînement";
+            } else if (calibrationState === 'LEFT_PROMPT') {
+                if (samplesBuffer.length > 0) {
+                    const maxLeft = Math.min(...samplesBuffer);
+                    leftThresholdOffset = Math.min(-0.08, (maxLeft - neutralAngle) * 0.7);
+                }
+                // Calibration terminée, passage en mode actif
+                calibrationState = 'ACTIVE';
+                overlay.style.display = 'none';
+                statusText.textContent = "Système calibré et actif ! Testez vos inclinaisons.";
+            }
+        });
 
         function onResults(results) {
             if (canvasElement.width !== videoElement.videoWidth) {
@@ -113,45 +272,32 @@
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                statusText.textContent = "Visage détecté - Faites un hochement de tête bien marqué vers le bas";
                 const landmarks = results.multiFaceLandmarks[0];
+                const currentRoll = getHeadRoll(landmarks);
+                const relativeRoll = currentRoll - neutralAngle;
 
-                // Point 1 : Bout du nez | Point 10 : Haut du front | Point 152 : Bas du menton
-                const noseY = landmarks[1].y;
-                const foreheadY = landmarks[10].y;
-                const chinY = landmarks[152].y;
-                
-                // Calcul de la taille relative du visage (pour annuler l'effet de distance par rapport à l'écran)
-                const faceHeight = Math.abs(chinY - foreheadY);
-                const relativeNoseY = noseY / faceHeight;
-
-                // Historique glissant
-                noseYHistory.push(relativeNoseY);
-                if (noseYHistory.length > HISTORY_SIZE) {
-                    noseYHistory.shift();
+                if (calibrationState === 'NEUTRAL') {
+                    samplesBuffer.push(currentRoll);
+                } else if (calibrationState === 'RIGHT_PROMPT') {
+                    samplesBuffer.push(currentRoll);
+                } else if (calibrationState === 'LEFT_PROMPT') {
+                    samplesBuffer.push(currentRoll);
+                } else if (calibrationState === 'ACTIVE') {
+                    const now = Date.now();
+                    // Anti-rebond de 1 seconde entre chaque changement de page
+                    if (now - lastActionTime > 1000) {
+                        if (relativeRoll > rightThresholdOffset) {
+                            lastActionTime = now;
+                            triggerIndicator('right');
+                            statusText.textContent = "Action : Page Suivante (Droite détectée)";
+                        } else if (relativeRoll < leftThresholdOffset) {
+                            lastActionTime = now;
+                            triggerIndicator('left');
+                            statusText.textContent = "Action : Page Précédente (Gauche détectée)";
+                        }
+                    }
                 }
-
-                const now = Date.now();
-                const maxY = Math.max(...noseYHistory);
-                const minY = Math.min(...noseYHistory);
-                const deltaY = maxY - minY;
-
-                // Seuil d'amplitude : 0.22 signifie que le nez doit bouger d'au moins 22% de la hauteur totale du visage
-                const THRESHOLD = 0.22; 
-
-                // Anti-rebond de 1.2s pour éviter de tourner plusieurs pages pendant le même mouvement
-                if (deltaY > THRESHOLD && (now - lastNodTime > 1200)) {
-                    lastNodTime = now;
-                    triggerNodIndicator();
-                    statusText.textContent = "Hochement de tête conséquent détecté !";
-                    noseYHistory = []; // Réinitialise l'historique après détection
-                }
-
-            } else {
-                statusText.textContent = "Aucun visage détecté. Placez-vous face à la caméra.";
-                noseYHistory = [];
             }
-
             canvasCtx.restore();
         }
 
@@ -162,8 +308,8 @@
         faceMesh.setOptions({
             maxNumFaces: 1,
             refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
         });
 
         faceMesh.onResults(onResults);
@@ -176,14 +322,9 @@
             height: 480
         });
 
-        camera.start()
-            .then(() => {
-                statusText.textContent = "Caméra active. Hochez la tête fermement !";
-            })
-            .catch(err => {
-                statusText.textContent = "Erreur d'accès à la caméra : " + err.message;
-                console.error(err);
-            });
+        camera.start().catch(err => {
+            statusText.textContent = "Erreur caméra : " + err.message;
+        });
     </script>
 </body>
 </html>
