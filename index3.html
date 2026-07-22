@@ -14,24 +14,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Scripts MediaPipe Face Mesh & Camera -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
     <style>
         /* ─── SYSTÈME DE DESIGN ─── */
         :root {
             --bg:           #090909;
-            --surface:       #141414;
-            --surface-2:     #1c1c1c;
-            --surface-3:     #252525;
-            --border:        #2a2a2a;
-            --accent:        #c8956c;
-            --accent-dim:    rgba(200,149,108,.18);
-            --accent-glow:   rgba(200,149,108,.35);
-            --text:          #e8e8e8;
-            --text-2:        #888;
-            --text-3:        #555;
-            --danger:        #e05050;
-            --danger-dim:    rgba(224,80,80,.15);
-            --track:         #222;
+            --surface:      #141414;
+            --surface-2:    #1c1c1c;
+            --surface-3:    #252525;
+            --border:       #2a2a2a;
+            --accent:       #c8956c;
+            --accent-dim:   rgba(200,149,108,.18);
+            --accent-glow:  rgba(200,149,108,.35);
+            --text:         #e8e8e8;
+            --text-2:       #888;
+            --text-3:       #555;
+            --danger:       #e05050;
+            --danger-dim:   rgba(224,80,80,.15);
+            --success:      #6dab6d;
+            --track:        #222;
 
             --r-sm:   6px;
             --r-md:   10px;
@@ -214,12 +218,68 @@
         .tap-zone.tap-left  { left: 0; }
         .tap-zone.tap-right  { right: 0; }
 
+        /* ─── HUD INDICATORS (DROITE / GAUCHE) ─── */
+        .hud-indicators {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 350;
+            opacity: 0;
+            transition: opacity var(--t-base) var(--ease-out);
+        }
+        #performance-mode.show-hud .hud-indicators { opacity: 1; }
+        .indicator-pill {
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,.1);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 200ms ease;
+        }
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            transition: background 200ms ease, transform 200ms ease;
+        }
+        .indicator-pill.active {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .indicator-pill.active .indicator-dot {
+            background: var(--success);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--success);
+        }
+
         #perf-hud { position: absolute; bottom: env(safe-area-inset-bottom, 20px); left: 50%; transform: translateX(-50%) translateY(120%); background: rgba(0,0,0,.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.1); border-radius: 100px; padding: 8px 20px 10px; display: flex; align-items: center; gap: 12px; z-index: 300; pointer-events: none; opacity: 0; transition: transform var(--t-base) var(--ease-out), opacity var(--t-base) var(--ease-out); white-space: nowrap; }
         #performance-mode.show-hud #perf-hud { transform: translateX(-50%) translateY(0); opacity: 1; }
         #perf-hud-title { font-size: 12px; font-weight: 600; color: var(--text); letter-spacing: .02em; max-width: 35vw; overflow: hidden; text-overflow: ellipsis; }
         #perf-hud-page { font-size: 11px; color: var(--text-2); }
         #perf-hud-bar { width: 60px; height: 3px; background: rgba(255,255,255,.15); border-radius: 2px; overflow: hidden; }
         #perf-hud-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width var(--t-base) var(--ease); }
+
+        /* ─── MODALE D'AUTORISATION CAMÉRA ─── */
+        #camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #camera-modal.open { display: flex; }
+        .cam-modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 420px; text-align: center; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; align-items: center; gap: var(--sp-md); }
+        .cam-icon-wrap { width: 64px; height: 64px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 4px; }
+        .cam-icon-wrap svg { width: 30px; height: 30px; }
+        .cam-modal-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0; }
+        .cam-modal-card p { font-size: 0.9rem; color: var(--text-2); margin: 0; line-height: 1.45; }
+        .cam-modal-actions { display: flex; flex-direction: column; gap: var(--sp-sm); width: 100%; margin-top: var(--sp-sm); }
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
@@ -233,21 +293,9 @@
         }
         @media (max-width: 480px) { header { padding: 0 var(--sp-md); } main { padding: var(--sp-sm); } }
         @supports (padding: env(safe-area-inset-top)) { header { padding-top: env(safe-area-inset-top); } main   { padding-bottom: env(safe-area-inset-bottom); } }
-
-        /* ─── MODALE D'AUTORISATION CAMÉRA ─── */
-#camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-#camera-modal.open { display: flex; }
-.cam-modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 420px; text-align: center; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; align-items: center; gap: var(--sp-md); }
-.cam-icon-wrap { width: 64px; height: 64px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 4px; }
-.cam-icon-wrap svg { width: 30px; height: 30px; }
-.cam-modal-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0; }
-.cam-modal-card p { font-size: 0.9rem; color: var(--text-2); margin: 0; line-height: 1.45; }
-.cam-modal-actions { display: flex; flex-direction: column; gap: var(--sp-sm); width: 100%; margin-top: var(--sp-sm); }
-
-        
     </style>
 </head>
-<body>
+<body onclick="handleCenterTap(event)">
 
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -270,9 +318,18 @@
         <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="ico-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></symbol>
         <symbol id="ico-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
-        <!-- Nouveaux icônes pour la Playlist -->
         <symbol id="ico-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></symbol>
         <symbol id="ico-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
+        <!-- Icône visage rajoutée pour la modale -->
+        <symbol id="ico-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4"></path>
+            <path d="M15 3h4a2 2 0 0 1 2 2v4"></path>
+            <path d="M9 21H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="M15 21h4a2 2 0 0 0 2-2v-4"></path>
+            <circle cx="9" cy="10" r="1"></circle>
+            <circle cx="15" cy="10" r="1"></circle>
+            <path d="M9.5 15a3.5 3.5 0 0 0 5 0"></path>
+        </symbol>
     </defs>
 </svg>
 
@@ -305,7 +362,7 @@
     </nav>
 
     <main id="content">
-        </main>
+    </main>
 </div>
 
 <input type="file" id="file-import" class="file-input-hidden" accept=".json" onchange="handleFileImport(event)">
@@ -342,14 +399,40 @@
             <div id="note-content-display"></div>
         </div>
     </div>
+    <!-- Indicateurs visuels Droite / Gauche -->
+    <div class="hud-indicators">
+        <div class="indicator-pill" id="ind-left">
+            <div class="indicator-dot"></div> Précédent (Gauche)
+        </div>
+        <div class="indicator-pill" id="ind-right">
+            Suivant (Droite) <div class="indicator-dot"></div>
+        </div>
+    </div>
     <div id="perf-hud">
         <span id="perf-hud-title"></span>
         <span id="perf-hud-page"></span>
         <div id="perf-hud-bar"><div id="perf-hud-fill" style="width: 0%;"></div></div>
     </div>
+    <!-- Élément vidéo masqué requis pour MediaPipe -->
+    <video id="webcam" playsinline style="display:none;"></video>
 </div>
 
 <div id="toast-container"></div>
+
+<!-- Modale d'autorisation caméra explicative -->
+<div id="camera-modal">
+    <div class="cam-modal-card">
+        <div class="cam-icon-wrap">
+            <svg class="icon"><use href="#ico-face"/></svg>
+        </div>
+        <h3>Accès à la caméra requis</h3>
+        <p>Cantus Pro a besoin d'accéder à votre caméra pour activer le défilement des pages par inclinaison de tête. Vos images ne sont pas enregistrées.</p>
+        <div class="cam-modal-actions">
+            <button class="btn btn-primary" onclick="requestCameraAccess()" style="width:100%;">Autoriser la caméra</button>
+            <button class="btn btn-ghost" onclick="closeCameraModal()" style="width:100%;">Annuler</button>
+        </div>
+    </div>
+</div>
 
 <script>
     /* ══════════════════════════════════════════
@@ -394,7 +477,15 @@
         exportJsonCache: ''
     };
 
-    let wakeLock = null; // Wake Lock API pour garder l'écran allumé
+    let wakeLock = null;
+    let cameraInstance = null;
+    let faceMeshInstance = null;
+    let pendingSetlist = null;
+    
+    const RIGHT_THRESHOLD = -0.25;
+    const LEFT_THRESHOLD = 0.25;
+    let lastActionTime = 0;
+    let actionTimeout = null;
 
     /* ══════════════════════════════════════════
        INIT
@@ -442,10 +533,12 @@
             showView('library');
         }
 
-        // Écouteur pour fermer la modale en cliquant en dehors
         document.getElementById('export-modal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+
+        // Initialisation de MediaPipe Face Mesh
+        initFaceMeshEngine();
     }
 
     /* ══════════════════════════════════════════
@@ -465,8 +558,6 @@
                 }));
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
-            
-            // Mise en cache asynchrone des PDF pour usage hors-ligne
             syncOfflinePDFs(state.songs);
         } catch(e) {
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
@@ -483,7 +574,6 @@
             const cachedUrls = cachedRequests.map(req => req.url);
             const currentUrls = songs.map(s => s.url);
 
-            // Ajouter les nouveaux PDF en cache
             const urlsToAdd = currentUrls.filter(url => !cachedUrls.includes(url));
             urlsToAdd.forEach(async url => {
                 try {
@@ -492,7 +582,6 @@
                 } catch(err) { console.warn("Erreur de mise en cache du PDF", url); }
             });
 
-            // Supprimer les PDF qui n'existent plus sur Github
             const urlsToRemove = cachedUrls.filter(url => !currentUrls.includes(url) && url.includes('github'));
             urlsToRemove.forEach(url => cache.delete(url));
         } catch (e) {
@@ -666,7 +755,79 @@
     }
 
     /* ══════════════════════════════════════════
-       PERFORMANCE ENGINE & WAKE LOCK
+       FACE TRACKING RECOGNITION (MEDIAPIPE)
+    ══════════════════════════════════════════ */
+    function initFaceMeshEngine() {
+        const videoElement = document.getElementById('webcam');
+
+        faceMeshInstance = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMeshInstance.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+
+        faceMeshInstance.onResults(onFaceResults);
+
+        cameraInstance = new Camera(videoElement, {
+            onFrame: async () => {
+                if (document.getElementById('performance-mode').style.display === 'flex') {
+                    await faceMeshInstance.send({ image: videoElement });
+                }
+            },
+            width: 640,
+            height: 480
+        });
+    }
+
+    function triggerIndicator(side) {
+        const indLeft = document.getElementById('ind-left');
+        const indRight = document.getElementById('ind-right');
+        const el = side === 'right' ? indRight : indLeft;
+        el.classList.add('active');
+        clearTimeout(actionTimeout);
+        actionTimeout = setTimeout(() => {
+            indRight.classList.remove('active');
+            indLeft.classList.remove('active');
+        }, 400);
+    }
+
+    function getHeadRoll(landmarks) {
+        const leftEye = landmarks[33];
+        const rightEye = landmarks[263];
+        const dy = rightEye.y - leftEye.y;
+        const dx = rightEye.x - leftEye.x;
+        return Math.atan2(dy, dx);
+    }
+
+    function onFaceResults(results) {
+        if (document.getElementById('performance-mode').style.display !== 'flex') return;
+
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const landmarks = results.multiFaceLandmarks[0];
+            const currentRoll = getHeadRoll(landmarks);
+
+            const now = Date.now();
+            if (now - lastActionTime > 1000) {
+                if (currentRoll < RIGHT_THRESHOLD) {
+                    lastActionTime = now;
+                    triggerIndicator('right');
+                    nextPage();
+                } else if (currentRoll > LEFT_THRESHOLD) {
+                    lastActionTime = now;
+                    triggerIndicator('left');
+                    prevPage();
+                }
+            }
+        }
+    }
+
+    /* ══════════════════════════════════════════
+       PERFORMANCE ENGINE, WAKE LOCK & CAMERA PERMISSION
     ══════════════════════════════════════════ */
     function playSingle(id) {
         const song = state.songs.find(s => s.id === id);
@@ -687,76 +848,68 @@
         }
     }
 
-    // Réactiver le Wake Lock si l'utilisateur change d'onglet puis revient
     document.addEventListener('visibilitychange', async () => {
         if (wakeLock !== null && document.visibilityState === 'visible') {
             await requestWakeLock();
         }
     });
 
-    // Variable globale pour stocker le setlist en attente d'autorisation
-let pendingSetlist = null;
+    async function startPerformance(setlist) {
+        if (!setlist || setlist.length === 0) return;
+        pendingSetlist = setlist;
 
-async function startPerformance(setlist) {
-    if (!setlist || setlist.length === 0) return;
-    pendingSetlist = setlist;
-
-    // Vérifier si la permission caméra a déjà été accordée ou testée
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        // Si on a déjà l'accès, on coupe le flux de test immédiat et on lance directement
-        stream.getTracks().forEach(track => track.stop());
-        launchPerformanceConfirmed(pendingSetlist);
-    } catch (err) {
-        // Sinon, on affiche notre jolie modale explicative
-        document.getElementById('camera-modal').classList.add('open');
-    }
-}
-
-async function requestCameraAccess() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop()); // Libérer le flux de test
-        closeCameraModal();
-        if (pendingSetlist) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
             launchPerformanceConfirmed(pendingSetlist);
+        } catch (err) {
+            document.getElementById('camera-modal').classList.add('open');
         }
-    } catch (err) {
-        alert("L'accès à la caméra a été refusé ou n'est pas disponible sur cet appareil.");
-        closeCameraModal();
-    }
-}
-
-function closeCameraModal() {
-    document.getElementById('camera-modal').classList.remove('open');
-    pendingSetlist = null;
-}
-
-async function launchPerformanceConfirmed(setlist) {
-    state.activeSet = setlist;
-    state.currentIdx = 0;
-
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(() => {});
     }
 
-    await requestWakeLock();
-
-    const perfEl = document.getElementById('performance-mode');
-    perfEl.style.display = 'flex';
-    perfEl.classList.remove('show-hud');
-
-    if (cameraInstance) {
-        cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
+    async function requestCameraAccess() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            closeCameraModal();
+            if (pendingSetlist) {
+                launchPerformanceConfirmed(pendingSetlist);
+            }
+        } catch (err) {
+            alert("L'accès à la caméra a été refusé ou n'est pas disponible sur cet appareil.");
+            closeCameraModal();
+        }
     }
 
-    await loadItem();
-}
+    function closeCameraModal() {
+        document.getElementById('camera-modal').classList.remove('open');
+        pendingSetlist = null;
+    }
+
+    async function launchPerformanceConfirmed(setlist) {
+        state.activeSet = setlist;
+        state.currentIdx = 0;
+
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+
+        await requestWakeLock();
+
+        const perfEl = document.getElementById('performance-mode');
+        perfEl.style.display = 'flex';
+        perfEl.classList.remove('show-hud');
+
+        if (cameraInstance) {
+            cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
+        }
+
+        await loadItem();
+    }
 
     async function loadItem() {
-        // AMELIORATION: Nettoyage de la mémoire de l'ancien PDF
         if (state.pdf) {
             try { await state.pdf.destroy(); } catch(e) {}
             state.pdf = null;
@@ -859,13 +1012,15 @@ async function launchPerformanceConfirmed(setlist) {
             document.exitFullscreen().catch(() => {});
         }
         
-        // Relâcher l'écran allumé
         releaseWakeLock();
 
-        // Destruction finale du PDF en mémoire
         if (state.pdf) {
             try { state.pdf.destroy(); } catch(e) {}
             state.pdf = null;
+        }
+
+        if (cameraInstance) {
+            try { cameraInstance.stop(); } catch(e) {}
         }
 
         document.getElementById('performance-mode').style.display = 'none';
@@ -878,6 +1033,9 @@ async function launchPerformanceConfirmed(setlist) {
     let hudAutoHideTimer = null;
 
     function handleCenterTap(e) {
+        const insidePerf = document.getElementById('performance-mode').style.display === 'flex';
+        if (!insidePerf) return;
+
         const target = e.target;
         if (target.closest('#pdf-canvas')) return;
 
@@ -1034,7 +1192,6 @@ async function launchPerformanceConfirmed(setlist) {
         state.messes[state.currentMesseIdx].songs.push({ ...src });
         saveMesses();
         editMesse(state.currentMesseIdx);
-        // Feedback visuel (Toast) ajouté
         showToast(src.name + " ajouté");
     }
 
@@ -1416,21 +1573,5 @@ async function launchPerformanceConfirmed(setlist) {
 
     init();
 </script>
-
-
-    <!-- Modale d'autorisation caméra explicative -->
-<div id="camera-modal">
-    <div class="cam-modal-card">
-        <div class="cam-icon-wrap">
-            <svg class="icon"><use href="#ico-face"/></svg>
-        </div>
-        <h3>Accès à la caméra requis</h3>
-        <p>Cantus Pro a besoin d'accéder à votre caméra pour activer le défilement des pages par inclinaison de tête. Vos images ne sont pas enregistrées.</p>
-        <div class="cam-modal-actions">
-            <button class="btn btn-primary" onclick="requestCameraAccess()" style="width:100%;">Autoriser la caméra</button>
-            <button class="btn btn-ghost" onclick="closeCameraModal()" style="width:100%;">Annuler</button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
