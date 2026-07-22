@@ -130,9 +130,9 @@
         const indLeft = document.getElementById('ind-left');
         const indRight = document.getElementById('ind-right');
 
-        // Seuils d'inclinaison fixes (exprimés en radians)
-        const RIGHT_THRESHOLD = 0.25;
-        const LEFT_THRESHOLD = -0.25;
+        // Seuils inversés pour correspondre au sens souhaité
+        const RIGHT_THRESHOLD = -0.25;
+        const LEFT_THRESHOLD = 0.25;
 
         let lastActionTime = 0;
         let actionTimeout = null;
@@ -174,11 +174,11 @@
                 const now = Date.now();
                 // Anti-rebond de 1 seconde entre chaque déclenchement
                 if (now - lastActionTime > 1000) {
-                    if (currentRoll > RIGHT_THRESHOLD) {
+                    if (currentRoll < RIGHT_THRESHOLD) {
                         lastActionTime = now;
                         triggerIndicator('right');
                         statusText.textContent = "Action : Page Suivante (Droite détectée)";
-                    } else if (currentRoll < LEFT_THRESHOLD) {
+                    } else if (currentRoll > LEFT_THRESHOLD) {
                         lastActionTime = now;
                         triggerIndicator('left');
                         statusText.textContent = "Action : Page Précédente (Gauche détectée)";
