@@ -1,2738 +1,1363 @@
 <!DOCTYPE html>
-
 <html lang="fr">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>Cantus Pro</title>
-
+    <title>Cantus Pro - Tactile / Manuel</title>
     
-
     <link rel="manifest" href="manifest.json">
-
     <meta name="theme-color" content="#090909">
-
     <link rel="icon" type="image/x-icon" href="/favicon.svg">
-
     <link rel="apple-touch-icon" href="/favico.ico">
-
-
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cantus Pro">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-
-
     <style>
-
         /* ─── SYSTÈME DE DESIGN ─── */
-
         :root {
-
             --bg:           #090909;
-
-            --surface:       #141414;
-
-            --surface-2:     #1c1c1c;
-
-            --surface-3:     #252525;
-
-            --border:        #2a2a2a;
-
-            --accent:        #c8956c;
-
-            --accent-dim:    rgba(200,149,108,.18);
-
-            --accent-glow:   rgba(200,149,108,.35);
-
-            --text:          #e8e8e8;
-
-            --text-2:        #888;
-
-            --text-3:        #555;
-
-            --danger:        #e05050;
-
-            --danger-dim:    rgba(224,80,80,.15);
-
-            --track:         #222;
-
-
+            --surface:      #141414;
+            --surface-2:    #1c1c1c;
+            --surface-3:    #252525;
+            --border:       #2a2a2a;
+            --accent:       #c8956c;
+            --accent-dim:   rgba(200,149,108,.18);
+            --accent-glow:  rgba(200,149,108,.35);
+            --text:         #e8e8e8;
+            --text-2:       #888;
+            --text-3:       #555;
+            --danger:       #e05050;
+            --danger-dim:   rgba(224,80,80,.15);
+            --track:        #222;
 
             --r-sm:   6px;
-
             --r-md:   10px;
-
             --r-lg:   14px;
-
             --r-xl:   20px;
 
-
-
             --sp-xs:  4px;
-
             --sp-sm:  8px;
-
             --sp-md:  14px;
-
             --sp-lg:  22px;
-
             --sp-xl:  36px;
 
-
-
             --shadow: 0 2px 12px rgba(0,0,0,.45);
-
             --shadow-lg: 0 6px 30px rgba(0,0,0,.6);
 
-
-
             --ease: cubic-bezier(.4,0,.2,1);
-
             --ease-out: cubic-bezier(0,0,.2,1);
-
             --t-fast: 150ms;
-
             --t-base: 250ms;
-
             --t-slow: 400ms;
-
         }
-
-
 
         *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         html { height: 100%; }
-
         body {
-
             margin: 0; padding: 0;
-
             background: var(--bg);
-
             color: var(--text);
-
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
             font-size: 15px;
-
             line-height: 1.5;
-
             height: 100%;
-
             overflow: hidden;
-
             -webkit-font-smoothing: antialiased;
-
         }
-
         input, textarea, button { font-family: inherit; }
 
-
-
         /* ─── SVG ICONS ─── */
-
         .icon { display: inline-block; width: 18px; height: 18px; vertical-align: middle; flex-shrink: 0; }
-
         .icon-sm { width: 14px; height: 14px; }
-
         .icon-lg { width: 22px; height: 22px; }
 
-
-
         /* ─── LAYOUT ─── */
-
         #app { display: flex; flex-direction: column; height: 100dvh; background: var(--bg); }
-
         header { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--sp-lg); height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-
         .brand { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text-2); }
-
         .sync-badge { font-size: 11px; font-weight: 500; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
-
         .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
-
         .sync-badge.online .sync-dot { background: #6dab6d; }
-
         .sync-badge.offline .sync-dot { background: var(--danger); }
 
-
-
         /* ─── NAV TABS ─── */
-
         nav { display: flex; gap: 2px; padding: var(--sp-sm) var(--sp-lg); background: var(--surface); flex-shrink: 0; overflow-x: auto; }
-
         nav::-webkit-scrollbar { display: none; }
-
         .tab-btn { display: flex; align-items: center; gap: var(--sp-xs); padding: 9px 18px; background: transparent; border: none; border-radius: var(--r-md); color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease); white-space: nowrap; }
-
         .tab-btn:hover { background: var(--surface-2); color: var(--text); }
-
         .tab-btn.active { background: var(--surface-3); color: var(--text); }
-
         .tab-btn .icon { width: 15px; height: 15px; }
 
-
-
         /* ─── MAIN CONTENT ─── */
-
         main { flex: 1; overflow-y: auto; padding: var(--sp-md) var(--sp-lg); overscroll-behavior: contain; }
-
         main::-webkit-scrollbar { width: 4px; }
-
         main::-webkit-scrollbar-track { background: transparent; }
-
         main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-
-
         /* ─── BUTTONS ─── */
-
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-sm); padding: 10px 18px; border: none; border-radius: var(--r-md); font-size: 13px; font-weight: 600; cursor: pointer; transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease); white-space: nowrap; user-select: none; -webkit-user-select: none; min-height: 44px; min-width: 44px; }
-
         .btn:active { transform: scale(.96); }
-
         .btn-ghost { background: var(--surface-2); color: var(--text); }
-
         .btn-ghost:hover { background: var(--surface-3); }
-
         .btn-primary { background: var(--accent); color: #090909; }
-
         .btn-primary:hover { background: #d4a57d; }
-
         .btn-danger { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(224,80,80,.25); }
-
         .btn-danger:hover { background: rgba(224,80,80,.25); }
-
         .btn-icon { padding: 10px; background: transparent; color: var(--text-2); min-height: 44px; min-width: 44px; }
-
         .btn-icon:hover { background: var(--surface-2); color: var(--text); }
-
         .btn-icon.danger:hover { color: var(--danger); background: var(--danger-dim); }
 
-
-
         /* ─── SEARCH ─── */
-
         .search-wrap { position: relative; margin-bottom: var(--sp-md); }
-
         .search-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
-
         .search-input { width: 100%; padding: 12px 14px 12px 42px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t-fast) var(--ease); }
-
         .search-input::placeholder { color: var(--text-3); }
-
         .search-input:focus { border-color: var(--accent); }
 
-
-
         /* ─── SONG CARDS ─── */
-
         .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-sm); display: flex; align-items: center; gap: var(--sp-md); transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
-
         .card:hover { border-color: var(--surface-3); background: var(--surface-2); }
-
         .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-
         .card-title { font-size: 14px; font-weight: 500; letter-spacing: .01em; color: var(--text); min-width: 0; word-break: break-word; }
 
-
-
         /* ─── PLANNER GRID ─── */
-
         .planner-header { display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-md); }
-
         .planner-header .btn-primary { flex: 1; }
-
         .messe-card { display: flex; align-items: center; gap: var(--sp-md); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-sm); transition: border-color var(--t-fast) var(--ease); }
-
         .messe-card:hover { border-color: var(--accent-glow); }
-
         .messe-info { flex: 1; min-width: 0; }
-
         .messe-name { font-weight: 600; font-size: 14px; color: var(--text); }
-
         .messe-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-
         .messe-actions { display: flex; gap: var(--sp-xs); flex-shrink: 0; }
 
-
-
         /* ─── PLAYLISTS ADDITION ─── */
-
         .playlist-card { display: flex; align-items: center; gap: var(--sp-md); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-sm) var(--sp-md) var(--sp-sm) var(--sp-sm); margin-bottom: var(--sp-sm); transition: border-color var(--t-fast) var(--ease); cursor: pointer; }
-
         .playlist-card:hover { border-color: var(--accent-glow); }
-
         .playlist-cover { width: 64px; height: 64px; border-radius: var(--r-md); background: var(--surface-3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); }
-
         .playlist-cover img { width: 100%; height: 100%; object-fit: cover; }
-
         .playlist-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-
         .playlist-name { font-weight: 600; font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
         .playlist-desc { font-size: 12px; color: var(--text-2); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
         .playlist-meta { font-size: 11px; color: var(--text-3); margin-top: 4px; font-weight: 500; }
-
         .playlist-actions { display: flex; gap: var(--sp-xs); flex-shrink: 0; }
-
         
-
         .playlist-props-header { display: flex; gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap; background: var(--surface); padding: var(--sp-md); border: 1px solid var(--border); border-radius: var(--r-lg); align-items: center; }
-
         .playlist-props-inputs { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: var(--sp-xs); }
-
         
-
         .cover-upload-btn { position: relative; width: 100px; height: 100px; margin: 0; border: 2px dashed var(--border); border-radius: var(--r-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-3); cursor: pointer; transition: all var(--t-fast); overflow: hidden; background: var(--surface-3); flex-shrink: 0; }
-
         .cover-upload-btn:hover { border-color: var(--accent); color: var(--text); }
-
         .cover-upload-btn img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; z-index: 1; transition: opacity var(--t-fast); }
-
         .cover-upload-btn:hover img { opacity: 0.3; }
-
         .cover-upload-btn span, .cover-upload-btn svg { z-index: 2; position: relative; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
 
-
-
         /* ─── EDITOR ─── */
-
         .editor-head { display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: var(--sp-md); }
-
         .editor-head h3 { flex: 1; font-size: 15px; font-weight: 600; color: var(--text); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
         .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md); height: calc(100dvh - 240px); }
-
         .editor-col { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
-
         .col-header { padding: var(--sp-sm) var(--sp-md); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); flex-shrink: 0; }
-
         .col-body { flex: 1; overflow-y: auto; padding: var(--sp-sm); }
-
         .col-body::-webkit-scrollbar { width: 3px; }
-
         .col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-
-
         /* ─── EDITOR ITEMS ─── */
-
         .ed-item { display: flex; align-items: center; gap: var(--sp-sm); padding: var(--sp-sm); border-radius: var(--r-sm); cursor: pointer; transition: background var(--t-fast) var(--ease); font-size: 13px; color: var(--text); }
-
         .ed-item:hover { background: var(--surface-2); }
-
         .ed-item.is-note { border-left: 3px solid var(--accent); background: var(--surface-2); }
-
         .ed-item .drag-handle { color: var(--text-3); cursor: grab; flex-shrink: 0; }
-
         .ed-item .ed-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-
         .ed-item .btn-icon { flex-shrink: 0; }
-
         .ed-item.ed-item--add:hover { color: var(--accent); }
-
         .ed-item.ed-item--add .icon { color: var(--accent); }
 
-
-
         /* ─── NOTE FORM ─── */
-
         .note-form { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; display: flex; flex-direction: column; gap: var(--sp-xs); }
-
         .input-field { width: 100%; padding: 10px 13px; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 13px; outline: none; transition: border-color var(--t-fast) var(--ease); }
-
         .input-field::placeholder { color: var(--text-3); }
-
         .input-field:focus { border-color: var(--accent); }
-
         textarea.input-field { resize: none; height: 72px; line-height: 1.4; }
 
-
-
         /* ─── MODAL ─── */
-
         #export-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 5000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-
         #export-modal.open { display: flex; }
-
         .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow-lg); }
-
         .modal-card h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
-
         .modal-card p { font-size: 13px; color: var(--text-2); margin: 0 0 var(--sp-lg); }
-
         #qr-code-img { display: block; margin: 0 auto var(--sp-lg); padding: 12px; background: #fff; border-radius: var(--r-md); max-width: 220px; width: 100%; }
-
         .modal-actions { display: flex; flex-direction: column; gap: var(--sp-sm); }
-
         .file-input-hidden { display: none; }
 
-
-
         /* ─── EMPTY STATES ─── */
-
         .empty-state { text-align: center; padding: var(--sp-xl) var(--sp-lg); color: var(--text-3); }
-
         .empty-state .icon { width: 48px; height: 48px; margin-bottom: var(--sp-md); opacity: .4; }
-
         .empty-state p { font-size: 13px; margin: 0; }
 
-
-
         /* ─── TOAST (VISUAL FEEDBACK) ─── */
-
         #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-
         .toast { background: var(--surface-3); color: var(--text); border: 1px solid var(--border); padding: 10px 16px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastOut 0.3s ease 2.5s forwards; }
-
         @keyframes toastIn { from { opacity: 0; transform: translateY(20px) translateX(-50%); } to { opacity: 1; transform: translateY(0) translateX(-50%); } }
-
         @keyframes toastOut { from { opacity: 1; transform: translateY(0) translateX(-50%); } to { opacity: 0; transform: translateY(-20px) translateX(-50%); } }
 
-
-
         /* ─── MODE PERFORMANCE ─── */
-
         #performance-mode { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
-
         #pdf-viewport { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-
         #pdf-canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-
         #text-display { display: none; color: var(--text); text-align: center; padding: 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: center; align-items: center; flex-direction: column; }
-
         #text-display.visible { display: flex; }
-
         #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.5rem; }
-
         #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.55; word-break: break-word; max-width: 80ch; }
 
-
-
         .tap-zone { position: absolute; top: 0; height: 100%; width: 22%; z-index: 100; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-
         .tap-zone.tap-left  { left: 0; }
-
         .tap-zone.tap-right  { right: 0; }
 
-
-
         #perf-hud { position: absolute; bottom: env(safe-area-inset-bottom, 20px); left: 50%; transform: translateX(-50%) translateY(120%); background: rgba(0,0,0,.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.1); border-radius: 100px; padding: 8px 20px 10px; display: flex; align-items: center; gap: 12px; z-index: 300; pointer-events: none; opacity: 0; transition: transform var(--t-base) var(--ease-out), opacity var(--t-base) var(--ease-out); white-space: nowrap; }
-
         #performance-mode.show-hud #perf-hud { transform: translateX(-50%) translateY(0); opacity: 1; }
-
         #perf-hud-title { font-size: 12px; font-weight: 600; color: var(--text); letter-spacing: .02em; max-width: 35vw; overflow: hidden; text-overflow: ellipsis; }
-
         #perf-hud-page { font-size: 11px; color: var(--text-2); }
-
         #perf-hud-bar { width: 60px; height: 3px; background: rgba(255,255,255,.15); border-radius: 2px; overflow: hidden; }
-
         #perf-hud-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width var(--t-base) var(--ease); }
 
-
-
         /* ─── RESPONSIVE ─── */
-
         @media (max-width: 768px) {
-
             main { padding: var(--sp-sm); }
-
             .editor-grid { grid-template-columns: 1fr; height: auto; }
-
             .editor-col { height: 340px; margin-bottom: var(--sp-sm); }
-
             .planner-header { flex-direction: column; }
-
             nav { padding: var(--sp-sm); gap: 2px; }
-
             .tab-btn { flex: 1; justify-content: center; padding: 10px 10px; font-size: 12px; }
-
             .tab-btn .icon { width: 16px; height: 16px; }
-
         }
-
         @media (max-width: 480px) { header { padding: 0 var(--sp-md); } main { padding: var(--sp-sm); } }
-
         @supports (padding: env(safe-area-inset-top)) { header { padding-top: env(safe-area-inset-top); } main   { padding-bottom: env(safe-area-inset-bottom); } }
-
     </style>
-
 </head>
-
-<body>
-
-
+<body onclick="handleCenterTap(event)">
 
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
-
     <defs>
-
         <symbol id="ico-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></symbol>
-
         <symbol id="ico-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></symbol>
-
         <symbol id="ico-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></symbol>
-
         <symbol id="ico-heart-filled" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></symbol>
-
         <symbol id="ico-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></symbol>
-
         <symbol id="ico-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
-
         <symbol id="ico-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"></circle><circle cx="15" cy="6" r="1.4"></circle><circle cx="9" cy="12" r="1.4"></circle><circle cx="15" cy="12" r="1.4"></circle><circle cx="9" cy="18" r="1.4"></circle><circle cx="15" cy="18" r="1.4"></circle></symbol>
-
         <symbol id="ico-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></symbol>
-
         <symbol id="ico-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></symbol>
-
         <symbol id="ico-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
-
         <symbol id="ico-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></symbol>
-
         <symbol id="ico-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></symbol>
-
         <symbol id="ico-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
-
         <symbol id="ico-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
-
         <symbol id="ico-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
-
         <symbol id="ico-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
-
         <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
-
         <symbol id="ico-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></symbol>
-
         <symbol id="ico-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
-
-        <!-- Nouveaux icônes pour la Playlist -->
-
         <symbol id="ico-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></symbol>
-
         <symbol id="ico-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
-
     </defs>
-
 </svg>
 
-
-
 <div id="app">
-
     <header>
-
         <div class="brand">Cantus</div>
-
         <div class="sync-badge online" id="sync-badge">
-
             <span class="sync-dot"></span>
-
             <span id="sync-text">À jour</span>
-
         </div>
-
     </header>
 
-
-
     <nav>
-
         <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">
-
             <svg class="icon"><use href="#ico-music"></use></svg>
-
             Bibliothèque
-
         </button>
-
         <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">
-
             <svg class="icon"><use href="#ico-list"></use></svg>
-
             Playlists
-
         </button>
-
         <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">
-
             <svg class="icon"><use href="#ico-heart"></use></svg>
-
             Favoris
-
         </button>
-
         <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">
-
             <svg class="icon"><use href="#ico-cal"></use></svg>
-
             Messes
-
         </button>
-
     </nav>
 
-
-
     <main id="content">
-
-        </main>
-
+    </main>
 </div>
-
-
 
 <input type="file" id="file-import" class="file-input-hidden" accept=".json" onchange="handleFileImport(event)">
 
-
-
 <div id="export-modal">
-
     <div class="modal-card">
-
         <h3 id="export-title">Exporter</h3>
-
         <p>Scannez le QR Code ou copiez le lien sur la tablette cible.</p>
-
         <canvas id="qr-code-img"></canvas>
-
         <div class="modal-actions">
-
             <button class="btn btn-primary" onclick="copyExportLink()" aria-label="Copier le lien">
-
                 <svg class="icon"><use href="#ico-link"></use></svg>
-
                 Copier le lien
-
             </button>
-
             <button class="btn btn-ghost" onclick="downloadExportFile()" aria-label="Télécharger JSON">
-
                 <svg class="icon"><use href="#ico-download"></use></svg>
-
                 Télécharger .json
-
             </button>
-
             <button class="btn btn-ghost" onclick="closeModal()" aria-label="Fermer">
-
                 <svg class="icon"><use href="#ico-x"></use></svg>
-
                 Fermer
-
             </button>
-
         </div>
-
     </div>
-
 </div>
-
-
 
 <div id="performance-mode" style="display: none;">
-
     <div id="pdf-viewport" style="display: flex;">
-
         <div class="tap-zone tap-left" onclick="prevPage(event)"></div>
-
         <div class="tap-zone tap-right" onclick="nextPage(event)"></div>
-
         <canvas id="pdf-canvas"></canvas>
-
         <div id="text-display">
-
             <div id="note-title-display"></div>
-
             <div id="note-content-display"></div>
-
         </div>
-
     </div>
-
     <div id="perf-hud">
-
         <span id="perf-hud-title"></span>
-
         <span id="perf-hud-page"></span>
-
         <div id="perf-hud-bar"><div id="perf-hud-fill" style="width: 0%;"></div></div>
-
     </div>
-
 </div>
-
-
 
 <div id="toast-container"></div>
 
-
-
 <script>
-
     /* ══════════════════════════════════════════
-
        SERVICE WORKER REGISTRATION (PWA)
-
     ══════════════════════════════════════════ */
-
     if ('serviceWorker' in navigator) {
-
         window.addEventListener('load', () => {
-
             navigator.serviceWorker.register('/sw.js').then(reg => {
-
                 console.log('ServiceWorker enregistré avec succès.', reg.scope);
-
             }).catch(err => {
-
                 console.log('Échec de l\'enregistrement du ServiceWorker: ', err);
-
             });
-
         });
-
     }
 
-
-
     /* ══════════════════════════════════════════
-
        CONFIGURATION
-
     ══════════════════════════════════════════ */
-
     const GITHUB_USER = 'Cyprdu';
-
     const GITHUB_REPO = 'cantus';
-
     const GITHUB_PATH = 'partitions';
 
-
-
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
-
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-
-
     /* ══════════════════════════════════════════
-
        STATE
-
     ══════════════════════════════════════════ */
-
     let state = {
-
         songs:          [],
-
         messes:         JSON.parse(localStorage.getItem('cantus_messes')) || [],
-
         favorites:      JSON.parse(localStorage.getItem('cantus_favorites')) || [],
-
         playlists:      JSON.parse(localStorage.getItem('cantus_playlists')) || [],
-
         currentMesseIdx: null,
-
         currentPlaylistIdx: null,
-
         activeSet:      [],
-
         currentIdx:     0,
-
         pdf:            null,
-
         pageNum:        1,
-
         totalPages:     1,
-
         exportUrlCache: '',
-
         exportJsonCache: ''
-
     };
 
-
-
-    let wakeLock = null; // Wake Lock API pour garder l'écran allumé
-
-
+    let wakeLock = null;
 
     /* ══════════════════════════════════════════
-
        INIT
-
     ══════════════════════════════════════════ */
-
     async function init() {
-
         const urlParams = new URLSearchParams(window.location.search);
-
         const importData = urlParams.get('import');
-
         const importPlData = urlParams.get('importPl');
 
-
-
         if (importData) {
-
             try {
-
                 const jsonString = LZString.decompressFromEncodedURIComponent(importData);
-
                 const importedMesse = JSON.parse(jsonString);
-
                 state.messes.push(importedMesse);
-
                 saveMesses();
-
                 window.history.replaceState({}, document.title, window.location.pathname);
-
                 alert(`"${importedMesse.name}" importée avec succès.`);
-
             } catch (e) {
-
                 alert("Échec de l'import. Lien peut-être corrompu.");
-
                 console.error(e);
-
             }
-
         }
-
         
-
         if (importPlData) {
-
             try {
-
                 const jsonString = LZString.decompressFromEncodedURIComponent(importPlData);
-
                 const importedPl = JSON.parse(jsonString);
-
                 state.playlists.push(importedPl);
-
                 savePlaylists();
-
                 window.history.replaceState({}, document.title, window.location.pathname);
-
                 alert(`Playlist "${importedPl.name}" importée avec succès.`);
-
             } catch (e) {
-
                 alert("Échec de l'import. Lien peut-être corrompu.");
-
                 console.error(e);
-
             }
-
         }
-
-
 
         await loadLibrary();
 
-
-
         if (importData) {
-
             showView('planner');
-
         } else if (importPlData) {
-
             showView('playlist');
-
         } else {
-
             showView('library');
-
         }
-
-
-
-        // Écouteur pour fermer la modale en cliquant en dehors
 
         document.getElementById('export-modal').addEventListener('click', function(e) {
-
             if (e.target === this) closeModal();
-
         });
-
     }
-
-
 
     /* ══════════════════════════════════════════
-
-       LIBRARY SYNC & OFFLINE CACHING
-
+       LIBRARY SYNC & PRE-CACHING ALL PDFS
     ══════════════════════════════════════════ */
-
     async function loadLibrary() {
-
         try {
-
             const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`);
-
             const d = await r.json();
-
             state.songs = d
-
                 .filter(f => f.name.endsWith('.pdf'))
-
                 .map(f => ({
-
                     id:   f.sha,
-
                     type: 'song',
-
                     name: f.name.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
-
                     url:  f.download_url
-
                 }));
-
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
-
             setSyncStatus(true);
-
             
-
-            // Mise en cache asynchrone des PDF pour usage hors-ligne
-
-            syncOfflinePDFs(state.songs);
-
+            // Téléchargement automatique de toutes les partitions en arrière-plan
+            preloadAllPDFs(state.songs);
         } catch(e) {
-
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
-
             state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song' }));
-
             setSyncStatus(false);
-
         }
-
     }
 
-
-
-    async function syncOfflinePDFs(songs) {
-
+    async function preloadAllPDFs(songs) {
         if (!('caches' in window)) return;
-
         try {
-
             const cache = await caches.open('cantus-pdfs-v1');
-
-            const cachedRequests = await cache.keys();
-
-            const cachedUrls = cachedRequests.map(req => req.url);
-
-            const currentUrls = songs.map(s => s.url);
-
-
-
-            // Ajouter les nouveaux PDF en cache
-
-            const urlsToAdd = currentUrls.filter(url => !cachedUrls.includes(url));
-
-            urlsToAdd.forEach(async url => {
-
+            await Promise.all(songs.map(async (song) => {
                 try {
-
-                    const response = await fetch(url);
-
-                    if(response.ok) await cache.put(url, response);
-
-                } catch(err) { console.warn("Erreur de mise en cache du PDF", url); }
-
-            });
-
-
-
-            // Supprimer les PDF qui n'existent plus sur Github
-
-            const urlsToRemove = cachedUrls.filter(url => !currentUrls.includes(url) && url.includes('github'));
-
-            urlsToRemove.forEach(url => cache.delete(url));
-
+                    const response = await cache.match(song.url);
+                    if (!response) {
+                        const networkResponse = await fetch(song.url);
+                        if (networkResponse.ok) {
+                            await cache.put(song.url, networkResponse);
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Échec du pré-chargement pour : ${song.name}`);
+                }
+            }));
         } catch (e) {
-
-            console.error('Erreur lors de la synchronisation du cache PDF', e);
-
+            console.error('Erreur lors du pré-chargement global des PDF', e);
         }
-
     }
-
-
 
     function setSyncStatus(online) {
-
         const badge = document.getElementById('sync-badge');
-
         const text  = document.getElementById('sync-text');
-
         badge.className = 'sync-badge ' + (online ? 'online' : 'offline');
-
         text.textContent = online ? 'À jour' : 'Hors-ligne';
-
     }
 
-
-
     /* ══════════════════════════════════════════
-
        VIEWS
-
     ══════════════════════════════════════════ */
-
     function showView(v) {
-
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
         document.getElementById('tab-' + v)?.classList.add('active');
-
-
 
         const c = document.getElementById('content');
 
-
-
         if (v === 'library') {
-
             c.innerHTML = `
-
                 <div class="search-wrap">
-
                     <svg class="icon"><use href="#ico-search"/></svg>
-
                     <input type="text" class="search-input" placeholder="Rechercher un chant…"
-
                            oninput="searchLibrary(this.value, 'library')">
-
                 </div>
-
                 <div id="lib-list">${renderList(state.songs, 'ico-music', 'Aucun chant trouvé.')}</div>`;
-
         } else if (v === 'favorites') {
-
             const favSongs = state.songs.filter(s => state.favorites.includes(s.id));
-
             c.innerHTML = `
-
                 <div class="search-wrap">
-
                     <svg class="icon"><use href="#ico-search"/></svg>
-
                     <input type="text" class="search-input" placeholder="Rechercher dans les favoris…"
-
                            oninput="searchLibrary(this.value, 'favorites')">
-
                 </div>
-
                 <div id="fav-list">${renderList(favSongs, 'ico-heart', "Vous n'avez pas encore de favoris.")}</div>`;
-
         } else if (v === 'planner') {
-
             c.innerHTML = `
-
                 <div class="planner-header">
-
                     <button class="btn btn-primary" onclick="newMesse()">
-
                         <svg class="icon"><use href="#ico-plus"/></svg>
-
                         Nouvelle Messe
-
                     </button>
-
                     <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" title="Importer un fichier" aria-label="Importer">
-
                         <svg class="icon"><use href="#ico-upload"/></svg>
-
                     </button>
-
                 </div>
-
                 <div id="messes-list">${renderMesses()}</div>`;
-
         } else if (v === 'playlist') {
-
             c.innerHTML = `
-
                 <div class="planner-header">
-
                     <button class="btn btn-primary" onclick="newPlaylist()">
-
                         <svg class="icon"><use href="#ico-plus"/></svg>
-
                         Nouvelle Playlist
-
                     </button>
-
                     <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" title="Importer un fichier" aria-label="Importer">
-
                         <svg class="icon"><use href="#ico-upload"/></svg>
-
                     </button>
-
                 </div>
-
                 <div id="playlists-list">${renderPlaylists()}</div>`;
-
         }
-
     }
-
-
 
     function renderList(list, emptyIcon, emptyText) {
-
         if (list.length === 0) return emptyState(emptyIcon, emptyText);
-
         return list.map(s => {
-
             const isFav = state.favorites.includes(s.id);
-
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
-
             const favColor = isFav ? 'color: var(--danger);' : '';
-
             return `
-
             <div class="card">
-
                 <div class="card-content">
-
                     <div class="card-title">${escHtml(s.name)}</div>
-
                 </div>
-
                 <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
-
                     <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${s.id}', event)" title="Favori" aria-label="Favori">
-
                         <svg class="icon"><use href="${favIco}"/></svg>
-
                     </button>
-
                     <button class="btn btn-primary" onclick="playSingle('${s.id}')" style="padding:9px 14px;" aria-label="Lire">
-
                         <svg class="icon icon-sm"><use href="#ico-play"/></svg>
-
                         Lire
-
                     </button>
-
                 </div>
-
             </div>`;
-
         }).join('');
-
     }
-
-
 
     function renderMesses() {
-
         if (state.messes.length === 0) return emptyState('ico-cal', 'Aucune messe. Créez-en une pour commencer.');
-
         return state.messes.map((m, i) => `
-
             <div class="messe-card">
-
                 <div class="messe-info">
-
                     <div class="messe-name">${escHtml(m.name)}</div>
-
                     <div class="messe-meta">${m.songs.length} élément${m.songs.length !== 1 ? 's' : ''}</div>
-
                 </div>
-
                 <div class="messe-actions">
-
                     <button class="btn btn-icon" onclick="openExportModal(${i})" title="Partager" aria-label="Partager">
-
                         <svg class="icon"><use href="#ico-share"/></svg>
-
                     </button>
-
                     <button class="btn btn-icon" onclick="editMesse(${i})" title="Modifier" aria-label="Modifier">
-
                         <svg class="icon"><use href="#ico-edit"/></svg>
-
                     </button>
-
                     <button class="btn btn-primary" onclick="startPerformance(state.messes[${i}].songs)" title="Lancer la performance" aria-label="Jouer" style="padding:9px 14px;">
-
                         <svg class="icon icon-sm"><use href="#ico-play"/></svg>
-
                     </button>
-
                 </div>
-
             </div>`).join('');
-
     }
-
-
 
     function emptyState(iconId, message) {
-
         return `<div class="empty-state"><svg class="icon"><use href="#${iconId}"/></svg><p>${message}</p></div>`;
-
     }
 
-
-
     /* ══════════════════════════════════════════
-
        VISUAL FEEDBACK (TOAST)
-
     ══════════════════════════════════════════ */
-
     function showToast(msg) {
-
         const container = document.getElementById('toast-container');
-
         const toast = document.createElement('div');
-
         toast.className = 'toast';
-
         toast.innerHTML = `<svg class="icon icon-sm" style="color:var(--accent)"><use href="#ico-check"/></svg> ${escHtml(msg)}`;
-
         container.appendChild(toast);
-
         setTimeout(() => toast.remove(), 2800);
-
     }
-
-
 
     /* ══════════════════════════════════════════
-
        FAVORITES & SEARCH
-
     ══════════════════════════════════════════ */
-
     function toggleFavorite(id, event) {
-
         if (event) event.stopPropagation();
-
         const idx = state.favorites.indexOf(id);
-
         if (idx === -1) state.favorites.push(id);
-
         else state.favorites.splice(idx, 1);
-
         
-
         localStorage.setItem('cantus_favorites', JSON.stringify(state.favorites));
-
         const activeTab = document.querySelector('.tab-btn.active').id;
-
         
-
         if (activeTab === 'tab-favorites') {
-
             showView('favorites');
-
         } else {
-
             const btn = event.currentTarget;
-
             const isFav = state.favorites.includes(id);
-
             btn.style.color = isFav ? 'var(--danger)' : '';
-
             btn.innerHTML = `<svg class="icon"><use href="${isFav ? '#ico-heart-filled' : '#ico-heart'}"/></svg>`;
-
         }
-
     }
-
-
 
     function normalizeSearch(str) {
-
         if (!str) return '';
-
         return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[-_,'".]/g, ' ').replace(/\bsaint\b/g, 'st').replace(/\bsainte\b/g, 'ste').replace(/\s+/g, ' ').trim();
-
     }
-
-
 
     function searchLibrary(query, targetListStr) {
-
         const q = normalizeSearch(query);
-
         let sourceList = state.songs;
-
         let icon = 'ico-music';
-
         let emptyTxt = 'Aucun chant trouvé.';
 
-
-
         if (targetListStr === 'favorites') {
-
             sourceList = state.songs.filter(s => state.favorites.includes(s.id));
-
             icon = 'ico-heart';
-
             emptyTxt = "Aucun favori ne correspond à votre recherche.";
-
         }
-
         
-
         const filtered = sourceList.filter(s => normalizeSearch(s.name).includes(q));
-
         document.getElementById(targetListStr === 'favorites' ? 'fav-list' : 'lib-list').innerHTML = renderList(filtered, icon, emptyTxt);
-
     }
-
-
 
     /* ══════════════════════════════════════════
-
        PERFORMANCE ENGINE & WAKE LOCK
-
     ══════════════════════════════════════════ */
-
     function playSingle(id) {
-
         const song = state.songs.find(s => s.id === id);
-
         if (song) startPerformance([song]);
-
     }
-
-
 
     async function requestWakeLock() {
-
         if ('wakeLock' in navigator) {
-
             try {
-
                 wakeLock = await navigator.wakeLock.request('screen');
-
             } catch (err) { console.error('Wake Lock échoué:', err); }
-
         }
-
     }
-
-
 
     function releaseWakeLock() {
-
         if (wakeLock !== null) {
-
             wakeLock.release().then(() => wakeLock = null);
-
         }
-
     }
 
-
-
-    // Réactiver le Wake Lock si l'utilisateur change d'onglet puis revient
-
     document.addEventListener('visibilitychange', async () => {
-
         if (wakeLock !== null && document.visibilityState === 'visible') {
-
             await requestWakeLock();
-
         }
-
     });
 
-
-
     async function startPerformance(setlist) {
-
         if (!setlist || setlist.length === 0) return;
-
         state.activeSet = setlist;
-
         state.currentIdx = 0;
 
-
-
-        // Fullscreen
-
         const el = document.documentElement;
-
         if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-
         if (screen.orientation && screen.orientation.lock) {
-
             screen.orientation.lock('landscape').catch(() => {});
-
         }
-
-
-
-        // Activer Wake Lock
 
         await requestWakeLock();
 
-
-
         const perfEl = document.getElementById('performance-mode');
-
         perfEl.style.display = 'flex';
-
         perfEl.classList.remove('show-hud');
 
-
-
         await loadItem();
-
     }
-
-
 
     async function loadItem() {
-
-        // AMELIORATION: Nettoyage de la mémoire de l'ancien PDF
-
         if (state.pdf) {
-
             try { await state.pdf.destroy(); } catch(e) {}
-
             state.pdf = null;
-
         }
-
-
 
         const item   = state.activeSet[state.currentIdx];
-
         const canvas = document.getElementById('pdf-canvas');
-
         const textEl = document.getElementById('text-display');
-
         const pdfVp  = document.getElementById('pdf-viewport');
 
-
-
         canvas.style.display = 'block';
-
         textEl.classList.remove('visible');
-
         pdfVp.style.display = 'flex';
 
-
-
         if (item.type === 'note') {
-
             canvas.style.display = 'none';
-
             textEl.classList.add('visible');
-
             document.getElementById('note-title-display').textContent = item.name;
-
             document.getElementById('note-content-display').textContent = item.content || '';
-
             updateHUD(`Élément ${state.currentIdx + 1} / ${state.activeSet.length}`);
-
         } else {
-
             state.pdf = await pdfjsLib.getDocument(item.url).promise;
-
             state.pageNum = 1;
-
             state.totalPages = state.pdf.numPages;
-
             await renderPage();
-
             updateHUD();
-
         }
-
     }
-
-
 
     async function renderPage() {
-
         if (!state.pdf) return;
-
         const canvas = document.getElementById('pdf-canvas');
-
         const ctx    = canvas.getContext('2d');
 
-
-
         const page = await state.pdf.getPage(state.pageNum);
-
         const vp0  = page.getViewport({ scale: 1 });
-
         const scale = Math.min(
-
             (window.innerWidth  * .95) / vp0.width,
-
             (window.innerHeight * .95) / vp0.height
-
         );
-
         const viewport = page.getViewport({ scale: scale * window.devicePixelRatio });
 
-
-
         canvas.width  = viewport.width;
-
         canvas.height = viewport.height;
-
         canvas.style.width  = (viewport.width  / window.devicePixelRatio) + 'px';
-
         canvas.style.height = (viewport.height / window.devicePixelRatio) + 'px';
 
-
-
         await page.render({ canvasContext: ctx, viewport }).promise;
-
         updateHUD();
-
     }
-
-
 
     function updateHUD(customText) {
-
         const item = state.activeSet[state.currentIdx];
-
         const titleEl = document.getElementById('perf-hud-title');
-
         const pageEl  = document.getElementById('perf-hud-page');
-
         const fill    = document.getElementById('perf-hud-fill');
 
-
-
         if (customText) {
-
             titleEl.textContent = item.name;
-
             pageEl.textContent  = customText;
-
             fill.style.width    = '100%';
-
             return;
-
         }
-
-
 
         titleEl.textContent = item.name;
-
         if (state.pdf) {
-
             const progress = state.pageNum / state.totalPages;
-
             pageEl.textContent = `${state.pageNum} / ${state.totalPages}`;
-
             fill.style.width   = (progress * 100) + '%';
-
         } else {
-
             pageEl.textContent = `Élément ${state.currentIdx + 1} / ${state.activeSet.length}`;
-
             fill.style.width   = '100%';
-
         }
-
     }
-
-
 
     function nextPage(e) {
-
         if (e) e.stopPropagation();
-
         if (state.pdf && state.pageNum < state.pdf.numPages) {
-
             state.pageNum++;
-
             renderPage();
-
         } else if (state.currentIdx < state.activeSet.length - 1) {
-
             state.currentIdx++;
-
             loadItem();
-
         }
-
     }
-
-
 
     function prevPage(e) {
-
         if (e) e.stopPropagation();
-
         if (state.pdf && state.pageNum > 1) {
-
             state.pageNum--;
-
             renderPage();
-
         } else if (state.currentIdx > 0) {
-
             state.currentIdx--;
-
             loadItem();
-
         }
-
     }
-
-
 
     function exitPerformanceToHome() {
-
         if (document.fullscreenElement && document.exitFullscreen) {
-
             document.exitFullscreen().catch(() => {});
-
         }
-
         
-
-        // Relâcher l'écran allumé
-
         releaseWakeLock();
 
-
-
-        // Destruction finale du PDF en mémoire
-
         if (state.pdf) {
-
             try { state.pdf.destroy(); } catch(e) {}
-
             state.pdf = null;
-
         }
-
-
 
         document.getElementById('performance-mode').style.display = 'none';
-
         showView('library');
-
     }
-
-
 
     /* ─── HUD TAP DETECTION ─── */
-
     let tripleTapTimer = null;
-
     let tripleTapCount = 0;
-
     let hudAutoHideTimer = null;
 
-
-
     function handleCenterTap(e) {
+        const insidePerf = document.getElementById('performance-mode').style.display === 'flex';
+        if (!insidePerf) return;
 
         const target = e.target;
-
         if (target.closest('#pdf-canvas')) return;
 
-
-
         tripleTapCount++;
-
         clearTimeout(tripleTapTimer);
-
         if (tripleTapCount === 1) tripleTapTimer = setTimeout(() => tripleTapCount = 0, 600);
-
         if (tripleTapCount >= 3) {
-
             tripleTapCount = 0;
-
             clearTimeout(tripleTapTimer);
-
             showHUD();
-
         }
-
     }
-
-
 
     function showHUD() {
-
         const perfEl = document.getElementById('performance-mode');
-
         perfEl.classList.add('show-hud');
-
         clearTimeout(hudAutoHideTimer);
-
         hudAutoHideTimer = setTimeout(() => perfEl.classList.remove('show-hud'), 3000);
-
     }
-
-
 
     /* ─── SWIPE DOWN ─── */
-
     let swipeStartY = 0;
-
     let isSwiping = false;
 
-
-
     document.addEventListener('touchstart', e => {
-
         const topZone = e.touches[0].clientY < 80;
-
         const insidePerf = document.getElementById('performance-mode').style.display === 'flex';
-
         if (topZone && insidePerf) {
-
             swipeStartY = e.touches[0].clientY;
-
             isSwiping = true;
-
         }
-
     }, { passive: true });
-
-
 
     document.addEventListener('touchmove', e => {
-
         if (!isSwiping) return;
-
         if (e.touches[0].clientY - swipeStartY < -30) isSwiping = false; 
-
     }, { passive: true });
 
-
-
     document.addEventListener('touchend', e => {
-
         if (!isSwiping) return;
-
         isSwiping = false;
-
         if (e.changedTouches[0].clientY - swipeStartY > 60) exitPerformanceToHome();
-
     });
-
-
 
     document.addEventListener('keydown', e => {
-
         if (e.key === 'Escape' && document.getElementById('performance-mode').style.display === 'flex') exitPerformanceToHome();
-
     });
-
-
 
     window.addEventListener('resize', () => {
-
         if (state.pdf && document.getElementById('performance-mode').style.display === 'flex') renderPage();
-
     });
 
-
-
     /* ══════════════════════════════════════════
-
        MESSES — EDITOR
-
     ══════════════════════════════════════════ */
-
     function newMesse() {
-
         const n = prompt('Nom de la messe (ex: Dimanche 12 Mai) :');
-
         if (n) {
-
             state.messes.push({ name: n, songs: [] });
-
             saveMesses();
-
             showView('planner');
-
         }
-
     }
-
-
 
     function editMesse(idx) {
-
         state.currentMesseIdx = idx;
-
         const m = state.messes[idx];
 
-
-
         document.getElementById('content').innerHTML = `
-
             <div class="editor-head">
-
                 <button class="btn btn-icon" onclick="showView('planner')" aria-label="Retour">
-
                     <svg class="icon"><use href="#ico-arrow-left"/></svg>
-
                 </button>
-
                 <h3>${escHtml(m.name)}</h3>
-
                 <button class="btn btn-icon danger" onclick="deleteMesse(${idx})" title="Supprimer" aria-label="Supprimer">
-
                     <svg class="icon"><use href="#ico-trash"/></svg>
-
                 </button>
-
             </div>
-
             <div class="editor-grid">
-
                 <div class="editor-col">
-
                     <div class="col-header">Bibliothèque</div>
-
                     <div class="search-wrap" style="padding:8px 8px 0">
-
                         <svg class="icon"><use href="#ico-search"/></svg>
-
                         <input type="text" class="search-input" style="margin:0"
-
                                placeholder="Ajouter un PDF…"
-
                                oninput="filterEditor(this.value)">
-
                     </div>
-
                     <div id="editor-lib" class="col-body">${renderEditorList(state.songs)}</div>
-
                 </div>
-
                 <div class="editor-col">
-
                     <div class="col-header">Ordre de passage</div>
-
                     <div class="note-form">
-
                         <input type="text" id="note-title" class="input-field" placeholder="TITRE (ex: PREMIÈRE LECTURE)">
-
                         <textarea id="note-content" class="input-field" placeholder="Texte, accords…"></textarea>
-
                         <button class="btn btn-primary" style="width:100%" onclick="addNote()">
-
                             <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-
                             Ajouter la note
-
                         </button>
-
                     </div>
-
                     <div id="messe-sortable" class="col-body">
-
                         ${m.songs.length === 0
-
                             ? `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">Glissez les chants ici.</p></div>`
-
                             : m.songs.map((s, i) => edItem(s, i)).join('')
-
                         }
-
                     </div>
-
                 </div>
-
             </div>`;
-
-
 
         new Sortable(document.getElementById('messe-sortable'), {
-
             animation: 150,
-
             handle: '.drag-handle',
-
             onEnd: e => {
-
                 const songs = state.messes[state.currentMesseIdx].songs;
-
                 songs.splice(e.newIndex, 0, songs.splice(e.oldIndex, 1)[0]);
-
                 saveMesses();
-
                 editMesse(state.currentMesseIdx);
-
             }
-
         });
-
     }
-
-
 
     function edItem(s, i) {
-
         const isNote = s.type === 'note';
-
         const ico   = isNote ? '#ico-note' : '#ico-file';
-
         return `
-
             <div class="ed-item ${isNote ? 'is-note' : ''}" data-id="${i}">
-
                 <svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>
-
                 <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="${ico}"/></svg>
-
                 <span class="ed-name">${escHtml(s.name)}</span>
-
                 <button class="btn btn-icon danger" onclick="removeSongFromMesse(${i})" aria-label="Supprimer">
-
                     <svg class="icon icon-sm"><use href="#ico-x"/></svg>
-
                 </button>
-
             </div>`;
-
     }
-
-
 
     function renderEditorList(list) {
-
         if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
-
         return list.map(s => `
-
             <div class="ed-item ed-item--add" onclick="addSongToMesse('${s.id}')">
-
                 <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-
                 <span class="ed-name">${escHtml(s.name)}</span>
-
             </div>`).join('');
-
     }
-
-
 
     function filterEditor(query) {
-
         const q = normalizeSearch(query);
-
         document.getElementById('editor-lib').innerHTML = renderEditorList(
-
             state.songs.filter(s => normalizeSearch(s.name).includes(q))
-
         );
-
     }
-
-
 
     function addSongToMesse(id) {
-
         const src = state.songs.find(x => x.id === id);
-
         if (!src) return;
-
         state.messes[state.currentMesseIdx].songs.push({ ...src });
-
         saveMesses();
-
         editMesse(state.currentMesseIdx);
-
-        // Feedback visuel (Toast) ajouté
-
         showToast(src.name + " ajouté");
-
     }
-
-
 
     function addNote() {
-
         const title   = document.getElementById('note-title').value.trim();
-
         const content = document.getElementById('note-content').value.trim();
-
         if (!title) { alert('Donnez un titre à votre note.'); return; }
-
         state.messes[state.currentMesseIdx].songs.push({
-
             type: 'note',
-
             name: title.toUpperCase(),
-
             content
-
         });
-
         saveMesses();
-
         editMesse(state.currentMesseIdx);
-
     }
-
-
 
     function removeSongFromMesse(i) {
-
         state.messes[state.currentMesseIdx].songs.splice(i, 1);
-
         saveMesses();
-
         editMesse(state.currentMesseIdx);
-
     }
-
-
 
     function saveMesses() {
-
         localStorage.setItem('cantus_messes', JSON.stringify(state.messes));
-
     }
-
-
 
     function deleteMesse(i) {
-
         if (!confirm('Supprimer cette messe ?')) return;
-
         state.messes.splice(i, 1);
-
         saveMesses();
-
         showView('planner');
-
     }
 
-
-
     /* ══════════════════════════════════════════
-
        IMPORT / EXPORT
-
     ══════════════════════════════════════════ */
-
     function openExportModal(idx) {
-
         const messe       = state.messes[idx];
-
         const jsonString  = JSON.stringify(messe);
-
         const compressed  = LZString.compressToEncodedURIComponent(jsonString);
-
         const baseUrl     = window.location.href.split('?')[0];
-
         const url         = baseUrl + '?import=' + compressed;
 
-
-
         state.exportUrlCache  = url;
-
         state.exportJsonCache = jsonString;
-
-
 
         document.getElementById('export-title').textContent = escHtml(messe.name);
-
         const modal = document.getElementById('export-modal');
-
         modal.classList.add('open');
 
-
-
         new QRious({
-
             element: document.getElementById('qr-code-img'),
-
             value:   url,
-
             size:    220,
-
             level:   'L'
-
         });
-
     }
-
-
 
     function closeModal() {
-
         document.getElementById('export-modal').classList.remove('open');
-
     }
-
-
 
     function copyExportLink() {
-
         navigator.clipboard.writeText(state.exportUrlCache)
-
             .then(() => alert('Lien copié dans le presse-papier.'))
-
             .catch(() => alert('Échec de la copie.'));
-
     }
-
-
 
     function downloadExportFile() {
-
         const name = state.exportJsonCache ? JSON.parse(state.exportJsonCache).name : 'export';
-
         const blob = new Blob([state.exportJsonCache], { type: 'application/json' });
-
         const a    = document.createElement('a');
-
         a.href     = URL.createObjectURL(blob);
-
         a.download = `Cantus_${name.replace(/ /g, '_')}.json`;
-
         a.click();
-
     }
-
-
 
     function handleFileImport(event) {
-
         const file = event.target.files[0];
-
         if (!file) return;
 
-
-
         const reader = new FileReader();
-
         reader.onload = e => {
-
             try {
-
                 const imported = JSON.parse(e.target.result);
-
                 if (imported.isPlaylist) {
-
                     state.playlists.push(imported);
-
                     savePlaylists();
-
                     showView('playlist');
-
                     alert(`Playlist "${imported.name}" importée.`);
-
                 } else if (imported.name && imported.songs) {
-
                     state.messes.push(imported);
-
                     saveMesses();
-
                     showView('planner');
-
                     alert(`"${imported.name}" importée.`);
-
                 } else {
-
                     alert('Fichier non valide.');
-
                 }
-
             } catch (err) {
-
                 alert('Erreur de lecture du fichier JSON.');
-
             }
-
             event.target.value = '';
-
         };
-
         reader.readAsText(file);
-
     }
-
-
 
     function escHtml(str) {
-
         if (!str) return '';
-
         return String(str)
-
             .replace(/&/g, '&amp;')
-
             .replace(/</g, '<')
-
             .replace(/>/g, '>')
-
             .replace(/"/g, '&quot;');
-
     }
-
-
 
     /* ══════════════════════════════════════════
-
        PLAYLISTS
-
     ══════════════════════════════════════════ */
-
     function renderPlaylists() {
-
         if (state.playlists.length === 0) return emptyState('ico-list', 'Aucune playlist. Créez-en une pour commencer.');
-
         return state.playlists.map((p, i) => {
-
             const coverHtml = p.cover 
-
                 ? `<img src="${p.cover}" alt="cover">` 
-
                 : `<svg class="icon" style="width:24px;height:24px;color:var(--text-3)"><use href="#ico-list"/></svg>`;
-
             return `
-
             <div class="playlist-card" onclick="viewPlaylist(${i})">
-
                 <div class="playlist-cover">${coverHtml}</div>
-
                 <div class="playlist-info">
-
                     <div class="playlist-name">${escHtml(p.name)}</div>
-
                     ${p.description ? `<div class="playlist-desc">${escHtml(p.description)}</div>` : ''}
-
                     <div class="playlist-meta">${p.songs.length} chant${p.songs.length !== 1 ? 's' : ''}</div>
-
                 </div>
-
                 <div class="playlist-actions" onclick="event.stopPropagation()">
-
                     <button class="btn btn-icon" onclick="openExportPlaylistModal(${i})" title="Partager" aria-label="Partager">
-
                         <svg class="icon"><use href="#ico-share"/></svg>
-
                     </button>
-
                     <button class="btn btn-icon" onclick="editPlaylist(${i})" title="Modifier" aria-label="Modifier">
-
                         <svg class="icon"><use href="#ico-edit"/></svg>
-
                     </button>
-
                     <button class="btn btn-primary" onclick="viewPlaylist(${i})" title="Ouvrir la playlist" aria-label="Ouvrir" style="padding:9px 14px;">
-
                         <svg class="icon icon-sm"><use href="#ico-list"/></svg>
-
                         Ouvrir
-
                     </button>
-
                 </div>
-
             </div>`;
-
         }).join('');
-
     }
-
-
 
     function viewPlaylist(idx) {
-
         state.currentPlaylistIdx = idx;
-
         const p = state.playlists[idx];
-
         
-
         const coverHtml = p.cover 
-
             ? `<img src="${p.cover}" alt="cover" style="width:100%;height:100%;object-fit:cover;">` 
-
             : `<svg class="icon" style="width:32px;height:32px;color:var(--text-3)"><use href="#ico-list"/></svg>`;
-
             
-
         document.getElementById('content').innerHTML = `
-
             <div class="editor-head">
-
                 <button class="btn btn-icon" onclick="showView('playlist')" aria-label="Retour">
-
                     <svg class="icon"><use href="#ico-arrow-left"/></svg>
-
                 </button>
-
                 <h3>${escHtml(p.name)}</h3>
-
             </div>
-
             
-
             <div class="playlist-card" style="margin-bottom: var(--sp-lg); cursor: default; border-color: var(--border); padding: var(--sp-md);">
-
                 <div class="playlist-cover" style="width: 80px; height: 80px;">${coverHtml}</div>
-
                 <div class="playlist-info">
-
                     <div class="playlist-name" style="font-size: 18px;">${escHtml(p.name)}</div>
-
                     ${p.description ? `<div class="playlist-desc" style="font-size: 13px; margin-top: 4px;">${escHtml(p.description)}</div>` : ''}
-
                     <div class="playlist-meta" style="margin-top: 8px;">${p.songs.length} chant${p.songs.length > 1 ? 's' : ''}</div>
-
                 </div>
-
             </div>
-
             
-
             <div id="pl-songs-list">
-
                 ${renderList(p.songs, 'ico-music', 'Cette playlist est vide.')}
-
             </div>
-
         `;
-
     }
-
-
 
     function newPlaylist() {
-
         const n = prompt('Nom de la playlist (ex: Louange Été) :');
-
         if (n) {
-
             state.playlists.push({ name: n, description: '', cover: null, songs: [], isPlaylist: true });
-
             savePlaylists();
-
             showView('playlist');
-
         }
-
     }
-
-
 
     function savePlaylists() {
-
         try {
-
             localStorage.setItem('cantus_playlists', JSON.stringify(state.playlists));
-
         } catch (e) {
-
             if (e.name === 'QuotaExceededError') {
-
                 alert("Erreur de sauvegarde: l'image de couverture est trop volumineuse.");
-
             }
-
         }
-
     }
-
-
 
     function deletePlaylist(i) {
-
         if (!confirm('Supprimer cette playlist ?')) return;
-
         state.playlists.splice(i, 1);
-
         savePlaylists();
-
         showView('playlist');
-
     }
-
-
 
     function editPlaylist(idx) {
-
         state.currentPlaylistIdx = idx;
-
         const p = state.playlists[idx];
 
-
-
         document.getElementById('content').innerHTML = `
-
             <div class="editor-head">
-
                 <button class="btn btn-icon" onclick="showView('playlist')" aria-label="Retour">
-
                     <svg class="icon"><use href="#ico-arrow-left"/></svg>
-
                 </button>
-
                 <h3>${escHtml(p.name)}</h3>
-
                 <button class="btn btn-icon danger" onclick="deletePlaylist(${idx})" title="Supprimer" aria-label="Supprimer">
-
                     <svg class="icon"><use href="#ico-trash"/></svg>
-
                 </button>
-
             </div>
-
             
-
             <div class="playlist-props-header">
-
                 <label class="cover-upload-btn" title="Modifier la couverture">
-
                     ${p.cover ? `<img src="${p.cover}" alt="Cover">` : ''}
-
                     <svg class="icon"><use href="#ico-image"/></svg>
-
                     <span style="font-size:10px;">Couverture</span>
-
                     <input type="file" accept="image/*" style="display:none" onchange="handlePlaylistCover(event)">
-
                 </label>
-
                 <div class="playlist-props-inputs">
-
                     <input type="text" id="pl-name" class="input-field" value="${escHtml(p.name)}" placeholder="Nom de la playlist" onchange="updatePlaylistProps()">
-
                     <textarea id="pl-desc" class="input-field" placeholder="Description courte" onchange="updatePlaylistProps()" style="flex:1; resize:none;">${escHtml(p.description || '')}</textarea>
-
                 </div>
-
             </div>
-
-
 
             <div class="editor-grid" style="height: calc(100dvh - 360px); min-height: 300px;">
-
                 <div class="editor-col">
-
                     <div class="col-header">Bibliothèque</div>
-
                     <div class="search-wrap" style="padding:8px 8px 0; margin-bottom:0;">
-
                         <svg class="icon"><use href="#ico-search"/></svg>
-
                         <input type="text" class="search-input" style="margin:0"
-
                                placeholder="Ajouter un chant…"
-
                                oninput="filterPlaylistEditor(this.value)">
-
                     </div>
-
                     <div id="editor-lib-pl" class="col-body">${renderEditorListForPlaylist(state.songs)}</div>
-
                 </div>
-
                 <div class="editor-col">
-
                     <div class="col-header">Chants (${p.songs.length})</div>
-
                     <div id="playlist-sortable" class="col-body">
-
                         ${p.songs.length === 0
-
                             ? `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">Ajoutez des chants depuis la bibliothèque.</p></div>`
-
                             : p.songs.map((s, i) => edItemPlaylist(s, i)).join('')
-
                         }
-
                     </div>
-
                 </div>
-
             </div>`;
-
-
 
         new Sortable(document.getElementById('playlist-sortable'), {
-
             animation: 150,
-
             handle: '.drag-handle',
-
             onEnd: e => {
-
                 const songs = state.playlists[state.currentPlaylistIdx].songs;
-
                 songs.splice(e.newIndex, 0, songs.splice(e.oldIndex, 1)[0]);
-
                 savePlaylists();
-
                 editPlaylist(state.currentPlaylistIdx);
-
             }
-
         });
-
     }
-
-
 
     function updatePlaylistProps() {
-
         if(state.currentPlaylistIdx === null) return;
-
         const p = state.playlists[state.currentPlaylistIdx];
-
         p.name = document.getElementById('pl-name').value.trim() || 'Sans nom';
-
         p.description = document.getElementById('pl-desc').value.trim();
-
         savePlaylists();
-
         document.querySelector('.editor-head h3').textContent = p.name;
-
     }
-
-
 
     function handlePlaylistCover(event) {
-
         const file = event.target.files[0];
-
         if (!file) return;
 
-
-
         const reader = new FileReader();
-
         reader.onload = e => {
-
             const img = new Image();
-
             img.onload = () => {
-
                 const canvas = document.createElement('canvas');
-
                 const ctx = canvas.getContext('2d');
-
                 const maxSize = 400; 
-
                 let width = img.width;
-
                 let height = img.height;
 
-
-
                 if (width > height) {
-
                     if (width > maxSize) { height *= maxSize / width; width = maxSize; }
-
                 } else {
-
                     if (height > maxSize) { width *= maxSize / height; height = maxSize; }
-
                 }
-
                 canvas.width = width;
-
                 canvas.height = height;
-
                 ctx.drawImage(img, 0, 0, width, height);
 
-
-
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
-
                 state.playlists[state.currentPlaylistIdx].cover = dataUrl;
-
                 savePlaylists();
-
                 editPlaylist(state.currentPlaylistIdx);
-
             };
-
             img.src = e.target.result;
-
         };
-
         reader.readAsDataURL(file);
-
     }
-
-
 
     function renderEditorListForPlaylist(list) {
-
         if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
-
         return list.map(s => `
-
             <div class="ed-item ed-item--add" onclick="addSongToPlaylist('${s.id}')">
-
                 <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-
                 <span class="ed-name">${escHtml(s.name)}</span>
-
             </div>`).join('');
-
     }
-
-
 
     function filterPlaylistEditor(query) {
-
         const q = normalizeSearch(query);
-
         document.getElementById('editor-lib-pl').innerHTML = renderEditorListForPlaylist(
-
             state.songs.filter(s => normalizeSearch(s.name).includes(q))
-
         );
-
     }
-
-
 
     function addSongToPlaylist(id) {
-
         const src = state.songs.find(x => x.id === id);
-
         if (!src) return;
-
         state.playlists[state.currentPlaylistIdx].songs.push({ ...src });
-
         savePlaylists();
-
         editPlaylist(state.currentPlaylistIdx);
-
         showToast(src.name + " ajouté");
-
     }
-
-
 
     function removeSongFromPlaylist(i) {
-
         state.playlists[state.currentPlaylistIdx].songs.splice(i, 1);
-
         savePlaylists();
-
         editPlaylist(state.currentPlaylistIdx);
-
     }
-
-
 
     function edItemPlaylist(s, i) {
-
         const isNote = s.type === 'note';
-
         const ico   = isNote ? '#ico-note' : '#ico-file';
-
         return `
-
             <div class="ed-item ${isNote ? 'is-note' : ''}" data-id="${i}">
-
                 <svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>
-
                 <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="${ico}"/></svg>
-
                 <span class="ed-name">${escHtml(s.name)}</span>
-
                 <button class="btn btn-icon danger" onclick="removeSongFromPlaylist(${i})" aria-label="Supprimer">
-
                     <svg class="icon icon-sm"><use href="#ico-x"/></svg>
-
                 </button>
-
             </div>`;
-
     }
-
-
 
     function openExportPlaylistModal(idx) {
-
         const pl = { ...state.playlists[idx] };
-
         delete pl.cover; 
-
         pl.isPlaylist = true;
 
-
-
         const jsonString  = JSON.stringify(pl);
-
         const compressed  = LZString.compressToEncodedURIComponent(jsonString);
-
         const baseUrl     = window.location.href.split('?')[0];
-
         const url         = baseUrl + '?importPl=' + compressed;
 
-
-
         state.exportUrlCache  = url;
-
         state.exportJsonCache = jsonString;
 
-
-
         document.getElementById('export-title').textContent = escHtml(pl.name);
-
         const modal = document.getElementById('export-modal');
-
         modal.classList.add('open');
 
-
-
         new QRious({
-
             element: document.getElementById('qr-code-img'),
-
             value:   url,
-
             size:    220,
-
             level:   'L'
-
         });
-
     }
 
-
-
     init();
-
 </script>
-
 </body>
-
-</html> 
-
+</html>
