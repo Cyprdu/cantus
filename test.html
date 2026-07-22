@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Double Clin d'œil - MediaPipe</title>
+    <title>Test Hochement de Tête - MediaPipe</title>
     <!-- Scripts MediaPipe Face Mesh -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -46,7 +46,7 @@
             object-fit: cover;
             transform: scaleX(-1);
         }
-        #blink-indicator {
+        #nod-indicator {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -58,7 +58,7 @@
             transition: background 150ms ease, transform 150ms ease;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        #blink-indicator.active {
+        #nod-indicator.active {
             background: #6dab6d;
             transform: scale(1.25);
             box-shadow: 0 0 16px #6dab6d;
@@ -72,11 +72,11 @@
 </head>
 <body>
 
-    <h2>Test de Double Clin d'Œil</h2>
+    <h2>Test de Hochement de Tête Conséquent</h2>
     <div class="container">
         <video id="webcam" playsinline></video>
         <canvas id="output-canvas"></canvas>
-        <div id="blink-indicator" title="Indicateur de double clin d'œil"></div>
+        <div id="nod-indicator" title="Indicateur de hochement de tête"></div>
     </div>
     <div class="info" id="status-text">Initialisation de la caméra et du modèle...</div>
 
@@ -84,20 +84,22 @@
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output-canvas');
         const canvasCtx = canvasElement.getContext('2d');
-        const indicator = document.getElementById('blink-indicator');
+        const indicator = document.getElementById('nod-indicator');
         const statusText = document.getElementById('status-text');
 
-        let blinkCount = 0;
-        let firstBlinkTimestamp = 0;
-        let lastBlinkDetectTime = 0;
         let indicatorTimeout = null;
+        let lastNodTime = 0;
 
-        function triggerBlinkIndicator() {
+        // Variables pour la détection d'amplitude du geste
+        let noseYHistory = [];
+        const HISTORY_SIZE = 15; // Fenêtre d'analyse de ~0.5s
+        
+        function triggerNodIndicator() {
             indicator.classList.add('active');
             clearTimeout(indicatorTimeout);
             indicatorTimeout = setTimeout(() => {
                 indicator.classList.remove('active');
-            }, 400);
+            }, 500);
         }
 
         function onResults(results) {
@@ -111,46 +113,43 @@
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                statusText.textContent = "Visage détecté - Faites un double clin d'œil rapide";
+                statusText.textContent = "Visage détecté - Faites un hochement de tête bien marqué vers le bas";
                 const landmarks = results.multiFaceLandmarks[0];
 
-                const rightEyeDist = Math.abs(landmarks[159].y - landmarks[145].y);
-                const leftEyeDist  = Math.abs(landmarks[386].y - landmarks[374].y);
+                // Point 1 : Bout du nez | Point 10 : Haut du front | Point 152 : Bas du menton
+                const noseY = landmarks[1].y;
+                const foreheadY = landmarks[10].y;
+                const chinY = landmarks[152].y;
+                
+                // Calcul de la taille relative du visage (pour annuler l'effet de distance par rapport à l'écran)
+                const faceHeight = Math.abs(chinY - foreheadY);
+                const relativeNoseY = noseY / faceHeight;
 
-                const threshold = 0.012;
-                const now = Date.now();
-
-                // Détection de la fermeture des yeux avec anti-rebond unitaire (300ms entre deux clignements distincts)
-                const isEyesClosed = (rightEyeDist < threshold || leftEyeDist < threshold);
-
-                if (isEyesClosed && (now - lastBlinkDetectTime > 300)) {
-                    lastBlinkDetectTime = now;
-
-                    if (blinkCount === 0) {
-                        blinkCount = 1;
-                        firstBlinkTimestamp = now;
-                    } else if (blinkCount === 1) {
-                        // Fenêtre de temps pour valider le second clin d'œil (entre 150ms et 800ms après le premier)
-                        const elapsed = now - firstBlinkTimestamp;
-                        if (elapsed > 150 && elapsed < 800) {
-                            triggerBlinkIndicator();
-                            statusText.textContent = "Double clin d'œil détecté avec succès !";
-                            blinkCount = 0; // Réinitialisation
-                        } else if (elapsed >= 800) {
-                            // Trop lent, on redémarre un nouveau cycle avec ce nouveau clignement
-                            blinkCount = 1;
-                            firstBlinkTimestamp = now;
-                        }
-                    }
+                // Historique glissant
+                noseYHistory.push(relativeNoseY);
+                if (noseYHistory.length > HISTORY_SIZE) {
+                    noseYHistory.shift();
                 }
 
-                // Si le délai entre le 1er et le 2nd dépasse 800ms, on réinitialise
-                if (blinkCount === 1 && (now - firstBlinkTimestamp > 800)) {
-                    blinkCount = 0;
+                const now = Date.now();
+                const maxY = Math.max(...noseYHistory);
+                const minY = Math.min(...noseYHistory);
+                const deltaY = maxY - minY;
+
+                // Seuil d'amplitude : 0.22 signifie que le nez doit bouger d'au moins 22% de la hauteur totale du visage
+                const THRESHOLD = 0.22; 
+
+                // Anti-rebond de 1.2s pour éviter de tourner plusieurs pages pendant le même mouvement
+                if (deltaY > THRESHOLD && (now - lastNodTime > 1200)) {
+                    lastNodTime = now;
+                    triggerNodIndicator();
+                    statusText.textContent = "Hochement de tête conséquent détecté !";
+                    noseYHistory = []; // Réinitialise l'historique après détection
                 }
 
             } else {
                 statusText.textContent = "Aucun visage détecté. Placez-vous face à la caméra.";
+                noseYHistory = [];
             }
 
             canvasCtx.restore();
@@ -179,7 +178,7 @@
 
         camera.start()
             .then(() => {
-                statusText.textContent = "Caméra active. Faites un double clin d'œil !";
+                statusText.textContent = "Caméra active. Hochez la tête fermement !";
             })
             .catch(err => {
                 statusText.textContent = "Erreur d'accès à la caméra : " + err.message;
