@@ -233,6 +233,18 @@
         }
         @media (max-width: 480px) { header { padding: 0 var(--sp-md); } main { padding: var(--sp-sm); } }
         @supports (padding: env(safe-area-inset-top)) { header { padding-top: env(safe-area-inset-top); } main   { padding-bottom: env(safe-area-inset-bottom); } }
+
+        /* ─── MODALE D'AUTORISATION CAMÉRA ─── */
+#camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+#camera-modal.open { display: flex; }
+.cam-modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 420px; text-align: center; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; align-items: center; gap: var(--sp-md); }
+.cam-icon-wrap { width: 64px; height: 64px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 4px; }
+.cam-icon-wrap svg { width: 30px; height: 30px; }
+.cam-modal-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0; }
+.cam-modal-card p { font-size: 0.9rem; color: var(--text-2); margin: 0; line-height: 1.45; }
+.cam-modal-actions { display: flex; flex-direction: column; gap: var(--sp-sm); width: 100%; margin-top: var(--sp-sm); }
+
+        
     </style>
 </head>
 <body>
@@ -682,27 +694,66 @@
         }
     });
 
-    async function startPerformance(setlist) {
-        if (!setlist || setlist.length === 0) return;
-        state.activeSet = setlist;
-        state.currentIdx = 0;
+    // Variable globale pour stocker le setlist en attente d'autorisation
+let pendingSetlist = null;
 
-        // Fullscreen
-        const el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {});
-        }
+async function startPerformance(setlist) {
+    if (!setlist || setlist.length === 0) return;
+    pendingSetlist = setlist;
 
-        // Activer Wake Lock
-        await requestWakeLock();
-
-        const perfEl = document.getElementById('performance-mode');
-        perfEl.style.display = 'flex';
-        perfEl.classList.remove('show-hud');
-
-        await loadItem();
+    // Vérifier si la permission caméra a déjà été accordée ou testée
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // Si on a déjà l'accès, on coupe le flux de test immédiat et on lance directement
+        stream.getTracks().forEach(track => track.stop());
+        launchPerformanceConfirmed(pendingSetlist);
+    } catch (err) {
+        // Sinon, on affiche notre jolie modale explicative
+        document.getElementById('camera-modal').classList.add('open');
     }
+}
+
+async function requestCameraAccess() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop()); // Libérer le flux de test
+        closeCameraModal();
+        if (pendingSetlist) {
+            launchPerformanceConfirmed(pendingSetlist);
+        }
+    } catch (err) {
+        alert("L'accès à la caméra a été refusé ou n'est pas disponible sur cet appareil.");
+        closeCameraModal();
+    }
+}
+
+function closeCameraModal() {
+    document.getElementById('camera-modal').classList.remove('open');
+    pendingSetlist = null;
+}
+
+async function launchPerformanceConfirmed(setlist) {
+    state.activeSet = setlist;
+    state.currentIdx = 0;
+
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+    }
+
+    await requestWakeLock();
+
+    const perfEl = document.getElementById('performance-mode');
+    perfEl.style.display = 'flex';
+    perfEl.classList.remove('show-hud');
+
+    if (cameraInstance) {
+        cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
+    }
+
+    await loadItem();
+}
 
     async function loadItem() {
         // AMELIORATION: Nettoyage de la mémoire de l'ancien PDF
@@ -1365,5 +1416,21 @@
 
     init();
 </script>
+
+
+    <!-- Modale d'autorisation caméra explicative -->
+<div id="camera-modal">
+    <div class="cam-modal-card">
+        <div class="cam-icon-wrap">
+            <svg class="icon"><use href="#ico-face"/></svg>
+        </div>
+        <h3>Accès à la caméra requis</h3>
+        <p>Cantus Pro a besoin d'accéder à votre caméra pour activer le défilement des pages par inclinaison de tête. Vos images ne sont pas enregistrées.</p>
+        <div class="cam-modal-actions">
+            <button class="btn btn-primary" onclick="requestCameraAccess()" style="width:100%;">Autoriser la caméra</button>
+            <button class="btn btn-ghost" onclick="closeCameraModal()" style="width:100%;">Annuler</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
