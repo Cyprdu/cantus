@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Clin d'œil - MediaPipe</title>
+    <title>Test Double Clin d'œil - MediaPipe</title>
     <!-- Scripts MediaPipe Face Mesh -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -38,13 +38,13 @@
             border: 1px solid #333;
         }
         video {
-            display: none; /* Le flux vidéo brut est caché, on l'utilise en arrière-plan pour le traitement */
+            display: none;
         }
         canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Effet miroir plus naturel */
+            transform: scaleX(-1);
         }
         #blink-indicator {
             position: absolute;
@@ -55,7 +55,7 @@
             border-radius: 50%;
             background: #e05050;
             border: 2px solid rgba(255,255,255,0.3);
-            transition: background 150s ease, transform 150ms ease;
+            transition: background 150ms ease, transform 150ms ease;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         #blink-indicator.active {
@@ -72,11 +72,11 @@
 </head>
 <body>
 
-    <h2>Test de Détection de Clin d'Œil</h2>
+    <h2>Test de Double Clin d'Œil</h2>
     <div class="container">
         <video id="webcam" playsinline></video>
         <canvas id="output-canvas"></canvas>
-        <div id="blink-indicator" title="Indicateur de clin d'œil"></div>
+        <div id="blink-indicator" title="Indicateur de double clin d'œil"></div>
     </div>
     <div class="info" id="status-text">Initialisation de la caméra et du modèle...</div>
 
@@ -87,7 +87,9 @@
         const indicator = document.getElementById('blink-indicator');
         const statusText = document.getElementById('status-text');
 
-        let lastBlinkTime = 0;
+        let blinkCount = 0;
+        let firstBlinkTimestamp = 0;
+        let lastBlinkDetectTime = 0;
         let indicatorTimeout = null;
 
         function triggerBlinkIndicator() {
@@ -95,11 +97,10 @@
             clearTimeout(indicatorTimeout);
             indicatorTimeout = setTimeout(() => {
                 indicator.classList.remove('active');
-            }, 300);
+            }, 400);
         }
 
         function onResults(results) {
-            // Ajuster la taille du canvas par rapport au flux vidéo réel
             if (canvasElement.width !== videoElement.videoWidth) {
                 canvasElement.width = videoElement.videoWidth;
                 canvasElement.height = videoElement.videoHeight;
@@ -107,26 +108,47 @@
 
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            // Dessiner le flux de la caméra sur le canvas
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                statusText.textContent = "Visage détecté - Clignez des yeux pour tester";
+                statusText.textContent = "Visage détecté - Faites un double clin d'œil rapide";
                 const landmarks = results.multiFaceLandmarks[0];
 
-                // Calcul de la distance verticale des paupières (indices MediaPipe)
-                // Œil droit : Haut (159), Bas (145) | Œil gauche : Haut (386), Bas (374)
                 const rightEyeDist = Math.abs(landmarks[159].y - landmarks[145].y);
                 const leftEyeDist  = Math.abs(landmarks[386].y - landmarks[374].y);
 
-                const threshold = 0.012; // Seuil de fermeture
+                const threshold = 0.012;
                 const now = Date.now();
 
-                // Anti-rebond (debounce) de 600ms pour éviter les déclenchements en rafale
-                if ((rightEyeDist < threshold || leftEyeDist < threshold) && (now - lastBlinkTime > 600)) {
-                    lastBlinkTime = now;
-                    triggerBlinkIndicator();
+                // Détection de la fermeture des yeux avec anti-rebond unitaire (300ms entre deux clignements distincts)
+                const isEyesClosed = (rightEyeDist < threshold || leftEyeDist < threshold);
+
+                if (isEyesClosed && (now - lastBlinkDetectTime > 300)) {
+                    lastBlinkDetectTime = now;
+
+                    if (blinkCount === 0) {
+                        blinkCount = 1;
+                        firstBlinkTimestamp = now;
+                    } else if (blinkCount === 1) {
+                        // Fenêtre de temps pour valider le second clin d'œil (entre 150ms et 800ms après le premier)
+                        const elapsed = now - firstBlinkTimestamp;
+                        if (elapsed > 150 && elapsed < 800) {
+                            triggerBlinkIndicator();
+                            statusText.textContent = "Double clin d'œil détecté avec succès !";
+                            blinkCount = 0; // Réinitialisation
+                        } else if (elapsed >= 800) {
+                            // Trop lent, on redémarre un nouveau cycle avec ce nouveau clignement
+                            blinkCount = 1;
+                            firstBlinkTimestamp = now;
+                        }
+                    }
                 }
+
+                // Si le délai entre le 1er et le 2nd dépasse 800ms, on réinitialise
+                if (blinkCount === 1 && (now - firstBlinkTimestamp > 800)) {
+                    blinkCount = 0;
+                }
+
             } else {
                 statusText.textContent = "Aucun visage détecté. Placez-vous face à la caméra.";
             }
@@ -157,7 +179,7 @@
 
         camera.start()
             .then(() => {
-                statusText.textContent = "Caméra active. Clignez des yeux pour tester !";
+                statusText.textContent = "Caméra active. Faites un double clin d'œil !";
             })
             .catch(err => {
                 statusText.textContent = "Erreur d'accès à la caméra : " + err.message;
