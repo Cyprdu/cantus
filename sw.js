@@ -1,6 +1,7 @@
-const CACHE_NAME = 'cantus-app-shell-v2';
+const CACHE_NAME = 'cantus-app-shell-v4';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
+// Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
 const ASSETS = [
     '/',
     '/index.html',
@@ -16,6 +17,7 @@ const ASSETS = [
     'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
 ];
 
+// 1. Installation : Télécharge et met en cache l'application de base
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -25,6 +27,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
+// 2. Activation : Nettoyage des anciennes versions du cache
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -40,21 +43,41 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
+// 3. Interception robuste (Cache First avec repli intelligent)
 self.addEventListener('fetch', (event) => {
-    if (event.request.url.includes('api.github.com')) {
+    const url = event.request.url;
+
+    // Ne pas intercepter l'API GitHub pour le listing brut en ligne
+    if (url.includes('api.github.com')) {
         return;
     }
 
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
+                // Retourne la ressource du cache si elle existe
                 return cachedResponse;
             }
+
+            // Sinon, essaie de la récupérer sur le réseau
             return fetch(event.request).then((networkResponse) => {
+                // Si la requête réseau réussit, on met la réponse en cache à la volée
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
+                    const targetCache = url.includes('.pdf') ? PDF_CACHE_NAME : CACHE_NAME;
+                    caches.open(targetCache).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
                 return networkResponse;
             }).catch(() => {
-                // S'assure de ne jamais renvoyer undefined/null pour éviter le crash Safari
-                return new Response("Ressource hors-ligne non disponible", {
+                // SI ON EST HORS-LIGNE et que la ressource n'est pas dans le cache principal :
+                // On redirige intelligemment vers index.html pour éviter le message d'erreur brut
+                if (event.request.mode === 'navigate') {
+                    return caches.match('/index.html');
+                }
+                
+                return new Response("Fichier non disponible hors-ligne", {
                     status: 404,
                     statusText: "Not Found"
                 });
