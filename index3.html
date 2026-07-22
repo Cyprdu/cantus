@@ -547,6 +547,9 @@
     /* ══════════════════════════════════════════
        LIBRARY SYNC & OFFLINE CACHING
     ══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       LIBRARY SYNC & PRE-CACHING ALL PDFS
+    ══════════════════════════════════════════ */
     async function loadLibrary() {
         try {
             const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`);
@@ -561,7 +564,9 @@
                 }));
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
-            syncOfflinePDFs(state.songs);
+            
+            // TÉLÉCHARGEMENT AUTOMATIQUE DE TOUTES LES PARTITIONS EN ARRIÈRE-PLAN
+            preloadAllPDFs(state.songs);
         } catch(e) {
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
             state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song' }));
@@ -569,6 +574,34 @@
         }
     }
 
+    async function preloadAllPDFs(songs) {
+        if (!('caches' in window)) return;
+        try {
+            const cache = await caches.open('cantus-pdfs-v1');
+            console.log("📥 Démarrage du téléchargement hors-ligne de toutes les partitions...");
+            
+            // Télécharge chaque PDF de la liste en parallèle pour que tout soit disponible hors-ligne
+            await Promise.all(songs.map(async (song) => {
+                try {
+                    const response = await cache.match(song.url);
+                    // Si le PDF n'est pas déjà en cache, on le télécharge
+                    if (!response) {
+                        const networkResponse = await fetch(song.url);
+                        if (networkResponse.ok) {
+                            await cache.put(song.url, networkResponse);
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Échec du pré-chargement pour : ${song.name}`);
+                }
+            }));
+            console.log("✅ Toutes les partitions sont disponibles hors-ligne !");
+        } catch (e) {
+            console.error('Erreur lors du pré-chargement global des PDF', e);
+        }
+    }
+
+    
     async function syncOfflinePDFs(songs) {
         if (!('caches' in window)) return;
         try {
