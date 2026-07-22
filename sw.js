@@ -1,7 +1,6 @@
 const CACHE_NAME = 'cantus-app-shell-v2';
-const PDF_CACHE_NAME = 'cantus-pdfs-v1'; // Géré dans le main script, déclaré ici pour éviter son effacement
+const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
-// Ressources de base à télécharger et garder en cache pour l'interface
 const ASSETS = [
     '/',
     '/index.html',
@@ -27,7 +26,6 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-    // Nettoyer les anciens caches si on change de version (ex: v2)
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
@@ -42,9 +40,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Stratégie "Cache First" pour les assets de l'app, et les PDF
 self.addEventListener('fetch', (event) => {
-    // Ne pas intercepter les requêtes API Github pour toujours avoir la liste fraîche si on a le net
     if (event.request.url.includes('api.github.com')) {
         return;
     }
@@ -54,11 +50,14 @@ self.addEventListener('fetch', (event) => {
             if (cachedResponse) {
                 return cachedResponse;
             }
-            // Si pas en cache, chercher sur le réseau
             return fetch(event.request).then((networkResponse) => {
                 return networkResponse;
             }).catch(() => {
-                console.error("Réseau indisponible et ressource non trouvée en cache :", event.request.url);
+                // S'assure de ne jamais renvoyer undefined/null pour éviter le crash Safari
+                return new Response("Ressource hors-ligne non disponible", {
+                    status: 404,
+                    statusText: "Not Found"
+                });
             });
         })
     );
