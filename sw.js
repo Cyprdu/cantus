@@ -1,16 +1,20 @@
-const CACHE_NAME = 'cantus-app-shell-v1';
+const CACHE_NAME = 'cantus-app-shell-v2';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1'; // Géré dans le main script, déclaré ici pour éviter son effacement
 
 // Ressources de base à télécharger et garder en cache pour l'interface
 const ASSETS = [
     '/',
     '/index.html',
+    '/index2.html',
+    '/index3.html',
     '/favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js'
+    'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
+    'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
+    'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -54,7 +58,6 @@ self.addEventListener('fetch', (event) => {
             return fetch(event.request).then((networkResponse) => {
                 return networkResponse;
             }).catch(() => {
-                // Optionnel: Retourner une page d'erreur si la ressource échoue et n'est pas en cache
                 console.error("Réseau indisponible et ressource non trouvée en cache :", event.request.url);
             });
         })
