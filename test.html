@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Clin d'œil - MediaPipe</title>
+    <!-- Scripts MediaPipe Face Mesh -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #111;
+            color: #eee;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h2 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            letter-spacing: 0.05em;
+        }
+        .container {
+            position: relative;
+            width: 640px;
+            max-width: 95vw;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            border: 1px solid #333;
+        }
+        video {
+            display: none; /* Le flux vidéo brut est caché, on l'utilise en arrière-plan pour le traitement */
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Effet miroir plus naturel */
+        }
+        #blink-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e05050;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: background 150s ease, transform 150ms ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #blink-indicator.active {
+            background: #6dab6d;
+            transform: scale(1.25);
+            box-shadow: 0 0 16px #6dab6d;
+        }
+        .info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Test de Détection de Clin d'Œil</h2>
+    <div class="container">
+        <video id="webcam" playsinline></video>
+        <canvas id="output-canvas"></canvas>
+        <div id="blink-indicator" title="Indicateur de clin d'œil"></div>
+    </div>
+    <div class="info" id="status-text">Initialisation de la caméra et du modèle...</div>
+
+    <script>
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output-canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const indicator = document.getElementById('blink-indicator');
+        const statusText = document.getElementById('status-text');
+
+        let lastBlinkTime = 0;
+        let indicatorTimeout = null;
+
+        function triggerBlinkIndicator() {
+            indicator.classList.add('active');
+            clearTimeout(indicatorTimeout);
+            indicatorTimeout = setTimeout(() => {
+                indicator.classList.remove('active');
+            }, 300);
+        }
+
+        function onResults(results) {
+            // Ajuster la taille du canvas par rapport au flux vidéo réel
+            if (canvasElement.width !== videoElement.videoWidth) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            // Dessiner le flux de la caméra sur le canvas
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                statusText.textContent = "Visage détecté - Clignez des yeux pour tester";
+                const landmarks = results.multiFaceLandmarks[0];
+
+                // Calcul de la distance verticale des paupières (indices MediaPipe)
+                // Œil droit : Haut (159), Bas (145) | Œil gauche : Haut (386), Bas (374)
+                const rightEyeDist = Math.abs(landmarks[159].y - landmarks[145].y);
+                const leftEyeDist  = Math.abs(landmarks[386].y - landmarks[374].y);
+
+                const threshold = 0.012; // Seuil de fermeture
+                const now = Date.now();
+
+                // Anti-rebond (debounce) de 600ms pour éviter les déclenchements en rafale
+                if ((rightEyeDist < threshold || leftEyeDist < threshold) && (now - lastBlinkTime > 600)) {
+                    lastBlinkTime = now;
+                    triggerBlinkIndicator();
+                }
+            } else {
+                statusText.textContent = "Aucun visage détecté. Placez-vous face à la caméra.";
+            }
+
+            canvasCtx.restore();
+        }
+
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceMesh.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+
+        camera.start()
+            .then(() => {
+                statusText.textContent = "Caméra active. Clignez des yeux pour tester !";
+            })
+            .catch(err => {
+                statusText.textContent = "Erreur d'accès à la caméra : " + err.message;
+                console.error(err);
+            });
+    </script>
+</body>
+</html>
