@@ -561,8 +561,10 @@
             // Un seul appel récursif : renvoie tout l'arbre du dépôt (fichiers + dossiers),
             // ce qui permet de récupérer les sous-dossiers de catégories (partitions/adoration/, etc.)
             const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`);
+            if (!r.ok) throw new Error('Réponse GitHub non valide : ' + r.status);
             const d = await r.json();
-            state.songs = (d.tree || [])
+            if (!Array.isArray(d.tree)) throw new Error('Réponse GitHub inattendue (pas d\'arbre)');
+            state.songs = d.tree
                 .filter(f => f.type === 'blob' && f.path.startsWith(GITHUB_PATH + '/') && f.path.toLowerCase().endsWith('.pdf'))
                 .map(f => {
                     const relative = f.path.slice(GITHUB_PATH.length + 1); // ex: "adoration/A23 - Nom.pdf"
