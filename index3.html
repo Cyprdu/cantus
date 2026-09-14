@@ -129,6 +129,16 @@
         .card:hover { border-color: var(--surface-3); background: var(--surface-2); }
         .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
         .card-title { font-size: 14px; font-weight: 500; letter-spacing: .01em; color: var(--text); min-width: 0; word-break: break-word; }
+        .cat-badge { display: inline-block; margin-top: 4px; padding: 2px 9px; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); border-radius: 20px; }
+
+        /* ─── CATEGORY SELECT ─── */
+        select.search-input {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
 
         /* ─── PLANNER GRID ─── */
         .planner-header { display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-md); }
@@ -443,6 +453,19 @@
     const GITHUB_USER = 'Cyprdu';
     const GITHUB_REPO = 'cantus';
     const GITHUB_PATH = 'partitions';
+    const GITHUB_BRANCH = 'main';
+
+    const CATEGORIES = [
+        { key: 'louange',       label: 'Louange' },
+        { key: 'louange_calme', label: 'Louange Calme' },
+        { key: 'adoration',     label: 'Adoration' },
+        { key: 'esprit_saint',  label: 'Esprit Saint' },
+        { key: 'communion',     label: 'Communion' },
+        { key: 'marie',         label: 'Marie' },
+        { key: 'polyphonique',  label: 'Polyphonique' },
+        { key: 'autre',         label: 'Autre' }
+    ];
+    const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -535,16 +558,26 @@
     ══════════════════════════════════════════ */
     async function loadLibrary() {
         try {
-            const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`);
+            // Un seul appel récursif : renvoie tout l'arbre du dépôt (fichiers + dossiers),
+            // ce qui permet de récupérer les sous-dossiers de catégories (partitions/adoration/, etc.)
+            const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`);
             const d = await r.json();
-            state.songs = d
-                .filter(f => f.name.endsWith('.pdf'))
-                .map(f => ({
-                    id:   f.sha,
-                    type: 'song',
-                    name: f.name.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
-                    url:  f.download_url
-                }));
+            state.songs = (d.tree || [])
+                .filter(f => f.type === 'blob' && f.path.startsWith(GITHUB_PATH + '/') && f.path.toLowerCase().endsWith('.pdf'))
+                .map(f => {
+                    const relative = f.path.slice(GITHUB_PATH.length + 1); // ex: "adoration/A23 - Nom.pdf"
+                    const segments = relative.split('/');
+                    const rawCategory = segments.length > 1 ? segments[0] : 'autre';
+                    const category = CATEGORY_LABELS[rawCategory] ? rawCategory : 'autre';
+                    const filename = segments[segments.length - 1];
+                    return {
+                        id:       f.sha,
+                        type:     'song',
+                        category: category,
+                        name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
+                        url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`
+                    };
+                });
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
             
@@ -552,7 +585,7 @@
             preloadAllPDFs(state.songs);
         } catch(e) {
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
-            state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song' }));
+            state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' }));
             setSyncStatus(false);
         }
     }
@@ -599,18 +632,20 @@
             c.innerHTML = `
                 <div class="search-wrap">
                     <svg class="icon"><use href="#ico-search"/></svg>
-                    <input type="text" class="search-input" placeholder="Rechercher un chant…"
-                           oninput="searchLibrary(this.value, 'library')">
+                    <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
+                           oninput="filterLibrary('library')">
                 </div>
+                ${renderCategorySelect('lib-cat', 'library')}
                 <div id="lib-list">${renderList(state.songs, 'ico-music', 'Aucun chant trouvé.')}</div>`;
         } else if (v === 'favorites') {
             const favSongs = state.songs.filter(s => state.favorites.includes(s.id));
             c.innerHTML = `
                 <div class="search-wrap">
                     <svg class="icon"><use href="#ico-search"/></svg>
-                    <input type="text" class="search-input" placeholder="Rechercher dans les favoris…"
-                           oninput="searchLibrary(this.value, 'favorites')">
+                    <input type="text" class="search-input" id="fav-search" placeholder="Rechercher dans les favoris…"
+                           oninput="filterLibrary('favorites')">
                 </div>
+                ${renderCategorySelect('fav-cat', 'favorites')}
                 <div id="fav-list">${renderList(favSongs, 'ico-heart', "Vous n'avez pas encore de favoris.")}</div>`;
         } else if (v === 'planner') {
             c.innerHTML = `
@@ -639,16 +674,28 @@
         }
     }
 
+    function renderCategorySelect(id, target) {
+        const options = CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+        return `
+            <select id="${id}" class="search-input" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"
+                    onchange="filterLibrary('${target}')">
+                <option value="">Toutes les catégories</option>
+                ${options}
+            </select>`;
+    }
+
     function renderList(list, emptyIcon, emptyText) {
         if (list.length === 0) return emptyState(emptyIcon, emptyText);
         return list.map(s => {
             const isFav = state.favorites.includes(s.id);
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
+            const catLabel = CATEGORY_LABELS[s.category] || 'Autre';
             return `
             <div class="card">
                 <div class="card-content">
                     <div class="card-title">${escHtml(s.name)}</div>
+                    ${s.type === 'song' ? `<div class="cat-badge">${escHtml(catLabel)}</div>` : ''}
                 </div>
                 <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
                     <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${s.id}', event)" title="Favori" aria-label="Favori">
@@ -728,21 +775,31 @@
         return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[-_,'".]/g, ' ').replace(/\bsaint\b/g, 'st').replace(/\bsainte\b/g, 'ste').replace(/\s+/g, ' ').trim();
     }
 
-    function searchLibrary(query, targetListStr) {
-        const q = normalizeSearch(query);
+    function filterLibrary(targetListStr) {
+        const isFav = targetListStr === 'favorites';
+        const searchEl = document.getElementById(isFav ? 'fav-search' : 'lib-search');
+        const catEl    = document.getElementById(isFav ? 'fav-cat' : 'lib-cat');
+        const q   = normalizeSearch(searchEl ? searchEl.value : '');
+        const cat = catEl ? catEl.value : '';
+
         let sourceList = state.songs;
         let icon = 'ico-music';
         let emptyTxt = 'Aucun chant trouvé.';
 
-        if (targetListStr === 'favorites') {
+        if (isFav) {
             sourceList = state.songs.filter(s => state.favorites.includes(s.id));
             icon = 'ico-heart';
             emptyTxt = "Aucun favori ne correspond à votre recherche.";
         }
-        
-        const filtered = sourceList.filter(s => normalizeSearch(s.name).includes(q));
-        document.getElementById(targetListStr === 'favorites' ? 'fav-list' : 'lib-list').innerHTML = renderList(filtered, icon, emptyTxt);
+
+        const filtered = sourceList.filter(s =>
+            (!cat || s.category === cat) && normalizeSearch(s.name).includes(q)
+        );
+        document.getElementById(isFav ? 'fav-list' : 'lib-list').innerHTML = renderList(filtered, icon, emptyTxt);
     }
+
+    // Conservé pour compatibilité si appelé ailleurs
+    function searchLibrary(query, targetListStr) { filterLibrary(targetListStr); }
 
     /* ══════════════════════════════════════════
        FACE TRACKING RECOGNITION (MEDIAPIPE)
