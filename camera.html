@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=ai-legible&utm_source=comment&utm_medium=referral&utm_id=53b78159-341c-4888-9c04-86f365fe0992
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="hosting-provider" content="Netlify">
+<meta name="netlify-deploy" content="https://netlify.new/?utm_campaign=ai-legible&amp;utm_source=meta&amp;utm_medium=referral&amp;utm_id=53b78159-341c-4888-9c04-86f365fe0992">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle par Inclinaison de Tête</title>
+    <!-- Scripts MediaPipe Face Mesh -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg: #090909;
+            --surface: #141414;
+            --border: #2a2a2a;
+            --accent: #c8956c;
+            --text: #e8e8e8;
+            --text-2: #888;
+            --danger: #e05050;
+            --success: #6dab6d;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .main-container {
+            position: relative;
+            width: 640px;
+            max-width: 95vw;
+            aspect-ratio: 4 / 3;
+            background: var(--surface);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        video { display: none; }
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        
+        /* ─── HUD INDICATORS (DROITE / GAUCHE) ─── */
+        .hud-indicators {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .indicator-pill {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 200ms ease;
+        }
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            transition: background 200ms ease, transform 200ms ease;
+        }
+        .indicator-pill.active {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        .indicator-pill.active .indicator-dot {
+            background: var(--success);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-bar {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--text-2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Indicateurs visuels Droite / Gauche en mode actif -->
+        <div class="hud-indicators">
+            <div class="indicator-pill" id="ind-left">
+                <div class="indicator-dot"></div> Précédent (Gauche)
+            </div>
+            <div class="indicator-pill" id="ind-right">
+                Suivant (Droite) <div class="indicator-dot"></div>
+            </div>
+        </div>
+
+        <video id="webcam" playsinline></video>
+        <canvas id="output-canvas"></canvas>
+    </div>
+    <div class="status-bar" id="status-text">Initialisation de la caméra...</div>
+
+    <script>
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output-canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusText = document.getElementById('status-text');
+        
+        const indLeft = document.getElementById('ind-left');
+        const indRight = document.getElementById('ind-right');
+
+        // Seuils inversés pour correspondre au sens souhaité
+        const RIGHT_THRESHOLD = -0.25;
+        const LEFT_THRESHOLD = 0.25;
+
+        let lastActionTime = 0;
+        let actionTimeout = null;
+
+        function triggerIndicator(side) {
+            const el = side === 'right' ? indRight : indLeft;
+            el.classList.add('active');
+            clearTimeout(actionTimeout);
+            actionTimeout = setTimeout(() => {
+                indRight.classList.remove('active');
+                indLeft.classList.remove('active');
+            }, 400);
+        }
+
+        // Calcul de l'inclinaison de la tête (Roll) basé sur les yeux (points 33 et 263 de MediaPipe)
+        function getHeadRoll(landmarks) {
+            const leftEye = landmarks[33];
+            const rightEye = landmarks[263];
+            const dy = rightEye.y - leftEye.y;
+            const dx = rightEye.x - leftEye.x;
+            return Math.atan2(dy, dx); // Angle en radians
+        }
+
+        function onResults(results) {
+            if (canvasElement.width !== videoElement.videoWidth) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                statusText.textContent = "Caméra active - Penchez la tête à droite ou à gauche";
+                const landmarks = results.multiFaceLandmarks[0];
+                const currentRoll = getHeadRoll(landmarks);
+
+                const now = Date.now();
+                // Anti-rebond de 1 seconde entre chaque déclenchement
+                if (now - lastActionTime > 1000) {
+                    if (currentRoll < RIGHT_THRESHOLD) {
+                        lastActionTime = now;
+                        triggerIndicator('right');
+                        statusText.textContent = "Action : Page Suivante (Droite détectée)";
+                    } else if (currentRoll > LEFT_THRESHOLD) {
+                        lastActionTime = now;
+                        triggerIndicator('left');
+                        statusText.textContent = "Action : Page Précédente (Gauche détectée)";
+                    }
+                }
+            } else {
+                statusText.textContent = "Aucun visage détecté. Placez-vous face à la caméra.";
+            }
+
+            canvasCtx.restore();
+        }
+
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+
+        faceMesh.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceMesh.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+
+        camera.start()
+            .then(() => {
+                statusText.textContent = "Caméra active. Penchez la tête pour tester !";
+            })
+            .catch(err => {
+                statusText.textContent = "Erreur caméra : " + err.message;
+            });
+    </script>
+</body>
+</html>
