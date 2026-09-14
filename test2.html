@@ -1,4 +1,3 @@
-<!-- Mise à jour selon les spécifications[cite: 1] incluant les nouvelles polices, le design des catégories, les carousels et l'intégration du catalogue.json -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -12,6 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cantus Pro">
 
+    <!-- Librairies externes requises -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
@@ -22,14 +22,12 @@
         @font-face {
             font-family: 'ApfelGrotezk';
             src: url('police/ApfelGrotezk-Fett.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
+            font-weight: normal; font-style: normal;
         }
         @font-face {
             font-family: 'NewTitle';
             src: url('police/NewTitle-Variable.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
+            font-weight: normal; font-style: normal;
         }
 
         /* ─── SYSTEME DE DESIGN SPOTIFY ─── */
@@ -39,14 +37,10 @@
             --surface-2:    #181818;
             --surface-3:    #282828;
             --border:       #2a2a2a;
-            
             --accent:       #1ed760;
-            --accent-dim:   rgba(30, 215, 96, 0.15);
-            
             --text:         #ffffff;
             --text-2:       #b3b3b3;
             --text-3:       #707070;
-            
             --danger:       #e22134;
 
             --r-sm:   4px;
@@ -71,14 +65,12 @@
             background: var(--bg);
             color: var(--text);
             font-family: 'ApfelGrotezk', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            height: 100%;
-            overflow: hidden;
+            font-size: 14px; line-height: 1.5;
+            height: 100%; overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
         
-        h1, h2, h3, h4, h5, h6, .brand, .header-title { 
+        h1, h2, h3, h4, h5, h6, .brand, .header-title, .editor-title-input { 
             font-family: 'NewTitle', sans-serif; 
             letter-spacing: 0.02em;
         }
@@ -90,7 +82,7 @@
         .icon-sm { width: 16px; height: 16px; }
         .icon-huge { width: 48px; height: 48px; }
 
-        /* ─── LAYOUT SPOTIFY ─── */
+        /* ─── LAYOUT GLOBAL ─── */
         #app { display: flex; height: 100dvh; background: var(--bg); padding: 8px; gap: 8px; }
         
         .sidebar {
@@ -118,11 +110,6 @@
             position: absolute; top: 0; left: 0; right: 0; z-index: 10;
         }
 
-        .sync-badge { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0,0,0,0.5); border-radius: var(--r-xl); }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
-        .sync-badge.online .sync-dot { background: var(--accent); }
-        .sync-badge.offline .sync-dot { background: var(--danger); }
-
         #content-area { flex: 1; overflow-y: auto; padding: 80px var(--sp-lg) var(--sp-lg); overscroll-behavior: contain; }
         #content-area::-webkit-scrollbar { width: 12px; }
         #content-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 6px; border: 3px solid var(--surface); }
@@ -130,7 +117,7 @@
         /* ─── BUTTONS ─── */
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 12px 24px; border: none; border-radius: var(--r-xl); font-size: 14px; cursor: pointer;
+            padding: 12px 24px; border: none; border-radius: var(--r-xl); font-size: 14px; font-weight: bold; cursor: pointer;
             transition: transform var(--t-fast), filter var(--t-fast); white-space: nowrap; user-select: none;
         }
         .btn:hover { filter: brightness(1.1); transform: scale(1.04); }
@@ -143,7 +130,6 @@
             display: flex; align-items: center; justify-content: center;
         }
         .btn-icon:hover { color: var(--text); transform: scale(1.1); }
-        .btn-icon.active { color: var(--accent); }
         
         .play-fab {
             width: 48px; height: 48px; background: var(--accent); color: #000; border-radius: 50%;
@@ -153,16 +139,16 @@
         }
         .play-fab:hover { transform: scale(1.05) translateY(0); background: #33e070; }
 
-        /* ─── SEARCH & CAROUSELS ─── */
+        /* ─── SEARCH & CAROUSELS (ACCUEIL) ─── */
         .search-container { max-width: 400px; margin-bottom: var(--sp-xl); }
         .search-input-wrap {
             position: relative; background: var(--surface-3); border-radius: var(--r-xl);
-            display: flex; align-items: center; padding: 0 16px; border: 2px solid transparent; transition: border-color var(--t-fast), background var(--t-fast);
+            display: flex; align-items: center; padding: 0 16px; border: 2px solid transparent; transition: border-color var(--t-fast);
         }
         .search-input-wrap:focus-within { border-color: #fff; }
-        .search-input-wrap .icon { color: var(--text-2); }
         .search-input-wrap input { flex: 1; padding: 14px 12px; background: transparent; border: none; color: var(--text); font-size: 16px; outline: none; }
         .search-input-wrap input::placeholder { color: var(--text-2); }
+        .search-input-wrap .icon { color: var(--text-2); }
 
         .horizontal-scroll {
             display: flex; gap: 16px; overflow-x: auto; padding-bottom: 24px; scroll-snap-type: x mandatory;
@@ -174,10 +160,9 @@
         .scroll-item .cover-wrap { width: 116px; height: 116px; margin-bottom: 12px; border-radius: var(--r-sm); overflow: hidden; background: var(--surface-3); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .scroll-item .cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .scroll-item .title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-
         .header-title { font-size: 32px; margin: 0 0 24px 0; }
 
-        /* ─── CATEGORY GRID ─── */
+        /* ─── CATEGORY GRID (RECHERCHE) ─── */
         .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
         .cat-card {
             border-radius: var(--r-md); padding: 16px; height: 120px; position: relative; overflow: hidden; cursor: pointer;
@@ -208,25 +193,83 @@
         .track-info { display: flex; flex-direction: column; min-width: 0; }
         .track-name { font-size: 16px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .track-cat { font-size: 14px; color: var(--text-2); margin-top: 2px; }
-        .track-actions { display: flex; justify-content: flex-end; align-items: center; }
 
-        /* ─── MODAL, EMPTY STATES, TOAST, PERFORMANCE (Mêmes styles fondamentaux que la v précédente) ─── */
+        /* ─── ALBUM GRIDS (MESSES & PLAYLISTS) ─── */
+        .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;}
+        .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; }
+        .album-card { background: var(--surface-2); padding: 16px; border-radius: var(--r-md); cursor: pointer; transition: background 0.3s; position: relative; }
+        .album-card:hover { background: var(--surface-3); }
+        .album-card:hover .play-fab { opacity: 1; transform: translateY(0); }
+        .album-cover { width: 100%; aspect-ratio: 1; background: var(--surface-3); border-radius: var(--r-sm); margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .album-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .album-cover .icon-huge { color: var(--text-3); width: 64px; height: 64px; }
+        .album-card .play-fab { position: absolute; right: 24px; top: 120px; z-index: 2; }
+        .album-title { font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .album-subtitle { font-size: 13px; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* ─── EDITOR (MESSES & PLAYLISTS) ─── */
+        .editor-header-large { display: flex; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; align-items: flex-end; }
+        .editor-cover-wrap { width: 192px; height: 192px; flex-shrink: 0; background: var(--surface-3); box-shadow: 0 4px 60px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
+        .editor-cover-wrap:hover::after { content: "Modifier"; position: absolute; inset:0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
+        .editor-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .editor-info { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+        .editor-type { font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .editor-title-input { background: transparent; border: none; color: #fff; font-size: 48px; line-height: 1.1; width: 100%; outline: none; margin-bottom: 16px; padding: 0; }
+        .editor-desc-input { background: transparent; border: none; color: var(--text-2); font-size: 14px; width: 100%; outline: none; resize: none; font-family: inherit; padding: 0; }
+        .editor-action-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 32px; }
+
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; min-height: 400px; }
+        .editor-col h3 { font-size: 18px; margin: 0 0 16px 0; font-family: 'NewTitle'; }
+        .editor-list-bg { background: var(--surface-2); border-radius: var(--r-md); padding: 8px; height: 100%; overflow-y: auto; max-height: 500px; }
+        .editor-list-bg::-webkit-scrollbar { width: 6px; }
+        .editor-list-bg::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .ed-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--r-sm); cursor: pointer; transition: background 0.2s; font-size: 14px; }
+        .ed-item:hover { background: var(--surface-3); }
+        .ed-item.is-note { border-left: 3px solid var(--accent); }
+        .ed-item .drag-handle { color: var(--text-3); cursor: grab; }
+        .ed-item .ed-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .note-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; padding: 12px; background: var(--surface-2); border-radius: var(--r-md); }
+        .input-field { background: var(--surface-3); border: none; padding: 12px; border-radius: var(--r-sm); color: #fff; outline: none; font-family:inherit;}
+        .input-field:focus { box-shadow: inset 0 0 0 1px var(--text-2); }
+
+        /* ─── MODAL & UTILS ─── */
+        #export-modal { position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(8px); z-index: 5000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #export-modal.open { display: flex; }
+        .modal-card { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-xl); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+        .modal-card h3 { font-size: 24px; margin: 0 0 8px; font-family: 'NewTitle'; }
+        #qr-code-img { display: block; margin: 0 auto 24px; padding: 16px; background: #fff; border-radius: var(--r-sm); width: 200px; height: 200px; }
+        .modal-actions { display: flex; flex-direction: column; gap: 12px; }
+
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px; text-align: center; color: var(--text-2); }
         .empty-state .icon { width: 64px; height: 64px; margin-bottom: 24px; opacity: 0.5; }
         
         #toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { background: var(--accent); color: #000; padding: 12px 24px; border-radius: var(--r-xl); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: toastIn 0.3s forwards, toastOut 0.3s ease 2.5s forwards; }
+        .toast { background: var(--accent); color: #000; padding: 12px 24px; border-radius: var(--r-xl); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: toastIn 0.3s forwards, toastOut 0.3s ease 2.5s forwards; font-weight:bold;}
         @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 
+        /* ─── PERFORMANCE MODE ─── */
         #performance-mode { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
         #pdf-viewport { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         #pdf-canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        #text-display { display: none; color: var(--text); text-align: center; padding: 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: center; align-items: center; flex-direction: column; }
+        #text-display.visible { display: flex; }
+        #note-title-display { font-size: clamp(1.5rem, 5vw, 3rem); font-family: 'NewTitle'; color: var(--accent); margin-bottom: 2rem; text-transform: uppercase; }
+        #note-content-display { font-size: clamp(1.2rem, 4vw, 2.2rem); white-space: pre-wrap; line-height: 1.5; max-width: 800px; }
+
         .tap-zone { position: absolute; top: 0; height: 100%; width: 25%; z-index: 100; cursor: pointer; }
         .tap-zone.tap-left { left: 0; }
         .tap-zone.tap-right { right: 0; }
+        
+        #perf-hud { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(30,30,30,.9); border-radius: var(--r-xl); padding: 12px 24px; display: flex; align-items: center; gap: 16px; z-index: 300; transition: transform var(--t-fast); }
+        #performance-mode.show-hud #perf-hud { transform: translateX(-50%) translateY(0); }
+        #perf-hud-title { font-weight: bold; max-width: 40vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #perf-hud-bar { width: 100px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+        #perf-hud-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width var(--t-fast); }
 
-        /* ─── MOBILE BOTTOM NAV ─── */
+        /* ─── MOBILE RESPONSIVE ─── */
         @media (max-width: 768px) {
             #app { flex-direction: column; padding: 0; gap: 0; }
             .sidebar { 
@@ -238,19 +281,24 @@
             .tab-btn { flex-direction: column; gap: 4px; padding: 8px; font-size: 10px; flex: 1; justify-content: center; }
             .main-content { margin: 0; border-radius: 0; order: 1; }
             #content-area { padding: 80px 16px 24px; }
-            .category-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .category-grid, .album-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .track-list-header { display: none; }
             .track-row { grid-template-columns: 48px 1fr 40px; padding: 8px 0; }
             .track-row .idx { display: none; }
+            .editor-header-large { flex-direction: column; align-items: center; text-align: center; }
+            .editor-title-input { text-align: center; font-size: 32px; }
+            .editor-desc-input { text-align: center; }
+            .editor-action-bar { justify-content: center; }
+            .editor-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body onclick="handleCenterTap(event)">
 
-<!-- REALISTIC SVG ICONS FOR CATEGORIES -->
+<!-- SVG ICONS DE DÉFINITION (Standard & Catégories) -->
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <!-- GENERAL NAV ICONS -->
+        <!-- Standard -->
         <symbol id="ico-home" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33a2 2 0 0 1 1 1.732V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z"/></symbol>
         <symbol id="ico-search" viewBox="0 0 24 24" fill="currentColor"><path d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.105l5.411 5.317a.75.75 0 0 0 1.05-1.07l-5.388-5.295a9.124 9.124 0 0 0 2.427-6.126c0-5.14-4.226-9.279-9.407-9.279zm.001 1.5c4.341 0 7.907 3.47 7.907 7.779 0 4.31-3.566 7.779-7.907 7.779-4.34 0-7.906-3.47-7.906-7.779 0-4.31 3.566-7.779 7.906-7.779z"/></symbol>
         <symbol id="ico-lib" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3a1 1 0 0 1 .5-.866zM16 4.732V20h4V7.041l-4-2.309zM3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zm6-1a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v17a1 1 0 0 1-1 1z"/></symbol>
@@ -261,42 +309,27 @@
         <symbol id="ico-music" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></symbol>
         <symbol id="ico-album" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></symbol>
         <symbol id="ico-close" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 0 0-1.4 1.4l4.9 4.9-4.9 4.9a1 1 0 1 0 1.4 1.4l4.9-4.9 4.9 4.9a1 1 0 0 0 1.4-1.4L13.4 12l4.9-4.9a1 1 0 0 0 0-1.4z"/></symbol>
+        <symbol id="ico-plus" viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6v-2z"/></symbol>
+        <symbol id="ico-share" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></symbol>
+        <symbol id="ico-trash" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+        <symbol id="ico-grip" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></symbol>
+        <symbol id="ico-upload" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></symbol>
+        <symbol id="ico-note" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H4V5h16v14z"/><path d="M6 13h12v2H6zm0-4h12v2H6z"/></symbol>
 
-        <!-- SPECIFIC CATEGORY ICONS -->
-        <!-- Adoration: Ostensior (Monstrance) -->
-        <symbol id="ico-cat-adoration" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L12 4M12 20L12 22M2 12L4 12M20 12L22 12M4.9 4.9L6.3 6.3M17.7 17.7L19.1 19.1M4.9 19.1L6.3 17.7M17.7 4.9L19.1 6.3M12 5C8.13 5 5 8.13 5 12C5 15.87 8.13 19 12 19C15.87 19 19 15.87 19 12C19 8.13 15.87 5 12 5ZM12 15C10.34 15 9 13.66 9 12C9 10.34 10.34 9 12 9C13.66 9 15 10.34 15 12C15 13.66 13.66 15 12 15ZM10 22H14V20H10V22Z" stroke="currentColor" stroke-width="1.5"/>
-        </symbol>
-        <!-- Louange: Mains qui louent Dieu -->
-        <symbol id="ico-cat-louange" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 12l1.5-4.5H15.5L17 12V16H15.5V23H13.5V17H10.5V23H8.5V16H7V12z"/>
-        </symbol>
-        <!-- Louange Calme: Mains qui prient -->
-        <symbol id="ico-cat-louange_calme" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14 9l-2-2-2 2v6h4V9zM12 21c-4.5 0-8-3.5-8-8v-2h2v2c0 3.3 2.7 6 6 6s6-2.7 6-6v-2h2v2c0 4.5-3.5 8-8 8z"/>
-        </symbol>
-        <!-- Communion: Hostie sur calice -->
-        <symbol id="ico-cat-communion" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-4 9h8l-2 6h-4l-2-6zm2 7h4v4h-4v-4zm-3 5h10v2H7v-2z"/>
-        </symbol>
-        <!-- Marie: Vierge Marie (Silhouette voilée) -->
-        <symbol id="ico-cat-marie" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2c-3.3 0-6 2.7-6 6v4c0 3.3 2.7 6 6 6s6-2.7 6-6V8c0-3.3-2.7-6-6-6zm0 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
-        </symbol>
-        <!-- Esprit Saint: Colombe -->
-        <symbol id="ico-cat-esprit_saint" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 12l-7-4v3c-5 0-9 3-10 8 2-3 5-4 8-4v3l9-6z"/>
-        </symbol>
-        <symbol id="ico-cat-polyphonique" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M15 3h6v2h-4v10a4 4 0 1 1-4-4c.46 0 .89.1 1.28.27L15 3zM3 13a4 4 0 1 1 4 4c-.46 0-.89-.1-1.28-.27L5 7h6V5H3v8z"/>
-        </symbol>
-        <symbol id="ico-cat-autre" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 14H4V8h16v12z"/>
-        </symbol>
+        <!-- Specific Categories (Realistic SVGs) -->
+        <symbol id="ico-cat-adoration" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L12 4M12 20L12 22M2 12L4 12M20 12L22 12M4.9 4.9L6.3 6.3M17.7 17.7L19.1 19.1M4.9 19.1L6.3 17.7M17.7 4.9L19.1 6.3M12 5C8.13 5 5 8.13 5 12C5 15.87 8.13 19 12 19C15.87 19 19 15.87 19 12C19 8.13 15.87 5 12 5ZM12 15C10.34 15 9 13.66 9 12C9 10.34 10.34 9 12 9C13.66 9 15 10.34 15 12C15 13.66 13.66 15 12 15ZM10 22H14V20H10V22Z" stroke="currentColor" stroke-width="1.5"/></symbol>
+        <symbol id="ico-cat-louange" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 12l1.5-4.5H15.5L17 12V16H15.5V23H13.5V17H10.5V23H8.5V16H7V12z"/></symbol>
+        <symbol id="ico-cat-louange_calme" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9l-2-2-2 2v6h4V9zM12 21c-4.5 0-8-3.5-8-8v-2h2v2c0 3.3 2.7 6 6 6s6-2.7 6-6v-2h2v2c0 4.5-3.5 8-8 8z"/></symbol>
+        <symbol id="ico-cat-communion" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-4 9h8l-2 6h-4l-2-6zm2 7h4v4h-4v-4zm-3 5h10v2H7v-2z"/></symbol>
+        <symbol id="ico-cat-marie" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3.3 0-6 2.7-6 6v4c0 3.3 2.7 6 6 6s6-2.7 6-6V8c0-3.3-2.7-6-6-6zm0 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></symbol>
+        <symbol id="ico-cat-esprit_saint" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12l-7-4v3c-5 0-9 3-10 8 2-3 5-4 8-4v3l9-6z"/></symbol>
+        <symbol id="ico-cat-polyphonique" viewBox="0 0 24 24" fill="currentColor"><path d="M15 3h6v2h-4v10a4 4 0 1 1-4-4c.46 0 .89.1 1.28.27L15 3zM3 13a4 4 0 1 1 4 4c-.46 0-.89-.1-1.28-.27L5 7h6V5H3v8z"/></symbol>
+        <symbol id="ico-cat-autre" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 14H4V8h16v12z"/></symbol>
     </defs>
 </svg>
 
 <div id="app">
+    <!-- BARRE LATÉRALE / NAVIGATION BAS DE PAGE SUR MOBILE -->
     <nav class="sidebar">
         <div class="brand">
             <svg class="icon"><use href="#ico-music"/></svg>
@@ -304,24 +337,24 @@
         </div>
         <div class="nav-items">
             <button class="tab-btn active" id="tab-library" onclick="showView('library')">
-                <svg class="icon"><use href="#ico-home"/></svg>
-                Accueil
+                <svg class="icon"><use href="#ico-home"/></svg> Accueil
             </button>
             <button class="tab-btn" id="tab-search" onclick="showView('search')">
-                <svg class="icon"><use href="#ico-search"/></svg>
-                Rechercher
+                <svg class="icon"><use href="#ico-search"/></svg> Rechercher
             </button>
             <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')">
-                <svg class="icon"><use href="#ico-lib"/></svg>
-                Bibliothèque
+                <svg class="icon"><use href="#ico-lib"/></svg> Playlists
+            </button>
+            <button class="tab-btn" id="tab-planner" onclick="showView('planner')">
+                <svg class="icon"><use href="#ico-cal"/></svg> Messes
             </button>
             <button class="tab-btn" onclick="window.location.href='index.html'" style="color: var(--danger);">
-                <svg class="icon"><use href="#ico-close"/></svg>
-                Quitter
+                <svg class="icon"><use href="#ico-close"/></svg> Quitter
             </button>
         </div>
     </nav>
 
+    <!-- ZONE DE CONTENU PRINCIPALE -->
     <main class="main-content">
         <header class="top-bar">
             <div class="sync-badge online" id="sync-badge">
@@ -333,11 +366,38 @@
     </main>
 </div>
 
+<!-- INPUT IMPORT CACHÉ -->
+<input type="file" id="file-import" style="display:none" accept=".json" onchange="handleFileImport(event)">
+
+<!-- MODAL D'EXPORT -->
+<div id="export-modal" onclick="if(event.target === this) closeModal()">
+    <div class="modal-card">
+        <h3 id="export-title">Exporter</h3>
+        <p style="color:var(--text-2); margin-bottom:24px">Scannez le QR Code pour partager.</p>
+        <canvas id="qr-code-img"></canvas>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="copyExportLink()">Copier le lien</button>
+            <button class="btn btn-ghost" onclick="downloadExportFile()">Télécharger .json</button>
+            <button class="btn btn-ghost" onclick="closeModal()" style="border:none">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- LECTEUR PERFORMANCE (PLEIN ECRAN) -->
 <div id="performance-mode">
-    <div id="pdf-viewport" style="display: flex;">
+    <div id="pdf-viewport">
         <div class="tap-zone tap-left" onclick="prevPage(event)"></div>
         <div class="tap-zone tap-right" onclick="nextPage(event)"></div>
         <canvas id="pdf-canvas"></canvas>
+        <div id="text-display">
+            <div id="note-title-display"></div>
+            <div id="note-content-display"></div>
+        </div>
+    </div>
+    <div id="perf-hud">
+        <span id="perf-hud-title"></span>
+        <span id="perf-hud-page"></span>
+        <div id="perf-hud-bar"><div id="perf-hud-fill" style="width: 0%;"></div></div>
     </div>
 </div>
 
@@ -345,7 +405,7 @@
 
 <script>
     /* ══════════════════════════════════════════
-       CONFIGURATION & ETAT
+       CONFIGURATION & ETAT GLOBAL
     ══════════════════════════════════════════ */
     const CATEGORIES = [
         { key: 'adoration',     label: 'Adoration',     color: '#8C1932' },
@@ -354,17 +414,19 @@
         { key: 'communion',     label: 'Communion',     color: '#1ED760' },
         { key: 'marie',         label: 'Marie',         color: '#509BF5' },
         { key: 'esprit_saint',  label: 'Esprit Saint',  color: '#FF4632' },
+        { key: 'polyphonique',  label: 'Polyphonique',  color: '#E8115B' },
         { key: 'autre',         label: 'Autre',         color: '#777777' }
     ];
     const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
-
-    const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     let state = {
         songs:          [],
         favorites:      JSON.parse(localStorage.getItem('cantus_favorites')) || [],
         history:        JSON.parse(localStorage.getItem('cantus_history')) || [],
+        messes:         JSON.parse(localStorage.getItem('cantus_messes')) || [],
+        playlists:      JSON.parse(localStorage.getItem('cantus_playlists')) || [],
+        currentMesseIdx: null,
+        currentPlaylistIdx: null,
         activeSet:      [],
         currentIdx:     0,
         pdf:            null,
@@ -373,19 +435,37 @@
         activeSearchCat: null
     };
 
+    let wakeLock = null;
+
     /* ══════════════════════════════════════════
-       CHARGEMENT CATALOGUE JSON[cite: 1]
+       INITIALISATION & CHARGEMENT DES DONNÉES
     ══════════════════════════════════════════ */
     async function init() {
+        // Enregistrement PWA (Service Worker) si présent
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+
+        // Vérification des liens d'import dans l'URL
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('import')) handleUrlImport(params.get('import'), 'messe');
+        if (params.get('importPl')) handleUrlImport(params.get('importPl'), 'playlist');
+
         await loadLibrary();
-        showView('library');
+        
+        // Navigation initiale
+        if (params.get('import')) showView('planner');
+        else if (params.get('importPl')) showView('playlist');
+        else showView('library');
     }
 
     async function loadLibrary() {
         try {
+            // Lecture du fichier catalogue tel que demandé
             const res = await fetch('catalogue.json');
             const data = await res.json();
             
+            // Map the categories based on the menu_principal section[cite: 1]
             const categoryMap = {};
             if(data.menu_principal) {
                 for(const [cat, chantsList] of Object.entries(data.menu_principal)) {
@@ -395,6 +475,7 @@
                 }
             }
 
+            // Populate state.songs based on data.chants[cite: 1]
             state.songs = data.chants.map(c => ({
                 id: c.fichier_pdf,
                 type: 'song',
@@ -406,9 +487,19 @@
 
             setSyncStatus(true);
         } catch(e) {
-            console.error("Erreur de chargement du catalogue", e);
+            console.error("Erreur de chargement du catalogue json", e);
             setSyncStatus(false);
         }
+    }
+
+    function handleUrlImport(data, type) {
+        try {
+            const parsed = JSON.parse(LZString.decompressFromEncodedURIComponent(data));
+            if (type === 'messe') { state.messes.push(parsed); saveMesses(); }
+            else { state.playlists.push(parsed); savePlaylists(); }
+            window.history.replaceState({}, document.title, window.location.pathname);
+            showToast(`Import réussi : ${parsed.name}`);
+        } catch (e) { alert("Échec de l'import. Lien potentiellement corrompu."); }
     }
 
     function setSyncStatus(online) {
@@ -417,7 +508,7 @@
     }
 
     /* ══════════════════════════════════════════
-       MOTEUR DE VUES SPOTIFY
+       MOTEUR DE NAVIGATION DES VUES
     ══════════════════════════════════════════ */
     function showView(v) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -428,7 +519,7 @@
             c.innerHTML = `
                 <!-- CAROUSEL: REPRENDRE LA LECTURE -->
                 ${state.history.length > 0 ? `
-                <div class="home-section">
+                <div style="margin-bottom: var(--sp-xl)">
                     <h2 class="header-title">Reprendre la lecture</h2>
                     <div class="horizontal-scroll">
                         ${state.history.map(id => {
@@ -446,10 +537,10 @@
                 </div>` : ''}
 
                 <!-- CAROUSEL: MES LIKES -->
-                <div class="home-section">
+                <div>
                     <h2 class="header-title">Mes likes</h2>
                     <div class="horizontal-scroll">
-                        ${state.favorites.length === 0 ? `<p style="color:var(--text-2)">Aucun titre liké pour le moment.</p>` : 
+                        ${state.favorites.length === 0 ? `<p style="color:var(--text-2)">Aucun titre liké.</p>` : 
                         state.favorites.map(id => {
                             const s = state.songs.find(x => x.id === id);
                             if(!s) return '';
@@ -495,8 +586,36 @@
                     <div id="lib-list"></div>
                 </div>
             `;
+        } else if (v === 'playlist') {
+            c.innerHTML = `
+                <div class="grid-header">
+                    <h2 class="header-title" style="margin:0">Bibliothèque (Playlists)</h2>
+                    <div>
+                        <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" style="padding:10px; margin-right:8px;"><svg class="icon icon-sm"><use href="#ico-upload"/></svg></button>
+                        <button class="btn btn-primary" onclick="newPlaylist()"><svg class="icon icon-sm"><use href="#ico-plus"/></svg> Nouvelle Playlist</button>
+                    </div>
+                </div>
+                <div id="playlists-list" class="album-grid"></div>
+            `;
+            renderPlaylists();
+        } else if (v === 'planner') {
+            c.innerHTML = `
+                <div class="grid-header">
+                    <h2 class="header-title" style="margin:0">Messes</h2>
+                    <div>
+                        <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" style="padding:10px; margin-right:8px;"><svg class="icon icon-sm"><use href="#ico-upload"/></svg></button>
+                        <button class="btn btn-primary" onclick="newMesse()"><svg class="icon icon-sm"><use href="#ico-plus"/></svg> Nouvelle Messe</button>
+                    </div>
+                </div>
+                <div id="messes-list" class="album-grid"></div>
+            `;
+            renderMesses();
         }
     }
+
+    /* ─── RECHERCHE ET LISTES ─── */
+    function normalizeSearch(str) { return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\bsaint\b/g, 'st').replace(/\bsainte\b/g, 'ste'); }
+    function escHtml(str) { return String(str||'').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
     function handleSearchInput() {
         const q = normalizeSearch(document.getElementById('lib-search').value);
@@ -578,17 +697,232 @@
         localStorage.setItem('cantus_history', JSON.stringify(state.history));
     }
 
-    /* ─── LECTURE PDF ─── */
-    function normalizeSearch(str) { return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
-    function escHtml(str) { return String(str||'').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    /* ─── MESSES & PLAYLISTS GRILLES ─── */
+    function renderMesses() {
+        const c = document.getElementById('messes-list');
+        if (state.messes.length === 0) return c.innerHTML = `<div class="empty-state"><svg class="icon"><use href="#ico-cal"/></svg><p>Aucune messe organisée.</p></div>`;
+        c.innerHTML = state.messes.map((m, i) => `
+            <div class="album-card" onclick="editMesse(${i})">
+                <div class="album-cover" style="background: linear-gradient(135deg, #1E3264, #121212)">
+                    <svg class="icon-huge"><use href="#ico-cal"/></svg>
+                </div>
+                <button class="play-fab" onclick="event.stopPropagation(); startPerformance(state.messes[${i}].songs)"><svg class="icon"><use href="#ico-play"/></svg></button>
+                <div class="album-title">${escHtml(m.name)}</div>
+                <div class="album-subtitle">${m.songs.length} éléments</div>
+            </div>`).join('');
+    }
+
+    function renderPlaylists() {
+        const c = document.getElementById('playlists-list');
+        if (state.playlists.length === 0) return c.innerHTML = `<div class="empty-state"><svg class="icon"><use href="#ico-lib"/></svg><p>Aucune playlist créée.</p></div>`;
+        c.innerHTML = state.playlists.map((p, i) => {
+            const cover = p.cover ? `<img src="${p.cover}">` : `<svg class="icon-huge"><use href="#ico-music"/></svg>`;
+            return `
+            <div class="album-card" onclick="editPlaylist(${i})">
+                <div class="album-cover" style="background: #282828">${cover}</div>
+                <button class="play-fab" onclick="event.stopPropagation(); startPerformance(state.playlists[${i}].songs)"><svg class="icon"><use href="#ico-play"/></svg></button>
+                <div class="album-title">${escHtml(p.name)}</div>
+                <div class="album-subtitle">${p.songs.length} chants</div>
+            </div>`;
+        }).join('');
+    }
+
+    function newMesse() {
+        const n = prompt('Nom de la messe :');
+        if (n) { state.messes.push({ name: n, songs: [] }); saveMesses(); showView('planner'); }
+    }
+    function newPlaylist() {
+        const n = prompt('Nom de la playlist :');
+        if (n) { state.playlists.push({ name: n, description: '', cover: null, songs: [], isPlaylist: true }); savePlaylists(); showView('playlist'); }
+    }
+    function saveMesses() { localStorage.setItem('cantus_messes', JSON.stringify(state.messes)); }
+    function savePlaylists() { localStorage.setItem('cantus_playlists', JSON.stringify(state.playlists)); }
+
+    /* ─── EDITEURS GENERIQUES ─── */
+    function editMesse(idx) {
+        state.currentMesseIdx = idx;
+        const m = state.messes[idx];
+        renderEditor('Messe', m.name, '', null, m.songs, 
+            (name) => { m.name = name; saveMesses(); }, null, 
+            () => { if(confirm('Supprimer ?')) { state.messes.splice(idx,1); saveMesses(); showView('planner'); } },
+            () => { openExportModal(m, false); },
+            (id) => { m.songs.push({...state.songs.find(s=>s.id===id)}); saveMesses(); editMesse(idx); },
+            (note) => { m.songs.push(note); saveMesses(); editMesse(idx); },
+            (i) => { m.songs.splice(i, 1); saveMesses(); editMesse(idx); },
+            () => { saveMesses(); editMesse(idx); }
+        );
+    }
+
+    function editPlaylist(idx) {
+        state.currentPlaylistIdx = idx;
+        const p = state.playlists[idx];
+        renderEditor('Playlist', p.name, p.description, p.cover, p.songs,
+            (name) => { p.name = name; savePlaylists(); },
+            (desc) => { p.description = desc; savePlaylists(); },
+            () => { if(confirm('Supprimer ?')) { state.playlists.splice(idx,1); savePlaylists(); showView('playlist'); } },
+            () => { openExportModal(p, true); },
+            (id) => { p.songs.push({...state.songs.find(s=>s.id===id)}); savePlaylists(); editPlaylist(idx); }, null,
+            (i) => { p.songs.splice(i, 1); savePlaylists(); editPlaylist(idx); },
+            () => { savePlaylists(); editPlaylist(idx); },
+            (dataUrl) => { p.cover = dataUrl; savePlaylists(); editPlaylist(idx); }
+        );
+    }
+
+    function renderEditor(type, name, desc, cover, items, onName, onDesc, onDelete, onShare, onAdd, onAddNote, onRemove, onSort, onCover) {
+        const coverHtml = cover ? `<img src="${cover}">` : `<svg class="icon-huge"><use href="#ico-${type==='Messe'?'cal':'music'}"/></svg>`;
+        const isPlaylist = type === 'Playlist';
+        
+        document.getElementById('content-area').innerHTML = `
+            <div class="editor-header-large">
+                <label class="editor-cover-wrap" style="border-radius: ${isPlaylist?'4px':'50%'}">
+                    ${coverHtml}
+                    ${isPlaylist ? `<input type="file" accept="image/*" style="display:none" onchange="window.handleCoverUpload(event)">` : ''}
+                </label>
+                <div class="editor-info">
+                    <div class="editor-type">${type}</div>
+                    <input type="text" class="editor-title-input" value="${escHtml(name)}" onchange="window.updateName(this.value)">
+                    ${isPlaylist ? `<textarea class="editor-desc-input" placeholder="Ajouter une description..." onchange="window.updateDesc(this.value)">${escHtml(desc||'')}</textarea>` : ''}
+                </div>
+            </div>
+            
+            <div class="editor-action-bar">
+                <button class="play-fab" style="position:static; opacity:1; transform:none; width:56px; height:56px" onclick="startPerformance(window.currentItems)"><svg class="icon" style="width:28px;height:28px"><use href="#ico-play"/></svg></button>
+                <button class="btn-icon" onclick="window.shareItem()"><svg class="icon"><use href="#ico-share"/></svg></button>
+                <button class="btn-icon" style="color:var(--danger)" onclick="window.deleteItem()"><svg class="icon"><use href="#ico-trash"/></svg></button>
+            </div>
+
+            <div class="editor-grid">
+                <div class="editor-col">
+                    <h3>Éléments (${items.length})</h3>
+                    ${!isPlaylist ? `
+                    <div class="note-form">
+                        <input type="text" id="note-title" class="input-field" placeholder="Titre de la note">
+                        <textarea id="note-content" class="input-field" placeholder="Contenu de la note..."></textarea>
+                        <button class="btn btn-ghost" style="padding:8px" onclick="window.addNote()"><svg class="icon icon-sm"><use href="#ico-plus"/></svg> Ajouter la note</button>
+                    </div>` : ''}
+                    <div id="sortable-list" class="editor-list-bg">
+                        ${items.map((s, i) => `
+                            <div class="ed-item ${s.type==='note'?'is-note':''}" data-id="${i}">
+                                <svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>
+                                <svg class="icon icon-sm" style="color:var(--text-3)"><use href="#ico-${s.type==='note'?'note':'music'}"/></svg>
+                                <span class="ed-name">${escHtml(s.name)}</span>
+                                <button class="btn-icon" style="padding:4px" onclick="window.removeItem(${i})"><svg class="icon icon-sm"><use href="#ico-close"/></svg></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="editor-col">
+                    <h3>Bibliothèque complète</h3>
+                    <div class="search-input-wrap" style="margin-bottom:12px">
+                        <svg class="icon"><use href="#ico-search"/></svg>
+                        <input type="text" placeholder="Rechercher à ajouter..." oninput="filterEditor(this.value)">
+                    </div>
+                    <div id="editor-lib" class="editor-list-bg"></div>
+                </div>
+            </div>
+        `;
+
+        // Hooks window pour UI dynamique
+        window.currentItems = items;
+        window.updateName = onName;
+        window.updateDesc = onDesc;
+        window.deleteItem = onDelete;
+        window.shareItem = onShare;
+        window.addItem = onAdd;
+        window.removeItem = onRemove;
+        window.addNote = () => {
+            if(!onAddNote) return;
+            const t = document.getElementById('note-title').value.trim();
+            const c = document.getElementById('note-content').value.trim();
+            if(t) { onAddNote({type:'note', name:t.toUpperCase(), content:c}); showToast('Note ajoutée'); }
+        };
+        window.handleCoverUpload = (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 400; canvas.height = 400;
+                    ctx.drawImage(img, 0, 0, 400, 400);
+                    if(onCover) onCover(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = ev.target.result;
+            };
+            r.readAsDataURL(f);
+        };
+
+        filterEditor('');
+        new Sortable(document.getElementById('sortable-list'), {
+            animation: 150, handle: '.drag-handle',
+            onEnd: e => {
+                items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]);
+                onSort();
+            }
+        });
+    }
+
+    function filterEditor(q) {
+        const query = normalizeSearch(q);
+        const list = state.songs.filter(s => normalizeSearch(s.name).includes(query));
+        document.getElementById('editor-lib').innerHTML = list.map(s => `
+            <div class="ed-item" onclick="window.addItem('${s.id}')">
+                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
+                <span class="ed-name">${escHtml(s.name)}</span>
+            </div>
+        `).join('');
+    }
+
+    /* ─── IMPORT / EXPORT ─── */
+    let exportData = null;
+    function openExportModal(item, isPlaylist) {
+        const cleanItem = { ...item };
+        if (isPlaylist) delete cleanItem.cover;
+        const json = JSON.stringify(cleanItem);
+        const url = window.location.href.split('?')[0] + (isPlaylist ? '?importPl=' : '?import=') + LZString.compressToEncodedURIComponent(json);
+        
+        exportData = { json, url, name: cleanItem.name };
+        document.getElementById('export-modal').classList.add('open');
+        new QRious({ element: document.getElementById('qr-code-img'), value: url, size: 200, level: 'L' });
+    }
+    function closeModal() { document.getElementById('export-modal').classList.remove('open'); }
+    function copyExportLink() { navigator.clipboard.writeText(exportData.url).then(() => showToast('Lien copié !')); }
+    function downloadExportFile() {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([exportData.json], { type: 'application/json' }));
+        a.download = `Cantus_${exportData.name}.json`;
+        a.click();
+    }
+    function handleFileImport(e) {
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                if (parsed.isPlaylist) { state.playlists.push(parsed); savePlaylists(); showView('playlist'); }
+                else { state.messes.push(parsed); saveMesses(); showView('planner'); }
+                showToast('Importé avec succès !');
+            } catch(err) { alert('Fichier invalide'); }
+            e.target.value = '';
+        };
+        r.readAsText(f);
+    }
+
+    /* ─── PERFORMANCE LECTEUR (PDF & NOTES) ─── */
+    function showToast(m) {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div'); t.className = 'toast'; t.textContent = m;
+        c.appendChild(t); setTimeout(() => t.remove(), 2800);
+    }
 
     function playSingle(id) { 
         const s = state.songs.find(x => x.id === id); 
-        if(s) {
-            addToHistory(s);
-            startPerformance([s]); 
-        }
+        if(s) { addToHistory(s); startPerformance([s]); }
     }
+    
+    async function requestWakeLock() { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+    function releaseWakeLock() { if (wakeLock) wakeLock.release().then(() => wakeLock = null); }
     
     async function startPerformance(set) {
         if (!set || set.length === 0) return;
@@ -598,7 +932,9 @@
         if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
         if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
         
-        document.getElementById('performance-mode').style.display = 'flex';
+        await requestWakeLock();
+        const p = document.getElementById('performance-mode');
+        p.style.display = 'flex'; p.classList.remove('show-hud');
         await loadItem();
     }
 
@@ -606,10 +942,19 @@
         if (state.pdf) { try { await state.pdf.destroy(); } catch(e){} state.pdf = null; }
         const item = state.activeSet[state.currentIdx];
         const canvas = document.getElementById('pdf-canvas');
+        const textEl = document.getElementById('text-display');
         
-        state.pdf = await pdfjsLib.getDocument(item.url).promise;
-        state.pageNum = 1; state.totalPages = state.pdf.numPages;
-        await renderPage();
+        if (item.type === 'note') {
+            canvas.style.display = 'none'; textEl.classList.add('visible');
+            document.getElementById('note-title-display').textContent = item.name;
+            document.getElementById('note-content-display').textContent = item.content || '';
+            updateHUD();
+        } else {
+            canvas.style.display = 'block'; textEl.classList.remove('visible');
+            state.pdf = await pdfjsLib.getDocument(item.url).promise;
+            state.pageNum = 1; state.totalPages = state.pdf.numPages;
+            await renderPage();
+        }
     }
 
     async function renderPage() {
@@ -624,24 +969,60 @@
         canvas.style.width = (viewport.width / window.devicePixelRatio) + 'px';
         canvas.style.height = (viewport.height / window.devicePixelRatio) + 'px';
         await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        updateHUD();
+    }
+
+    function updateHUD() {
+        const item = state.activeSet[state.currentIdx];
+        document.getElementById('perf-hud-title').textContent = item.name;
+        document.getElementById('perf-hud-page').textContent = state.pdf ? `${state.pageNum} / ${state.totalPages}` : `Note`;
+        document.getElementById('perf-hud-fill').style.width = state.pdf ? `${(state.pageNum / state.totalPages)*100}%` : '100%';
     }
 
     function nextPage(e) {
         if (e) e.stopPropagation();
         if (state.pdf && state.pageNum < state.pdf.numPages) { state.pageNum++; renderPage(); }
+        else if (state.currentIdx < state.activeSet.length - 1) { state.currentIdx++; loadItem(); }
     }
     function prevPage(e) {
         if (e) e.stopPropagation();
         if (state.pdf && state.pageNum > 1) { state.pageNum--; renderPage(); }
+        else if (state.currentIdx > 0) { state.currentIdx--; loadItem(); }
+    }
+    
+    function exitPerf() {
+        if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+        releaseWakeLock();
+        if (state.pdf) { try { state.pdf.destroy(); } catch(e){} state.pdf = null; }
+        document.getElementById('performance-mode').style.display = 'none';
     }
 
-    document.addEventListener('keydown', e => { 
-        if(e.key === 'Escape' && document.getElementById('performance-mode').style.display === 'flex') {
-            if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
-            document.getElementById('performance-mode').style.display = 'none';
-            if(document.getElementById('tab-library').classList.contains('active')) showView('library');
-        } 
-    });
+    /* GESTION DU HUD TACTILE */
+    let tTapCount = 0, tTapTimer = null, hudTimer = null;
+    function handleCenterTap(e) {
+        if (document.getElementById('performance-mode').style.display !== 'flex') return;
+        if (e.target.closest('#pdf-canvas')) return;
+        tTapCount++; clearTimeout(tTapTimer);
+        if (tTapCount === 1) tTapTimer = setTimeout(() => tTapCount = 0, 500);
+        if (tTapCount >= 3) {
+            tTapCount = 0; clearTimeout(tTapTimer);
+            const p = document.getElementById('performance-mode');
+            p.classList.add('show-hud');
+            clearTimeout(hudTimer);
+            hudTimer = setTimeout(() => p.classList.remove('show-hud'), 3000);
+        }
+    }
+
+    /* GESTION SWIPE POUR QUITTER */
+    let startY = 0, swiping = false;
+    document.addEventListener('touchstart', e => {
+        if(e.touches[0].clientY < 80 && document.getElementById('performance-mode').style.display === 'flex') { startY = e.touches[0].clientY; swiping = true; }
+    }, { passive: true });
+    document.addEventListener('touchmove', e => { if(swiping && e.touches[0].clientY - startY < -30) swiping = false; }, { passive: true });
+    document.addEventListener('touchend', e => { if (swiping && e.changedTouches[0].clientY - startY > 80) { swiping = false; exitPerf(); } });
+    
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') exitPerf(); });
+    window.addEventListener('resize', () => { if(state.pdf && document.getElementById('performance-mode').style.display === 'flex') renderPage(); });
 
     init();
 </script>
