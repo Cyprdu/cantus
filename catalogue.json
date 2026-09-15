@@ -4,7 +4,7 @@
             "fichier_pdf": "adoration/A28 - Le Seigneur est Ma Lumière et Mon Salut.pdf",
             "titre": "A28 - Le Seigneur est Ma Lumière et Mon Salut",
             "chemin_pochette": "/images/adoration/A28 - Le Seigneur est Ma Lumière et Mon Salut.png",
-            "categories": []
+            "categories": ["A écouter cette semaine", ""]
         },
         {
             "fichier_pdf": "adoration/A16 - Il est la, Jésus Sauveur.pdf",
@@ -346,7 +346,7 @@
             "fichier_pdf": "autre/Hosanna (JEM 906).pdf",
             "titre": "Hosanna (JEM 906)",
             "chemin_pochette": "/images/autre/Hosanna (JEM 906).png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "autre/Heureux Bienheureux.pdf",
@@ -466,7 +466,7 @@
             "fichier_pdf": "autre/Jésus Berger De Toute Humanité.pdf",
             "titre": "Jésus Berger De Toute Humanité",
             "chemin_pochette": "/images/autre/Jésus Berger De Toute Humanité.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "autre/Jésus Mon Roi.pdf",
@@ -574,7 +574,7 @@
             "fichier_pdf": "autre/MARIE SAVAIS-TU.pdf",
             "titre": "MARIE SAVAIS-TU",
             "chemin_pochette": "/images/autre/MARIE SAVAIS-TU.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "autre/Messe De La Colombière.pdf",
@@ -718,7 +718,7 @@
             "fichier_pdf": "autre/Que ta parole.pdf",
             "titre": "Que ta parole",
             "chemin_pochette": "/images/autre/Que ta parole.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "autre/Que Vive Mon Âme À Te Louer.pdf",
@@ -874,7 +874,7 @@
             "fichier_pdf": "autre/Viens Esprit De Sainteté.pdf",
             "titre": "Viens Esprit De Sainteté",
             "chemin_pochette": "/images/autre/Viens Esprit De Sainteté.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "autre/Vivre Comme Le Christ.pdf",
@@ -1048,7 +1048,7 @@
             "fichier_pdf": "esprit_saint/ES18 - Viens Remplir de ton Feu.pdf",
             "titre": "ES18 - Viens Remplir de ton Feu",
             "chemin_pochette": "/images/esprit_saint/ES18 - Viens Remplir de ton Feu.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "esprit_saint/ES17 - Viens Esprit Très Saint.pdf",
@@ -1192,7 +1192,7 @@
             "fichier_pdf": "louange/L37 - Jeunes et Vieux.pdf",
             "titre": "L37 - Jeunes et Vieux",
             "chemin_pochette": "/images/louange/L37 - Jeunes et Vieux.png",
-            "categories": []
+            "categories": ["A écouter cette semaine"]
         },
         {
             "fichier_pdf": "louange/L40 - Réjouis-Toi, Fille de Sion.pdf",
