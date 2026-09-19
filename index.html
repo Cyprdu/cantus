@@ -494,6 +494,7 @@
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </symbol>
+        <symbol id="ico-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></symbol>
         <symbol id="ico-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="7.5" cy="15.5" r="5.5"></circle>
             <path d="M21 2l-9.6 9.6"></path>
@@ -516,7 +517,7 @@
         </div>
     </header>
 
-<nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>
+<nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-history" onclick="showView('history')" aria-label="Historique">            <svg class="icon"><use href="#ico-clock"></use></svg>            Historique        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>
     </nav>
 
     <main id="content">
@@ -598,6 +599,7 @@
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
             </div>
+            <div id="pedal-keys-section"></div>
         </div>
 
         <div class="settings-section">
@@ -859,7 +861,7 @@
     /* ══════════════════════════════════════════
        PARAMÈTRES (thème, reconnaissance faciale, boutons de page)
     ══════════════════════════════════════════ */
-    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false, pedalMode: false };
+    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false, pedalMode: false, pedalKeyNext: '+', pedalKeyPrev: '-' };
 
     function loadSettings() {
         try {
@@ -914,6 +916,7 @@
         document.getElementById('toggle-pedal-mode').checked = settings.pedalMode;
         document.getElementById('toggle-offline-mode').checked = settings.offlineMode;
         renderAdminSection();
+        renderPedalKeysSection();
     }
 
     function setThemeSetting(t) {
@@ -947,6 +950,49 @@
     function setPedalModeSetting(enabled) {
         settings.pedalMode = enabled;
         saveSettings();
+        renderPedalKeysSection();
+    }
+
+    /* ─── TOUCHES DE LA PÉDALE (personnalisables) ───
+
+       Le mode pédale n'est pas figé sur +/- : n'importe quelle touche du
+       clavier (celle que simule la pédale ESP32) peut être assignée à
+       "page suivante" / "page précédente" via une courte capture de touche.
+    ── */
+    let pedalCaptureTarget = null; // 'next' | 'prev' | null pendant la capture
+
+    const PEDAL_KEY_LABELS = {
+        ' ': 'Espace', 'ArrowRight': '→', 'ArrowLeft': '←', 'ArrowUp': '↑', 'ArrowDown': '↓',
+        'Enter': 'Entrée', 'PageUp': 'Page préc.', 'PageDown': 'Page suiv.', 'Tab': 'Tab'
+    };
+
+    function keyLabel(key) {
+        return PEDAL_KEY_LABELS[key] || key;
+    }
+
+    function startPedalKeyCapture(target) {
+        pedalCaptureTarget = target;
+        renderPedalKeysSection();
+    }
+
+    function renderPedalKeysSection() {
+        const el = document.getElementById('pedal-keys-section');
+        if (!el) return;
+        if (!settings.pedalMode) { el.innerHTML = ''; return; }
+
+        const row = (target, label, key) => `
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Touche « ${label} »</div>
+                    <div class="settings-row-desc">${pedalCaptureTarget === target ? 'Appuyez sur la touche voulue (ou la pédale)…' : `Touche actuelle : <strong>${escHtml(keyLabel(key))}</strong>`}</div>
+                </div>
+                <button class="btn btn-ghost" onclick="startPedalKeyCapture('${target}')" ${pedalCaptureTarget === target ? 'disabled' : ''}>Redéfinir</button>
+            </div>`;
+
+        el.innerHTML = `
+            ${row('next', 'page suivante', settings.pedalKeyNext)}
+            ${row('prev', 'page précédente', settings.pedalKeyPrev)}
+            <p class="settings-note">Par défaut : + pour avancer, - pour reculer. Cliquez sur "Redéfinir" puis appuyez sur la touche que la pédale doit simuler (Échap annule).</p>`;
     }
 
     function setOfflineModeSetting(enabled) {
@@ -1809,6 +1855,16 @@
                 </div>
                 ${renderCategorySelect('fav-cat', 'favorites')}
                 <div id="fav-list">${renderList(favSongs, 'ico-heart', "Vous n'avez pas encore de favoris.")}</div>`;
+        } else if (v === 'history') {
+            const history = loadHistory();
+            c.innerHTML = `
+                <div class="planner-header">
+                    <button class="btn btn-ghost" style="flex:1;" onclick="clearHistory()" ${history.length === 0 ? 'disabled' : ''}>
+                        <svg class="icon icon-sm"><use href="#ico-trash"></use></svg>
+                        Vider l'historique
+                    </button>
+                </div>
+                <div id="history-list">${renderHistoryList(history)}</div>`;
         } else if (v === 'planner') {
             c.innerHTML = `
                 <div class="planner-header">
@@ -1901,6 +1957,85 @@
 
     function emptyState(iconId, message) {
         return `<div class="empty-state"><svg class="icon"><use href="#${iconId}"/></svg><p>${message}</p></div>`;
+    }
+
+    /* ══════════════════════════════════════════
+       HISTORIQUE DES CHANTS JOUÉS
+
+       Journal local (par appareil) des chants effectivement ouverts en mode
+       lecture, du plus récent au plus ancien, limité aux HISTORY_LIMIT
+       derniers. On garde un instantané (nom, catégorie, url) au moment de la
+       lecture plutôt qu'une simple référence : si le chant est ensuite
+       renommé ou supprimé de la bibliothèque, l'entrée d'historique reste
+       lisible telle qu'elle était à l'époque.
+    ══════════════════════════════════════════ */
+    const HISTORY_KEY = 'cantus_history';
+    const HISTORY_LIMIT = 30;
+
+    function loadHistory() {
+        try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+        catch (e) { return []; }
+    }
+
+    function recordHistory(song) {
+        const history = loadHistory();
+        history.unshift({
+            id:       song.id,
+            name:     song.name,
+            category: song.category,
+            url:      song.url,
+            playedAt: Date.now()
+        });
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, HISTORY_LIMIT)));
+    }
+
+    function clearHistory() {
+        if (!confirm("Vider l'historique des chants joués ?")) return;
+        localStorage.removeItem(HISTORY_KEY);
+        showView('history');
+    }
+
+    function formatHistoryDate(ts) {
+        const d = new Date(ts);
+        const sameDay = d.toDateString() === new Date().toDateString();
+        const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        return sameDay ? `Aujourd'hui, ${time}` : `${d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${time}`;
+    }
+
+    function renderHistoryList(history) {
+        if (history.length === 0) return emptyState('ico-clock', 'Aucun chant joué pour le moment.');
+        return history.map((h, i) => {
+            const isFav = state.favorites.includes(h.id);
+            const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
+            const favColor = isFav ? 'color: var(--danger);' : '';
+            const catLabel = CATEGORY_LABELS[h.category] || 'Autre';
+            return `
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-title">${escHtml(h.name)}</div>
+                    <div class="cat-badge">${escHtml(catLabel)}</div>
+                    <div class="settings-row-desc" style="margin-top:4px;">${formatHistoryDate(h.playedAt)}</div>
+                </div>
+                <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
+                    <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${h.id}', event)" title="Favori" aria-label="Favori">
+                        <svg class="icon"><use href="${favIco}"/></svg>
+                    </button>
+                    <button class="btn btn-primary" onclick="playHistoryEntry(${i})" style="padding:9px 14px;" aria-label="Lire">
+                        <svg class="icon icon-sm"><use href="#ico-play"/></svg>
+                        Lire
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function playHistoryEntry(idx) {
+        const entry = loadHistory()[idx];
+        if (!entry) return;
+        // Si le chant existe toujours dans la bibliothèque, on joue la version actuelle
+        // (nom/catégorie éventuellement mis à jour) ; sinon on retente avec l'instantané.
+        const song = state.songs.find(s => s.id === entry.id);
+        startPerformance([song || { ...entry, type: 'song' }]);
     }
 
     /* ══════════════════════════════════════════
@@ -2191,6 +2326,7 @@
             updateHUD(`Élément ${state.currentIdx + 1} / ${state.activeSet.length}`);
             updateNavButtonsVisibility();
         } else {
+            recordHistory(item);
             state.pdf = await pdfjsLib.getDocument(item.url).promise;
             state.pageNum = 1;
             state.totalPages = state.pdf.numPages;
@@ -2361,17 +2497,33 @@
         if (e.changedTouches[0].clientY - swipeStartY > 60) exitPerformanceToHome();
     });
 
+    // Capture de touche pour la personnalisation du mode pédale (Paramètres). En phase de
+    // capture (avant tout autre gestionnaire de keydown), pour intercepter l'appui avant qu'il
+    // ne soit interprété comme une navigation ou un raccourci quelconque tant qu'on écoute.
+    document.addEventListener('keydown', e => {
+        if (!pedalCaptureTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key !== 'Escape') {
+            if (pedalCaptureTarget === 'next') settings.pedalKeyNext = e.key;
+            else settings.pedalKeyPrev = e.key;
+            saveSettings();
+        }
+        pedalCaptureTarget = null;
+        renderPedalKeysSection();
+    }, true);
+
     document.addEventListener('keydown', e => {
         const insidePerf = document.getElementById('performance-mode').style.display === 'flex';
         if (!insidePerf) return;
 
         if (e.key === 'Escape') { exitPerformanceToHome(); return; }
 
-        // Mode pédale : une pédale externe (ESP32) simule l'appui sur les touches +/- du
-        // clavier pour tourner les pages sans les mains.
+        // Mode pédale : une pédale externe (ESP32) simule l'appui sur des touches du clavier,
+        // personnalisables dans Paramètres (+ et - par défaut), pour tourner les pages sans les mains.
         if (!settings.pedalMode) return;
-        const isNext = e.key === '+' || e.code === 'NumpadAdd';
-        const isPrev = e.key === '-' || e.code === 'NumpadSubtract';
+        const isNext = e.key === settings.pedalKeyNext;
+        const isPrev = e.key === settings.pedalKeyPrev;
         if (isNext || isPrev) {
             e.preventDefault();
             if (isNext) nextPage(); else prevPage();
