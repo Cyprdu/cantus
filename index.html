@@ -1973,12 +1973,24 @@
     const HISTORY_LIMIT = 30;
 
     function loadHistory() {
-        try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-        catch (e) { return []; }
+        let history;
+        try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+        catch (e) { history = []; }
+
+        // Auto-nettoyage : une entrée sans nom ou sans horodatage valide est inexploitable
+        // (carte vide, "Invalid Date") — on la retire silencieusement et on persiste le
+        // nettoyage pour ne pas avoir à le refaire à chaque lecture.
+        const clean = history.filter(h => h && h.id && h.name && Number.isFinite(h.playedAt));
+        if (clean.length !== history.length) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(clean));
+        }
+        return clean;
     }
 
     function recordHistory(song) {
-        const history = loadHistory();
+        if (!song || !song.id || !song.name) return;
+        // Un chant déjà présent dans l'historique remonte en tête au lieu d'être dupliqué.
+        const history = loadHistory().filter(h => h.id !== song.id);
         history.unshift({
             id:       song.id,
             name:     song.name,
@@ -1996,6 +2008,7 @@
     }
 
     function formatHistoryDate(ts) {
+        if (!Number.isFinite(ts)) return '';
         const d = new Date(ts);
         const sameDay = d.toDateString() === new Date().toDateString();
         const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -2009,12 +2022,13 @@
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
             const catLabel = CATEGORY_LABELS[h.category] || 'Autre';
+            const dateLabel = formatHistoryDate(h.playedAt);
             return `
             <div class="card">
                 <div class="card-content">
-                    <div class="card-title">${escHtml(h.name)}</div>
+                    <div class="card-title">${escHtml(h.name) || 'Chant sans nom'}</div>
                     <div class="cat-badge">${escHtml(catLabel)}</div>
-                    <div class="settings-row-desc" style="margin-top:4px;">${formatHistoryDate(h.playedAt)}</div>
+                    ${dateLabel ? `<div class="settings-row-desc" style="margin-top:4px;">${dateLabel}</div>` : ''}
                 </div>
                 <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
                     <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${h.id}', event)" title="Favori" aria-label="Favori">
