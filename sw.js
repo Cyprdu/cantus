@@ -8,6 +8,7 @@ const ASSETS = [
     '/v1/index.html',
     '/v1/index2.html',
     '/v1/index3.html',
+    '/v2/index.html',
     '/favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',

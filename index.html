@@ -30,6 +30,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Lecture de QR code (Mode Live) : décodage local dans le navigateur, aucun envoi réseau -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <!-- Scripts MediaPipe Face Mesh & Camera : chargés une fois, activés uniquement si la reconnaissance faciale est ON dans les paramètres -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -231,6 +233,42 @@
         .ed-item.ed-item--add:hover { color: var(--accent); }
         .ed-item.ed-item--add .icon { color: var(--accent); }
 
+        /* ─── MODE LIVE (playlist collaborative en pair-à-pair) ─── */
+        .live-choice { display: flex; flex-direction: column; gap: var(--sp-md); max-width: 360px; margin: 10vh auto 0; text-align: center; }
+        .live-choice p { color: var(--text-2); font-size: 13px; line-height: 1.5; margin: 0 0 var(--sp-sm); }
+        .live-choice .btn { width: 100%; justify-content: center; padding: 15px; font-size: 14px; }
+        .live-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); max-width: 380px; margin: 4vh auto 0; text-align: center; box-shadow: var(--shadow-lg); }
+        .live-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+        .live-status { font-size: 13px; color: var(--text-2); margin: 0 0 var(--sp-md); line-height: 1.5; }
+        .live-status strong { color: var(--text); }
+        .live-code-box { width: 100%; min-height: 70px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.4; word-break: break-all; margin-bottom: var(--sp-sm); }
+        .live-qr-canvas { display: block; margin: 0 auto var(--sp-sm); padding: 12px; background: #fff; border-radius: var(--r-md); max-width: 240px; width: 100%; }
+        .live-qr-actions { display: flex; gap: var(--sp-sm); margin: 0 0 var(--sp-md); }
+        .live-qr-actions .btn { flex: 1; justify-content: center; }
+        .live-scan-wrap { position: relative; width: 100%; max-width: 280px; aspect-ratio: 1; margin: 0 auto var(--sp-md); border-radius: var(--r-lg); overflow: hidden; background: #000; }
+        .live-scan-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .live-scan-frame { position: absolute; inset: 14%; border: 3px solid var(--accent); border-radius: var(--r-md); pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,.4); }
+        #live-qr-zoom { position: fixed; inset: 0; background: rgba(0,0,0,.95); z-index: 9500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-md); cursor: zoom-out; }
+        #live-qr-zoom canvas { background: #fff; padding: 16px; border-radius: var(--r-md); max-width: 90vw; max-height: 70vh; }
+        #live-qr-zoom p { color: #ccc; font-size: 13px; margin: 0; }
+
+        /* ─── ÉCRAN "CONNECTÉ" (barre du haut, chant en direct, grille) ─── */
+        .live-topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); margin-bottom: var(--sp-md); flex-wrap: wrap; }
+        .live-topbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .live-now-card { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-md); flex-wrap: wrap; background: var(--surface); border: 1px solid var(--danger); border-radius: var(--r-lg); padding: var(--sp-md) var(--sp-lg); margin-bottom: var(--sp-md); }
+        .live-now-info { min-width: 0; }
+        .live-now-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--danger); margin-bottom: 4px; }
+        .live-now-name { font-size: 16px; font-weight: 700; color: var(--text); }
+        .live-now-empty { font-size: 13px; color: var(--text-3); }
+        .live-now-actions { display: flex; gap: var(--sp-sm); flex-shrink: 0; }
+        .live-editor-grid { height: calc(100dvh - 330px); }
+        .live-queue-pos { font-size: 11px; font-weight: 700; color: var(--text-3); width: 18px; text-align: center; flex-shrink: 0; }
+        @media (max-width: 768px) {
+            .live-now-card { flex-direction: column; align-items: stretch; text-align: center; }
+            .live-now-actions { justify-content: center; }
+            .live-editor-grid { height: auto; }
+        }
+
         /* ─── NOTE FORM ─── */
         .note-form { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; display: flex; flex-direction: column; gap: var(--sp-xs); }
         .input-field { width: 100%; padding: 10px 13px; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 13px; outline: none; transition: border-color var(--t-fast) var(--ease); }
@@ -305,6 +343,17 @@
         #performance-mode.show-nav-buttons .nav-page-btn.btn-page-prev,
         #performance-mode.show-nav-buttons .nav-page-btn.btn-page-next { display: flex; }
         #performance-mode.show-exit-btn .nav-page-btn.btn-page-exit { display: flex; }
+
+        /* ─── MESSAGERIE MODE LIVE (bouton flottant + bannière + modale) ─── */
+        .live-chat-fab { position: fixed; top: max(20px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); width: 40px; height: 40px; border-radius: 50%; background: rgba(20,20,20,.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.12); color: #f0f0f0; display: flex; align-items: center; justify-content: center; z-index: 450; cursor: pointer; }
+        .live-chat-fab .icon { width: 18px; height: 18px; }
+        #live-chat-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 10500; display: none; align-items: center; gap: var(--sp-sm); background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px var(--sp-lg); box-shadow: var(--shadow-lg); }
+        #live-chat-banner.open { display: flex; }
+        .live-chat-banner-inner { flex: 1; min-width: 0; }
+        .live-chat-banner-from { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+        .live-chat-banner-text { font-size: 14px; color: var(--text); word-break: break-word; }
+        #live-chat-modal, #live-participants-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7500; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #live-chat-modal.open, #live-participants-modal.open { display: flex; }
 
         /* ─── HUD INDICATORS (DROITE / GAUCHE, reconnaissance faciale) ─── */
         .hud-indicators {
@@ -495,6 +544,11 @@
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </symbol>
         <symbol id="ico-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></symbol>
+        <symbol id="ico-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></symbol>
+        <symbol id="ico-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
+        <symbol id="ico-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+        <symbol id="ico-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></symbol>
+        <symbol id="ico-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></symbol>
         <symbol id="ico-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="7.5" cy="15.5" r="5.5"></circle>
             <path d="M21 2l-9.6 9.6"></path>
@@ -517,7 +571,7 @@
         </div>
     </header>
 
-<nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-history" onclick="showView('history')" aria-label="Historique">            <svg class="icon"><use href="#ico-clock"></use></svg>            Historique        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>
+<nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-history" onclick="showView('history')" aria-label="Historique">            <svg class="icon"><use href="#ico-clock"></use></svg>            Historique        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>        <button class="tab-btn" id="tab-live" onclick="showView('live')" aria-label="Mode Live">            <svg class="icon"><use href="#ico-live"></use></svg>            Mode Live        </button>
     </nav>
 
     <main id="content">
@@ -721,6 +775,10 @@
     <button class="nav-page-btn btn-page-exit" onclick="exitPerformanceToHome(event)" aria-label="Fermer la partition" title="Fermer la partition">
         <svg class="icon"><use href="#ico-x"></use></svg>
     </button>
+    <!-- Visible uniquement en Mode Live (voir launchPerformanceConfirmed) -->
+    <button class="live-chat-fab" id="live-chat-fab" onclick="event.stopPropagation(); openLiveChatComposer()" aria-label="Message" title="Envoyer un message" style="display:none;">
+        <svg class="icon"><use href="#ico-message"></use></svg>
+    </button>
     <div id="perf-hud">
         <span id="perf-hud-title"></span>
         <span id="perf-hud-page"></span>
@@ -731,6 +789,43 @@
 </div>
 
 <div id="toast-container"></div>
+
+<!-- Bannière de message Mode Live : visible même en plein écran pendant la lecture -->
+<div id="live-chat-banner">
+    <div class="live-chat-banner-inner">
+        <div class="live-chat-banner-from" id="live-chat-banner-from"></div>
+        <div class="live-chat-banner-text" id="live-chat-banner-text"></div>
+    </div>
+    <button class="btn btn-icon" onclick="closeLiveChatBanner()" aria-label="Fermer">
+        <svg class="icon"><use href="#ico-x"></use></svg>
+    </button>
+</div>
+
+<div id="live-chat-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Envoyer un message</h3>
+            <button class="btn btn-icon" onclick="closeLiveChatComposer()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <select id="live-chat-recipient" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <textarea id="live-chat-text" class="input-field" placeholder="Votre message…" style="min-height:80px; margin-bottom: var(--sp-md);"></textarea>
+        <button class="btn btn-primary" style="width:100%" onclick="sendLiveChatMessage()">Envoyer</button>
+    </div>
+</div>
+
+<div id="live-participants-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Participants</h3>
+            <button class="btn btn-icon" onclick="closeLiveParticipantsModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div id="live-participants-list"></div>
+    </div>
+</div>
 
 <!-- Modale d'autorisation caméra explicative -->
 <div id="camera-modal">
@@ -1694,6 +1789,12 @@
         document.getElementById('edit-song-modal').addEventListener('click', function(e) {
             if (e.target === this) closeEditSongModal();
         });
+        document.getElementById('live-chat-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeLiveChatComposer();
+        });
+        document.getElementById('live-participants-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeLiveParticipantsModal();
+        });
 
         // Initialisation du moteur MediaPipe Face Mesh (chargé mais inactif tant que la caméra n'est pas démarrée)
         initFaceMeshEngine();
@@ -1917,6 +2018,8 @@
                     </button>
                 </div>
                 <div id="playlists-list">${renderPlaylists()}</div>`;
+        } else if (v === 'live') {
+            renderLiveView();
         }
     }
 
@@ -2336,6 +2439,7 @@
         const perfEl = document.getElementById('performance-mode');
         perfEl.style.display = 'flex';
         perfEl.classList.remove('show-hud');
+        document.getElementById('live-chat-fab').style.display = liveRole !== null ? 'flex' : 'none';
 
         if (settings.faceReco && cameraInstance) {
             cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
@@ -2440,7 +2544,28 @@
         if (state.pdf && state.pageNum < state.pdf.numPages) {
             state.pageNum++;
             renderPage();
-        } else if (state.currentIdx < state.activeSet.length - 1) {
+            return;
+        }
+
+        // Fil de lecture du Mode Live : sur la dernière page du dernier chant du fil, si un
+        // nouveau chant est passé "en direct" entre-temps, on l'ajoute au fil (limité aux
+        // LIVE_THREAD_MAX derniers) et on avance dessus. On n'est jamais obligé de sortir de la
+        // partition en cours pour rejoindre le direct.
+        if (liveThreadActive && state.currentIdx === state.activeSet.length - 1) {
+            const lastSong = state.activeSet[state.activeSet.length - 1];
+            if (liveNowItem && lastSong.id !== liveNowItem.songId) {
+                state.activeSet.push(liveItemToSong(liveNowItem));
+                state.currentIdx++;
+                while (state.activeSet.length > LIVE_THREAD_MAX) {
+                    state.activeSet.shift();
+                    state.currentIdx--;
+                }
+                loadItem();
+            }
+            return;
+        }
+
+        if (state.currentIdx < state.activeSet.length - 1) {
             state.currentIdx++;
             loadItem();
         }
@@ -2463,7 +2588,10 @@
             document.exitFullscreen().catch(() => {});
         }
 
-        releaseWakeLock();
+        // En Mode Live, l'écran doit rester allumé tant qu'on n'a pas explicitement quitté la
+        // session (comme une vidéo en plein écran) : on ne relâche pas le verrou ici.
+        if (liveRole === null) releaseWakeLock();
+        liveThreadActive = false;
 
         if (state.pdf) {
             try { state.pdf.destroy(); } catch(e) {}
@@ -2711,6 +2839,939 @@
         state.messes.splice(i, 1);
         saveMesses();
         showView('planner');
+    }
+
+    /* ══════════════════════════════════════════
+       MODE LIVE — playlist collaborative en pair-à-pair, sans serveur
+
+       Aucun serveur, aucune base de données, aucun droit GitHub requis.
+       La synchronisation passe uniquement par WebRTC, avec un serveur
+       STUN public (Google) pour la découverte d'adresse : ce serveur ne
+       voit jamais les données échangées (chants, playlist…), il sert
+       juste à ce que chaque appareil découvre sa propre adresse joignable
+       depuis l'extérieur — ça permet à Mode Live de fonctionner même
+       entre deux réseaux différents, pas seulement sur le même WiFi.
+
+       Comme un navigateur ne peut pas découvrir tout seul les autres
+       appareils, la mise en relation initiale (l'échange d'offre/réponse
+       WebRTC) se fait via un QR code scanné avec l'appareil photo — avec,
+       en secours, un champ où coller le code à la main si le scan ne
+       fonctionne pas. Le SDP est allégé au maximum (peu de candidats ICE)
+       avant d'être encodé pour que le QR reste le moins dense possible, et
+       le scan utilise en priorité le détecteur de code-barres natif du
+       navigateur (BarcodeDetector, le même moteur que l'appli Appareil
+       photo du téléphone) quand il est disponible, avec la bibliothèque
+       jsQR en repli sinon (Safari/iOS notamment).
+
+       Rôles et statuts :
+       - Topologie en étoile : l'hôte (celui qui a lancé "Être hôte") ouvre
+         une connexion dédiée par participant. Les participants ne parlent
+         qu'à l'hôte, qui reste la seule source de vérité de l'état
+         partagé (file d'attente + chant en direct) : les leaders envoient
+         des DEMANDES, l'hôte les valide et rediffuse l'état résultant à
+         tout le monde. Ça évite tout risque de désynchronisation.
+       - Chacun entre son prénom en rejoignant. L'hôte principal peut
+         nommer n'importe quel participant connecté "leader" : lui seul
+         (en plus de l'hôte) peut alors ajouter/retirer des chants et
+         faire avancer la file. Les autres voient tout mais ne modifient
+         rien.
+       - Un seul chant est "en direct" à la fois (mis en évidence en
+         rouge, séparé de la file). La file d'attente (1, 2, 3…) est
+         alimentée par recherche dans la bibliothèque. "Chant terminé"
+         fait passer le chant en position n°1 de la file vers le statut
+         "en direct", pour tout le monde en même temps.
+    ══════════════════════════════════════════ */
+    const LIVE_ICE_SERVERS = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ];
+    const LIVE_MAX_CANDIDATES = 3; // au-delà, les candidats ICE sont ignorés pour alléger le QR au maximum
+    const LIVE_THREAD_MAX = 3; // nombre de chants gardés dans le "fil" de lecture personnel
+
+    let liveRole = null;              // 'host' | 'join' | null
+    let liveScreen = 'select';        // voir renderLiveView() pour la liste des écrans
+    let livePendingRoleAfterName = null;
+    let liveMyName = localStorage.getItem('cantus_live_name') || '';
+    let liveMyId = null;              // participant : identifiant attribué par l'hôte
+    let livePeople = [];              // [{ id, name, isLeader, isMainHost }] — vu par tout le monde
+    let liveNowItem = null;           // { qid, songId, name, category } | null — chant en direct
+    let liveQueue = [];               // file d'attente ordonnée : { qid, songId, name, category }
+    let liveLibSearchQuery = '';
+    let liveHostConnections = [];     // hôte : [{ id, pc, channel, name, isLeader }]
+    let liveParticipantCounter = 0;
+    let livePendingHostPc = null;     // hôte : connexion en cours de négociation
+    let livePendingHostPayload = null;
+    let liveJoinPc = null;            // participant
+    let liveJoinChannel = null;
+    let liveJoinAnswerPayload = null;
+    let liveScanStream = null;
+    let liveScanRAF = null;
+    let liveThreadActive = false;     // true pendant la lecture d'un chant lancé depuis "En direct"
+    let liveChatQueue = [];           // messages reçus en attente d'affichage (un à la fois)
+
+    let liveBarcodeDetector = null;
+    if ('BarcodeDetector' in window) {
+        try { liveBarcodeDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { liveBarcodeDetector = null; }
+    }
+
+    function waitIceGatheringComplete(pc) {
+        if (pc.iceGatheringState === 'complete') return Promise.resolve();
+        return new Promise(resolve => {
+            function check() {
+                if (pc.iceGatheringState === 'complete') {
+                    pc.removeEventListener('icegatheringstatechange', check);
+                    resolve();
+                }
+            }
+            pc.addEventListener('icegatheringstatechange', check);
+        });
+    }
+
+    // Retire les candidats ICE en trop (TCP, doublons de multiples interfaces réseau…) : un seul
+    // appareil peut annoncer 15-20 candidats une fois le STUN ajouté, ce qui rend le QR très dense
+    // et difficile à scanner. On ne garde que les tout premiers candidats UDP, largement
+    // suffisants pour établir la connexion.
+    function pruneSdpCandidates(sdp) {
+        let kept = 0;
+        return sdp.split('\r\n').filter(line => {
+            if (!line.startsWith('a=candidate:')) return true;
+            if (line.includes(' TCP ') || line.includes(' tcp ')) return false;
+            kept++;
+            return kept <= LIVE_MAX_CANDIDATES;
+        }).join('\r\n');
+    }
+
+    // Encodage compact (allègement du SDP + compression LZString) pour que le QR code reste le
+    // moins dense possible.
+    function encodeSignal(desc) {
+        const sdp = pruneSdpCandidates(desc.sdp);
+        return LZString.compressToEncodedURIComponent(JSON.stringify({ sdp, type: desc.type }));
+    }
+
+    function decodeSignal(text) {
+        const parsed = JSON.parse(LZString.decompressFromEncodedURIComponent(text));
+        if (!parsed || !parsed.sdp || !parsed.type) throw new Error('Code invalide.');
+        return new RTCSessionDescription(parsed);
+    }
+
+    function renderQR(canvasId, text) {
+        const el = document.getElementById(canvasId);
+        if (!el || !text) return;
+        new QRious({ element: el, value: text, size: 300, level: 'L' });
+    }
+
+    function zoomLiveQr(text) {
+        if (!text) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'live-qr-zoom';
+        overlay.innerHTML = `<canvas id="live-qr-zoom-canvas"></canvas><p>Touchez n'importe où pour fermer</p>`;
+        overlay.onclick = () => overlay.remove();
+        document.body.appendChild(overlay);
+        const size = Math.min(window.innerWidth, window.innerHeight) - 80;
+        new QRious({ element: document.getElementById('live-qr-zoom-canvas'), value: text, size, level: 'L' });
+    }
+
+    async function shareLiveCode(text) {
+        if (!text) return;
+        if (navigator.share) {
+            try { await navigator.share({ text }); } catch (e) { /* partage annulé */ }
+        } else {
+            navigator.clipboard.writeText(text)
+                .then(() => showToast('Partage indisponible : code copié à la place.'))
+                .catch(() => showToast('Partage indisponible sur cet appareil.'));
+        }
+    }
+
+    /* ─── PERMISSIONS ─── */
+    function liveAmILeader() {
+        if (liveRole === 'host') return true;
+        const me = livePeople.find(p => p.id === liveMyId);
+        return !!(me && me.isLeader);
+    }
+
+    function renderLiveView() {
+        const c = document.getElementById('content');
+
+        if (liveScreen === 'select') {
+            c.innerHTML = `
+                <div class="live-choice">
+                    <p>Construisez la playlist du moment ensemble, en direct — sans compte, sans serveur de données, sans toucher au dépôt GitHub.</p>
+                    <button class="btn btn-primary" onclick="startLiveHost()">
+                        <svg class="icon"><use href="#ico-live"/></svg>
+                        Être hôte
+                    </button>
+                    <button class="btn btn-ghost" onclick="startLiveJoin()">
+                        <svg class="icon"><use href="#ico-camera"/></svg>
+                        Rejoindre
+                    </button>
+                </div>`;
+            return;
+        }
+
+        if (liveScreen === 'enter-name') {
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>Votre prénom</h3>
+                    <p class="live-status">Pour que tout le monde voie qui est connecté.</p>
+                    <input type="text" id="live-name-input" class="input-field" placeholder="Votre prénom" style="margin-bottom: var(--sp-md);">
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%" onclick="confirmLiveName()">Continuer</button>
+                        <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
+                    </div>
+                </div>`;
+            document.getElementById('live-name-input').value = liveMyName;
+            return;
+        }
+
+        if (liveScreen === 'host-wait') {
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>Faites scanner ce code</h3>
+                    <p class="live-status">Sur l'autre appareil : onglet <strong>Mode Live → Rejoindre</strong>, puis pointez la caméra vers ce QR code.</p>
+                    <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
+                    <div class="live-qr-actions">
+                        <button class="btn btn-ghost" onclick="zoomLiveQr(livePendingHostPayload)">
+                            <svg class="icon icon-sm"><use href="#ico-expand"/></svg>
+                            Agrandir
+                        </button>
+                        <button class="btn btn-ghost" onclick="shareLiveCode(livePendingHostPayload)">
+                            <svg class="icon icon-sm"><use href="#ico-share"/></svg>
+                            Partager
+                        </button>
+                    </div>
+                    <p class="live-status">Une fois scanné, cet appareil affichera à son tour un code : appuyez ci-dessous pour le scanner et terminer la connexion.</p>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%" onclick="hostScanAnswer()">Scanner sa réponse</button>
+                        <button class="btn btn-ghost" style="width:100%" onclick="cancelPendingHostConnection()">Annuler</button>
+                    </div>
+                </div>`;
+            renderQR('live-qr-canvas', livePendingHostPayload);
+            return;
+        }
+
+        if (liveScreen === 'host-scan-answer' || liveScreen === 'join-scan-offer') {
+            const title = liveScreen === 'host-scan-answer' ? 'Scannez la réponse du participant' : "Scannez le code affiché par l'hôte";
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>${title}</h3>
+                    <div class="live-scan-wrap">
+                        <video id="live-scan-video" autoplay playsinline muted></video>
+                        <div class="live-scan-frame"></div>
+                    </div>
+                    <p class="live-status">La caméra scanne automatiquement. Si ça ne fonctionne pas, collez le code reçu ici :</p>
+                    <textarea id="live-fallback-input" class="input-field live-code-box" placeholder="Collez ici le code reçu…"></textarea>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%" onclick="submitLiveFallbackCode()">Valider ce code</button>
+                        <button class="btn btn-ghost" style="width:100%" onclick="cancelLiveScan()">Annuler</button>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        if (liveScreen === 'join-show-answer') {
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>Montrez ce code à l'hôte</h3>
+                    <p class="live-status">L'hôte doit appuyer sur « Scanner sa réponse » puis pointer sa caméra vers ce QR code.</p>
+                    <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
+                    <div class="live-qr-actions">
+                        <button class="btn btn-ghost" onclick="zoomLiveQr(liveJoinAnswerPayload)">
+                            <svg class="icon icon-sm"><use href="#ico-expand"/></svg>
+                            Agrandir
+                        </button>
+                        <button class="btn btn-ghost" onclick="shareLiveCode(liveJoinAnswerPayload)">
+                            <svg class="icon icon-sm"><use href="#ico-share"/></svg>
+                            Partager
+                        </button>
+                    </div>
+                    <p class="live-status">La connexion se termine automatiquement dès que l'hôte l'a acceptée.</p>
+                    <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
+                </div>`;
+            renderQR('live-qr-canvas', liveJoinAnswerPayload);
+            return;
+        }
+
+        if (liveScreen === 'host-connecting' || liveScreen === 'join-connecting') {
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>Connexion en cours…</h3>
+                    <p class="live-status">Quelques secondes, le temps que les deux appareils établissent la connexion directe.</p>
+                </div>`;
+            return;
+        }
+
+        if (liveScreen === 'connected') {
+            const isMainHost = liveRole === 'host';
+            const canManage = liveAmILeader();
+
+            c.innerHTML = `
+                <div class="live-topbar">
+                    <button class="btn btn-ghost" onclick="openLiveParticipantsModal()">
+                        <svg class="icon icon-sm"><use href="#ico-users"/></svg>
+                        Participants (${livePeople.length})
+                    </button>
+                    <div class="live-topbar-actions">
+                        ${isMainHost ? `
+                        <button class="btn btn-icon" onclick="hostAddParticipant()" title="Ajouter un participant" aria-label="Ajouter un participant">
+                            <svg class="icon"><use href="#ico-plus"/></svg>
+                        </button>` : ''}
+                        <button class="btn btn-icon" onclick="openLiveChatComposer()" title="Envoyer un message" aria-label="Message">
+                            <svg class="icon"><use href="#ico-message"/></svg>
+                        </button>
+                        <button class="btn btn-icon danger" onclick="leaveLiveMode()" title="Quitter le mode live" aria-label="Quitter">
+                            <svg class="icon"><use href="#ico-x"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="live-now-card">
+                    <div class="live-now-info">
+                        <div class="live-now-label">● En direct</div>
+                        ${liveNowItem
+                            ? `<div class="live-now-name">${escHtml(liveNowItem.name)}</div>`
+                            : `<div class="live-now-empty">Aucun chant en direct pour l'instant</div>`}
+                    </div>
+                    <div class="live-now-actions">
+                        ${liveNowItem ? `
+                        <button class="btn btn-primary" onclick="playLiveNow()">
+                            <svg class="icon icon-sm"><use href="#ico-play"/></svg> Lire
+                        </button>` : ''}
+                        ${canManage ? `
+                        <button class="btn btn-ghost" onclick="liveActionFinishSong()" ${liveQueue.length === 0 ? 'disabled' : ''}>
+                            ${liveNowItem ? 'Chant terminé → suivant' : 'Démarrer le direct'}
+                        </button>` : ''}
+                    </div>
+                </div>
+                <div class="editor-grid live-editor-grid" style="${canManage ? '' : 'grid-template-columns: 1fr;'}">
+                    ${canManage ? `
+                    <div class="editor-col">
+                        <div class="col-header">Bibliothèque</div>
+                        <div class="search-wrap" style="padding:8px 8px 0">
+                            <svg class="icon"><use href="#ico-search"/></svg>
+                            <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" value="${escHtml(liveLibSearchQuery)}" oninput="filterLiveLibrary(this.value)">
+                        </div>
+                        <div id="live-lib-list" class="col-body">${renderLiveLibraryList(liveFilteredLibrary())}</div>
+                    </div>` : ''}
+                    <div class="editor-col">
+                        <div class="col-header" id="live-queue-header">File d'attente — ${liveQueue.length} chant${liveQueue.length !== 1 ? 's' : ''}</div>
+                        <div id="live-queue-list" class="col-body">${renderLiveQueueList()}</div>
+                    </div>
+                </div>`;
+            mountLiveQueueSortable();
+            return;
+        }
+    }
+
+    /* ─── PARTICIPANTS (popup de gestion) ───
+
+       Remplace l'ancien affichage en badges directement sur l'écran (jugé confus) par un simple
+       bouton "Participants (n)" ouvrant une liste claire, avec la promotion/rétrogradation de
+       leader réservée à l'hôte principal.
+    ── */
+    function openLiveParticipantsModal() {
+        document.getElementById('live-participants-list').innerHTML = renderLiveParticipantsList();
+        document.getElementById('live-participants-modal').classList.add('open');
+    }
+
+    function closeLiveParticipantsModal() {
+        document.getElementById('live-participants-modal').classList.remove('open');
+    }
+
+    function refreshLiveParticipantsModalIfOpen() {
+        const modal = document.getElementById('live-participants-modal');
+        if (modal && modal.classList.contains('open')) {
+            document.getElementById('live-participants-list').innerHTML = renderLiveParticipantsList();
+        }
+    }
+
+    function renderLiveParticipantsList() {
+        const isMainHost = liveRole === 'host';
+        if (livePeople.length === 0) return `<p class="settings-note">Personne d'autre pour l'instant.</p>`;
+        return livePeople.map(p => {
+            const roleLabel = p.isMainHost ? 'Hôte' : (p.isLeader ? 'Leader' : 'Participant');
+            const canToggle = isMainHost && !p.isMainHost;
+            return `
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">${escHtml(p.name)}</div>
+                    <div class="settings-row-desc">${roleLabel}</div>
+                </div>
+                ${canToggle ? `
+                <button class="btn btn-ghost" onclick="toggleLeaderById(${p.id})">
+                    ${p.isLeader ? 'Retirer leader' : 'Nommer leader'}
+                </button>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    /* ─── PRÉNOM ─── */
+    function confirmLiveName() {
+        const input = document.getElementById('live-name-input');
+        const name = input ? input.value.trim() : '';
+        if (!name) { showToast('Entrez votre prénom.'); return; }
+        liveMyName = name;
+        localStorage.setItem('cantus_live_name', name);
+
+        if (livePendingRoleAfterName === 'host') {
+            liveRole = 'host';
+            hostCreateOffer();
+        } else {
+            liveRole = 'join';
+            liveScreen = 'join-scan-offer';
+            renderLiveView();
+            startLiveScanner(text => joinSubmitOfferCode(text));
+        }
+    }
+
+    /* ─── HÔTE ─── */
+    function startLiveHost() {
+        livePendingRoleAfterName = 'host';
+        liveScreen = 'enter-name';
+        renderLiveView();
+    }
+
+    function hostAddParticipant() {
+        hostCreateOffer();
+    }
+
+    async function hostCreateOffer() {
+        const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
+        const channel = pc.createDataChannel('live');
+        const connId = ++liveParticipantCounter;
+        const conn = { id: connId, pc, channel, name: null, isLeader: false };
+
+        channel.onopen = () => {
+            liveHostConnections.push(conn);
+            livePendingHostPc = null;
+            livePendingHostPayload = null;
+            liveScreen = 'connected';
+            requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
+            renderLiveView();
+        };
+        channel.onmessage = e => {
+            try { hostHandleMessage(conn, JSON.parse(e.data)); }
+            catch (err) { console.error('Message live invalide :', err); }
+        };
+        channel.onclose = () => {
+            liveHostConnections = liveHostConnections.filter(c2 => c2.id !== connId);
+            broadcastPresence();
+        };
+
+        try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            await waitIceGatheringComplete(pc);
+        } catch (e) {
+            alert("Impossible de préparer la connexion (WebRTC indisponible sur cet appareil ?).");
+            try { pc.close(); } catch (e2) {}
+            return;
+        }
+
+        livePendingHostPc = pc;
+        livePendingHostPayload = encodeSignal(pc.localDescription);
+        liveScreen = 'host-wait';
+        renderLiveView();
+    }
+
+    // Traite un message reçu d'UN participant précis. "hello" (prénom) et "chat" (message) sont
+    // toujours acceptés ; toute demande de gestion de la file (ajout/retrait/avancement/ordre)
+    // est ignorée si ce participant n'est pas leader — l'hôte reste seul arbitre de l'état
+    // partagé.
+    function hostHandleMessage(conn, msg) {
+        if (msg.type === 'hello') {
+            conn.name = msg.name || 'Sans nom';
+            try {
+                conn.channel.send(JSON.stringify({ type: 'youAre', id: conn.id }));
+                conn.channel.send(JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue }));
+            } catch (e) {}
+            broadcastPresence();
+            return;
+        }
+        if (msg.type === 'chat') {
+            deliverChatAsHost(msg, conn);
+            return;
+        }
+        if (!conn.isLeader) return;
+        if (msg.type === 'requestAdd') liveAddSong(msg.songId);
+        else if (msg.type === 'requestRemove') liveRemoveSong(msg.qid);
+        else if (msg.type === 'requestFinish') liveFinishSong();
+        else if (msg.type === 'requestReorder') liveReorderQueue(msg.qidOrder);
+        else return;
+        broadcastLiveState();
+        if (liveScreen === 'connected') renderLiveView();
+    }
+
+    function broadcastPresence() {
+        livePeople = [
+            { id: 0, name: liveMyName, isLeader: true, isMainHost: true },
+            ...liveHostConnections.map(c2 => ({ id: c2.id, name: c2.name || 'Connexion en cours…', isLeader: c2.isLeader, isMainHost: false }))
+        ];
+        const payload = JSON.stringify({ type: 'presence', people: livePeople });
+        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+        if (liveScreen === 'connected') renderLiveView();
+        refreshLiveParticipantsModalIfOpen();
+    }
+
+    function broadcastLiveState() {
+        const payload = JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue });
+        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+    }
+
+    function toggleLeaderById(id) {
+        const conn = liveHostConnections.find(c2 => c2.id === id);
+        if (!conn) return;
+        conn.isLeader = !conn.isLeader;
+        broadcastPresence();
+    }
+
+    function hostScanAnswer() {
+        liveScreen = 'host-scan-answer';
+        renderLiveView();
+        startLiveScanner(text => hostSubmitAnswerCode(text));
+    }
+
+    async function hostSubmitAnswerCode(text) {
+        if (!text) {
+            const input = document.getElementById('live-fallback-input');
+            text = input ? input.value.trim() : '';
+        }
+        if (!text) { showToast('Scannez un code ou collez-le ci-dessous.'); return; }
+        if (!livePendingHostPc) { showToast('Session expirée, relancez « Être hôte ».'); return; }
+
+        stopLiveScanner();
+        try {
+            const answer = decodeSignal(text);
+            await livePendingHostPc.setRemoteDescription(answer);
+            liveScreen = 'host-connecting';
+            renderLiveView();
+        } catch (e) {
+            alert('Code invalide. Réessayez de scanner, ou vérifiez le code collé.');
+            hostScanAnswer();
+        }
+    }
+
+    function cancelPendingHostConnection() {
+        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
+        livePendingHostPayload = null;
+        if (liveHostConnections.length === 0) {
+            liveRole = null;
+            liveScreen = 'select';
+        } else {
+            liveScreen = 'connected';
+        }
+        renderLiveView();
+    }
+
+    /* ─── PARTICIPANT ─── */
+    function startLiveJoin() {
+        livePendingRoleAfterName = 'join';
+        liveScreen = 'enter-name';
+        renderLiveView();
+    }
+
+    async function joinSubmitOfferCode(text) {
+        if (!text) {
+            const input = document.getElementById('live-fallback-input');
+            text = input ? input.value.trim() : '';
+        }
+        if (!text) { showToast('Scannez un code ou collez-le ci-dessous.'); return; }
+
+        stopLiveScanner();
+        try {
+            const offer = decodeSignal(text);
+            const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
+            liveJoinPc = pc;
+
+            pc.ondatachannel = (e) => {
+                liveJoinChannel = e.channel;
+                liveJoinChannel.onopen = () => {
+                    try { liveJoinChannel.send(JSON.stringify({ type: 'hello', name: liveMyName })); } catch (e2) {}
+                    liveScreen = 'connected';
+                    requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
+                    renderLiveView();
+                };
+                liveJoinChannel.onmessage = ev => {
+                    try { joinHandleMessage(JSON.parse(ev.data)); }
+                    catch (err) { console.error('Message live invalide :', err); }
+                };
+            };
+
+            await pc.setRemoteDescription(offer);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await waitIceGatheringComplete(pc);
+
+            liveJoinAnswerPayload = encodeSignal(pc.localDescription);
+            liveScreen = 'join-show-answer';
+            renderLiveView();
+        } catch (e) {
+            alert('Code invalide. Réessayez de scanner, ou vérifiez le code collé.');
+            liveRole = 'join';
+            liveScreen = 'join-scan-offer';
+            renderLiveView();
+            startLiveScanner(text2 => joinSubmitOfferCode(text2));
+        }
+    }
+
+    function joinHandleMessage(msg) {
+        if (msg.type === 'youAre') {
+            liveMyId = msg.id;
+        } else if (msg.type === 'state') {
+            liveNowItem = msg.liveNow;
+            liveQueue = msg.queue || [];
+            if (liveScreen === 'connected') renderLiveView();
+        } else if (msg.type === 'presence') {
+            livePeople = msg.people || [];
+            if (liveScreen === 'connected') renderLiveView();
+            refreshLiveParticipantsModalIfOpen();
+        } else if (msg.type === 'chat') {
+            showLiveChatBanner(msg.fromName, msg.text);
+        }
+    }
+
+    function submitLiveFallbackCode() {
+        const input = document.getElementById('live-fallback-input');
+        const text = input ? input.value.trim() : '';
+        if (!text) { showToast('Collez un code avant de valider.'); return; }
+        if (liveScreen === 'host-scan-answer') hostSubmitAnswerCode(text);
+        else if (liveScreen === 'join-scan-offer') joinSubmitOfferCode(text);
+    }
+
+    function sendToHost(msg) {
+        if (liveJoinChannel && liveJoinChannel.readyState === 'open') {
+            try { liveJoinChannel.send(JSON.stringify(msg)); } catch (e) {}
+        }
+    }
+
+    /* ─── FILE LIVE (mutations, appliquées uniquement côté hôte) ─── */
+    function liveAddSong(songId) {
+        const song = state.songs.find(s => s.id === songId);
+        if (!song) return;
+        liveQueue.push({ qid: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), songId: song.id, name: song.name, category: song.category });
+    }
+
+    function liveRemoveSong(qid) {
+        liveQueue = liveQueue.filter(i => i.qid !== qid);
+    }
+
+    function liveFinishSong() {
+        if (liveQueue.length === 0) return;
+        liveNowItem = liveQueue.shift();
+    }
+
+    function liveReorderQueue(qidOrder) {
+        const byQid = new Map(liveQueue.map(i => [i.qid, i]));
+        const reordered = qidOrder.map(qid => byQid.get(qid)).filter(Boolean);
+        // Ceinture et bretelles : si l'ordre reçu ne correspond pas exactement à la file
+        // actuelle (course avec un ajout/retrait concurrent), on garde ce qui manque à la fin
+        // plutôt que de perdre un chant.
+        liveQueue.forEach(i => { if (!qidOrder.includes(i.qid)) reordered.push(i); });
+        liveQueue = reordered;
+    }
+
+    // Points d'entrée UI, communs à tous les rôles : l'hôte applique directement, un leader
+    // participant envoie une demande que l'hôte validera.
+    function liveActionAddSong(songId) {
+        if (liveRole === 'host') { liveAddSong(songId); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestAdd', songId });
+    }
+
+    function liveActionRemoveSong(qid) {
+        if (liveRole === 'host') { liveRemoveSong(qid); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestRemove', qid });
+    }
+
+    function liveActionFinishSong() {
+        if (liveRole === 'host') { liveFinishSong(); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestFinish' });
+    }
+
+    function liveActionReorderQueue(qidOrder) {
+        if (liveRole === 'host') { liveReorderQueue(qidOrder); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestReorder', qidOrder });
+    }
+
+    function liveItemToSong(item) {
+        return state.songs.find(s => s.id === item.songId)
+            || { id: item.songId, type: 'song', name: item.name, category: item.category, url: null };
+    }
+
+    // Lance le chant en direct dans un "fil" de lecture : tant que la lecture reste ouverte, un
+    // tap sur le bord (page suivante) fera avancer vers le nouveau chant en direct dès qu'il
+    // change, sans avoir à sortir de la partition en cours (voir nextPage()).
+    function playLiveNow() {
+        if (!liveNowItem) return;
+        liveThreadActive = true;
+        startPerformance([liveItemToSong(liveNowItem)]);
+    }
+
+    // Lit un seul chant de la file (aperçu) sans le faire passer en direct.
+    function playLiveQueueItem(qid) {
+        const item = liveQueue.find(i => i.qid === qid);
+        if (!item) return;
+        startPerformance([liveItemToSong(item)]);
+    }
+
+    function liveFilteredLibrary() {
+        const q = normalizeSearch(liveLibSearchQuery);
+        return q ? state.songs.filter(s => normalizeSearch(s.name).includes(q)) : state.songs;
+    }
+
+    function renderLiveLibraryList(list) {
+        if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
+        return list.map(s => `
+            <div class="ed-item ed-item--add" onclick="liveActionAddSong('${s.id}')">
+                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
+                <span class="ed-name">${escHtml(s.name)}</span>
+            </div>`).join('');
+    }
+
+    function filterLiveLibrary(query) {
+        liveLibSearchQuery = query;
+        const el = document.getElementById('live-lib-list');
+        if (el) el.innerHTML = renderLiveLibraryList(liveFilteredLibrary());
+    }
+
+    function renderLiveQueueList() {
+        if (liveQueue.length === 0) return `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">File d'attente vide.</p></div>`;
+        const canManage = liveAmILeader();
+        return liveQueue.map((item, i) => `
+            <div class="ed-item" data-qid="${item.qid}">
+                ${canManage ? `<svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>` : ''}
+                <span class="live-queue-pos">${i + 1}</span>
+                <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="#ico-file"/></svg>
+                <span class="ed-name">${escHtml(item.name)}</span>
+                <button class="btn btn-icon" onclick="playLiveQueueItem('${item.qid}')" title="Lire" aria-label="Lire">
+                    <svg class="icon icon-sm"><use href="#ico-play"/></svg>
+                </button>
+                ${canManage ? `
+                <button class="btn btn-icon danger" onclick="liveActionRemoveSong('${item.qid}')" aria-label="Retirer">
+                    <svg class="icon icon-sm"><use href="#ico-x"/></svg>
+                </button>` : ''}
+            </div>`).join('');
+    }
+
+    // (Re)monte le glisser-déposer sur la file live : appelé après chaque rendu de l'écran
+    // "connected" quand l'utilisateur peut gérer la file (hôte ou leader).
+    function mountLiveQueueSortable() {
+        const el = document.getElementById('live-queue-list');
+        if (!el || !liveAmILeader()) return;
+        new Sortable(el, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: () => {
+                const qids = Array.from(el.children).map(row => row.dataset.qid).filter(Boolean);
+                liveActionReorderQueue(qids);
+            }
+        });
+    }
+
+    /* ─── SCAN QR (caméra) ─── */
+    // Décodage en priorité via l'API native BarcodeDetector (même moteur que l'appli Appareil
+    // photo du téléphone sur Android/Chrome, très fiable), avec jsQR en repli si indisponible
+    // (Safari/iOS notamment).
+    async function decodeQrFrame(canvas, imageData) {
+        if (liveBarcodeDetector) {
+            try {
+                const results = await liveBarcodeDetector.detect(canvas);
+                if (results && results.length > 0 && results[0].rawValue) return results[0].rawValue;
+            } catch (e) { /* repli sur jsQR ci-dessous */ }
+        }
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        return code ? code.data : null;
+    }
+
+    async function startLiveScanner(onDecode) {
+        const video = document.getElementById('live-scan-video');
+        if (!video) return;
+        try {
+            liveScanStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+            });
+        } catch (e) {
+            showToast("Caméra indisponible : utilisez le champ pour coller le code.");
+            return;
+        }
+        video.srcObject = liveScanStream;
+        await video.play();
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        const tick = async () => {
+            if (!liveScanStream) return; // scan arrêté entre-temps
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = await decodeQrFrame(canvas, imageData);
+                if (data) {
+                    stopLiveScanner();
+                    onDecode(data);
+                    return;
+                }
+            }
+            liveScanRAF = requestAnimationFrame(tick);
+        };
+        liveScanRAF = requestAnimationFrame(tick);
+    }
+
+    function stopLiveScanner() {
+        if (liveScanRAF) cancelAnimationFrame(liveScanRAF);
+        liveScanRAF = null;
+        if (liveScanStream) {
+            liveScanStream.getTracks().forEach(t => t.stop());
+            liveScanStream = null;
+        }
+    }
+
+    function cancelLiveScan() {
+        stopLiveScanner();
+        if (liveRole === 'host') {
+            if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
+            livePendingHostPayload = null;
+            liveScreen = liveHostConnections.length > 0 ? 'connected' : 'select';
+            if (liveScreen === 'select') liveRole = null;
+        } else {
+            if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
+            liveRole = null;
+            liveScreen = 'select';
+        }
+        renderLiveView();
+    }
+
+    /* ─── MESSAGERIE (chat) ───
+
+       N'importe qui peut envoyer un message (à tout le monde ou à une personne précise) même
+       en plein écran pendant qu'une partition est ouverte. Comme pour la file live, l'hôte
+       relaie : un participant envoie sa demande à l'hôte, qui la distribue au(x) bon(s)
+       destinataire(s) (id 0 = l'hôte lui-même).
+    ── */
+    function openLiveChatComposer() {
+        if (liveRole === null) return;
+        document.getElementById('live-chat-recipient').innerHTML = liveChatRecipientOptions();
+        document.getElementById('live-chat-text').value = '';
+        document.getElementById('live-chat-modal').classList.add('open');
+    }
+
+    function closeLiveChatComposer() {
+        document.getElementById('live-chat-modal').classList.remove('open');
+    }
+
+    function liveChatRecipientOptions() {
+        const myId = liveRole === 'host' ? 0 : liveMyId;
+        const others = livePeople.filter(p => p.id !== myId);
+        return `<option value="all">Tout le monde</option>` +
+            others.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
+    }
+
+    function sendLiveChatMessage() {
+        const sel = document.getElementById('live-chat-recipient');
+        const input = document.getElementById('live-chat-text');
+        const text = input.value.trim();
+        if (!text) { showToast('Écrivez un message avant d\'envoyer.'); return; }
+
+        const to = sel.value === 'all' ? 'all' : Number(sel.value);
+        const msg = { type: 'chat', to, fromName: liveMyName, text };
+
+        if (liveRole === 'host') deliverChatAsHost(msg, null);
+        else sendToHost(msg);
+
+        closeLiveChatComposer();
+        showToast('Message envoyé.');
+    }
+
+    // Distribue un message de chat aux bons destinataires. fromConn est null quand c'est l'hôte
+    // lui-même qui envoie ; sinon c'est la connexion du participant à l'origine du message (à
+    // exclure de la diffusion "tout le monde", et à qui l'hôte ne se réaffiche pas son propre
+    // message s'il se l'adressait à lui-même).
+    function deliverChatAsHost(msg, fromConn) {
+        const payload = JSON.stringify({ type: 'chat', fromName: msg.fromName, text: msg.text });
+        if (msg.to === 'all') {
+            liveHostConnections.forEach(c2 => {
+                if (c2 !== fromConn && c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} }
+            });
+            if (fromConn !== null) showLiveChatBanner(msg.fromName, msg.text);
+        } else if (msg.to === 0) {
+            if (fromConn !== null) showLiveChatBanner(msg.fromName, msg.text);
+        } else {
+            const target = liveHostConnections.find(c2 => c2.id === msg.to);
+            if (target && target.channel.readyState === 'open') { try { target.channel.send(payload); } catch (e) {} }
+        }
+    }
+
+    // Bannière affichée en haut de l'écran (visible même en plein écran pendant la lecture
+    // d'une partition) : une file d'attente pour ne pas perdre un message si plusieurs
+    // arrivent d'affilée, affichés un par un.
+    function showLiveChatBanner(fromName, text) {
+        liveChatQueue.push({ fromName, text });
+        if (liveChatQueue.length === 1) renderLiveChatBanner();
+    }
+
+    function renderLiveChatBanner() {
+        const banner = document.getElementById('live-chat-banner');
+        if (liveChatQueue.length === 0) { banner.classList.remove('open'); return; }
+        const msg = liveChatQueue[0];
+        document.getElementById('live-chat-banner-from').textContent = msg.fromName;
+        document.getElementById('live-chat-banner-text').textContent = msg.text;
+        banner.classList.add('open');
+    }
+
+    function closeLiveChatBanner() {
+        liveChatQueue.shift();
+        renderLiveChatBanner();
+    }
+
+    /* ─── SORTIE ─── */
+    function liveResetSharedState() {
+        liveNowItem = null;
+        liveQueue = [];
+        livePeople = [];
+        liveMyId = null;
+        liveLibSearchQuery = '';
+    }
+
+    // Annule une négociation en cours (avant toute connexion établie) sans demander de
+    // confirmation : utilisé par les boutons "Annuler" des écrans d'échange de code.
+    function leaveLiveModeSilent() {
+        stopLiveScanner();
+        if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
+        liveJoinChannel = null;
+        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
+        livePendingHostPayload = null;
+        liveRole = null;
+        liveScreen = 'select';
+        liveThreadActive = false;
+        liveResetSharedState();
+        releaseWakeLock();
+        renderLiveView();
+    }
+
+    function leaveLiveMode() {
+        const msg = liveRole === 'host'
+            ? 'Quitter le mode live ? Tous les participants seront déconnectés.'
+            : 'Quitter le mode live ?';
+        if (!confirm(msg)) return;
+
+        stopLiveScanner();
+        liveHostConnections.forEach(c2 => {
+            try { c2.channel.close(); } catch (e) {}
+            try { c2.pc.close(); } catch (e) {}
+        });
+        liveHostConnections = [];
+        if (liveJoinChannel) { try { liveJoinChannel.close(); } catch (e) {} }
+        if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} }
+        liveJoinChannel = null;
+        liveJoinPc = null;
+        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} }
+        livePendingHostPc = null;
+
+        liveRole = null;
+        liveScreen = 'select';
+        liveThreadActive = false;
+        liveResetSharedState();
+        releaseWakeLock();
+        renderLiveView();
     }
 
     /* ══════════════════════════════════════════
