@@ -784,6 +784,7 @@
     let cameraInstance = null;
     let faceMeshInstance = null;
     let pendingSetlist = null;
+    let returnState = null;
 
     const RIGHT_THRESHOLD = -0.25;
     const LEFT_THRESHOLD = 0.25;
@@ -1201,9 +1202,36 @@
         }
     });
 
+    /* Mémorise la vue exacte (onglet + éventuel détail de playlist + position de
+       défilement) d'où l'utilisateur lance une lecture, pour l'y ramener précisément
+       à la sortie du mode performance plutôt que de toujours revenir à la Bibliothèque. */
+    function captureReturnState() {
+        const activeTabBtn = document.querySelector('.tab-btn.active');
+        const activeTab = activeTabBtn ? activeTabBtn.id.replace('tab-', '') : 'library';
+        const scrollTop = document.getElementById('content').scrollTop;
+        const isPlaylistDetail = activeTab === 'playlist'
+            && state.currentPlaylistIdx !== null
+            && !!document.getElementById('pl-songs-list');
+        const playlistIdx = state.currentPlaylistIdx;
+
+        return {
+            scrollTop,
+            render: () => {
+                if (isPlaylistDetail && state.playlists[playlistIdx]) {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.getElementById('tab-playlist')?.classList.add('active');
+                    viewPlaylist(playlistIdx);
+                } else {
+                    showView(activeTab);
+                }
+            }
+        };
+    }
+
     async function startPerformance(setlist) {
         if (!setlist || setlist.length === 0) return;
         pendingSetlist = setlist;
+        returnState = captureReturnState();
 
         // La caméra n'est demandée que si la reconnaissance faciale est activée dans les paramètres
         if (!settings.faceReco) {
@@ -1390,7 +1418,14 @@
 
         document.getElementById('performance-mode').style.display = 'none';
         document.getElementById('performance-mode').classList.remove('show-nav-buttons');
-        showView('library');
+
+        if (returnState) {
+            returnState.render();
+            document.getElementById('content').scrollTop = returnState.scrollTop;
+            returnState = null;
+        } else {
+            showView('library');
+        }
     }
 
     /* ─── HUD TAP DETECTION ─── */
