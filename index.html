@@ -397,6 +397,43 @@
         .admin-status svg { color: var(--accent); flex-shrink: 0; }
         .admin-actions { display: flex; flex-direction: column; gap: var(--sp-sm); }
 
+        /* ─── ÉDITION D'UNE PARTITION (admin) ─── */
+        #edit-song-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #edit-song-modal.open { display: flex; }
+        .card-edit-btn { color: var(--text-3); }
+        .card-edit-btn:hover { color: var(--accent); background: var(--accent-dim); }
+
+        /* ─── ONBOARDING (première visite) ─── */
+        #onboarding-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 8000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #onboarding-modal.open { display: flex; }
+        .onboard-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 440px; box-shadow: var(--shadow-lg); max-height: 88vh; overflow-y: auto; text-align: center; }
+        .onboard-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: var(--sp-lg); }
+        .onboard-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); display: inline-block; }
+        .onboard-dots span.active { background: var(--accent); }
+        .onboard-icon-wrap { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--accent-glow); display: flex; align-items: center; justify-content: center; color: var(--accent); margin: 0 auto var(--sp-md); }
+        .onboard-icon-wrap svg { width: 26px; height: 26px; }
+        .onboard-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0 0 var(--sp-sm); }
+        .onboard-card p { font-size: 0.87rem; color: var(--text-2); margin: 0 0 var(--sp-md); line-height: 1.55; text-align: left; }
+        .onboard-card ol { text-align: left; font-size: 0.85rem; color: var(--text-2); line-height: 1.65; margin: 0 0 var(--sp-md); padding-left: 1.2em; }
+        .onboard-card ol li { margin-bottom: 5px; }
+        .onboard-card ol .icon { vertical-align: -3px; color: var(--accent); }
+        .onboard-actions { display: flex; flex-direction: column; gap: var(--sp-sm); }
+
+        /* ─── OVERLAY DE TÉLÉCHARGEMENT ─── */
+        #download-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #download-overlay.open { display: flex; }
+        .dl-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 340px; box-shadow: var(--shadow-lg); text-align: center; }
+        .dl-icon-wrap { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--accent-glow); display: flex; align-items: center; justify-content: center; color: var(--accent); margin: 0 auto var(--sp-md); animation: dl-pulse 1.4s ease-in-out infinite; }
+        .dl-icon-wrap svg { width: 26px; height: 26px; }
+        @keyframes dl-pulse { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+        .dl-card h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+        .dl-card p { font-size: 0.83rem; color: var(--text-2); margin: 0 0 var(--sp-lg); line-height: 1.5; }
+        .dl-bar { width: 100%; height: 8px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: var(--sp-sm); }
+        .dl-fill { height: 100%; background: var(--accent); border-radius: 20px; transition: width var(--t-base) var(--ease); width: 0%; }
+        .dl-count { font-size: 0.78rem; color: var(--text-3); }
+        .dl-dismiss { margin-top: var(--sp-lg); background: none; border: none; color: var(--text-3); font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 6px; }
+        .dl-dismiss:hover { color: var(--text-2); }
+
         /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
             main { padding: var(--sp-sm); }
@@ -545,6 +582,20 @@
             <p class="settings-note">Sans les boutons, on tourne les pages en touchant les bords gauche/droite de l'écran. Si la reconnaissance faciale est activée, l'inclinaison de la tête s'ajoute toujours à ce moyen de navigation (bords ou boutons), elle ne le remplace jamais.</p>
         </div>
 
+        <div class="settings-section">
+            <div class="settings-section-title">Stockage</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Mode hors-ligne</div>
+                    <div class="settings-row-desc">Télécharge toutes les partitions sur cet appareil pour les consulter sans connexion.</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-offline-mode" onchange="setOfflineModeSetting(this.checked)">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
+        </div>
+
         <div id="admin-section" class="settings-section"></div>
     </div>
 </div>
@@ -582,6 +633,42 @@
             <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
             Envoyer sur GitHub
         </button>
+    </div>
+</div>
+
+<div id="edit-song-modal">
+    <div class="settings-card" style="max-width: 420px;">
+        <div class="settings-head">
+            <h3>Modifier la partition</h3>
+            <button class="btn btn-icon" onclick="closeEditSongModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <input type="text" id="edit-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
+        <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <div id="edit-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
+            <button class="btn btn-primary" style="width:100%;" onclick="submitEditSong()" id="edit-save-btn">Enregistrer</button>
+            <button class="btn btn-danger" style="width:100%;" onclick="deleteSongFromLibrary()" id="edit-delete-btn">
+                <svg class="icon icon-sm"><use href="#ico-trash"></use></svg>
+                Supprimer la partition
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="onboarding-modal">
+    <div class="onboard-card" id="onboard-content"></div>
+</div>
+
+<div id="download-overlay">
+    <div class="dl-card">
+        <div class="dl-icon-wrap"><svg class="icon"><use href="#ico-download"></use></svg></div>
+        <h3>Téléchargement des partitions…</h3>
+        <p>Ne quittez pas l'application et ne touchez pas votre appareil pendant le téléchargement, pour ne pas le ralentir.</p>
+        <div class="dl-bar"><div class="dl-fill" id="dl-fill"></div></div>
+        <div class="dl-count" id="dl-count">0 / 0 partitions</div>
+        <button class="dl-dismiss" onclick="dismissDownloadOverlay()">Continuer en arrière-plan</button>
     </div>
 </div>
 
@@ -649,6 +736,25 @@
                 console.log('Échec de l\'enregistrement du ServiceWorker: ', err);
             });
         });
+    }
+
+    /* ══════════════════════════════════════════
+       INSTALLATION SUR L'ÉCRAN D'ACCUEIL (PWA)
+    ══════════════════════════════════════════ */
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+    });
+    window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; });
+
+    function isIOSDevice() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isStandaloneMode() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
     /* ══════════════════════════════════════════
@@ -732,7 +838,7 @@
     /* ══════════════════════════════════════════
        PARAMÈTRES (thème, reconnaissance faciale, boutons de page)
     ══════════════════════════════════════════ */
-    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false };
+    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false };
 
     function loadSettings() {
         try {
@@ -784,6 +890,7 @@
         });
         document.getElementById('toggle-face-reco').checked = settings.faceReco;
         document.getElementById('toggle-nav-buttons').checked = settings.navButtons;
+        document.getElementById('toggle-offline-mode').checked = settings.offlineMode;
         renderAdminSection();
     }
 
@@ -813,6 +920,135 @@
         settings.navButtons = enabled;
         saveSettings();
         updateNavButtonsVisibility();
+    }
+
+    function setOfflineModeSetting(enabled) {
+        settings.offlineMode = enabled;
+        saveSettings();
+        if (enabled) syncOfflineCache(state.songs);
+    }
+
+    /* ══════════════════════════════════════════
+       ASSISTANT DE PREMIÈRE CONNEXION
+
+       S'affiche une seule fois par appareil (marqueur 'cantus_onboarding_seen').
+       Explique l'appli, propose l'ajout à l'écran d'accueil (natif sur
+       Android/Chrome via beforeinstallprompt, instructions manuelles sur
+       iOS/Safari qui ne supporte pas cette API), puis demande le consentement
+       explicite pour le téléchargement hors-ligne : c'est ce choix, et lui
+       seul, qui déclenche syncOfflineCache().
+    ══════════════════════════════════════════ */
+    let onboardStep = 0;
+
+    function shouldShowOnboarding() {
+        return !localStorage.getItem('cantus_onboarding_seen');
+    }
+
+    function startOnboarding() {
+        onboardStep = 0;
+        renderOnboardStep();
+        document.getElementById('onboarding-modal').classList.add('open');
+    }
+
+    function finishOnboarding() {
+        localStorage.setItem('cantus_onboarding_seen', 'true');
+        document.getElementById('onboarding-modal').classList.remove('open');
+    }
+
+    function onboardDots(step, total) {
+        return `<div class="onboard-dots">${Array.from({ length: total }, (_, i) =>
+            `<span class="${i === step ? 'active' : ''}"></span>`).join('')}</div>`;
+    }
+
+    function renderOnboardStep() {
+        const el = document.getElementById('onboard-content');
+
+        if (onboardStep === 0) {
+            el.innerHTML = `
+                ${onboardDots(0, 3)}
+                <div class="onboard-icon-wrap"><svg class="icon"><use href="#ico-music"></use></svg></div>
+                <h3 style="text-align:center;">Bienvenue sur Cantus</h3>
+                <p>Cantus rassemble les partitions du groupe : cherchez un chant, préparez le déroulé d'une messe, créez des playlists, et lisez les partitions en plein écran en tournant les pages au doigt (ou de la tête, si vous activez la reconnaissance faciale).</p>
+                <p>Deux ou trois petites choses avant de commencer.</p>
+                <div class="onboard-actions">
+                    <button class="btn btn-primary" style="width:100%;" onclick="onboardStep = 1; renderOnboardStep();">Continuer</button>
+                </div>`;
+            return;
+        }
+
+        if (onboardStep === 1) {
+            if (isStandaloneMode()) {
+                onboardStep = 2;
+                renderOnboardStep();
+                return;
+            }
+
+            let body;
+            if (deferredInstallPrompt) {
+                body = `
+                    <p>Ajoutez Cantus à votre écran d'accueil pour l'ouvrir comme une vraie application, en un geste.</p>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%;" onclick="onboardInstallApp()">
+                            <svg class="icon icon-sm"><use href="#ico-download"></use></svg>
+                            Installer l'application
+                        </button>
+                        <button class="btn btn-ghost" style="width:100%;" onclick="onboardStep = 2; renderOnboardStep();">Plus tard</button>
+                    </div>`;
+            } else if (isIOSDevice()) {
+                body = `
+                    <p>Sur iPhone/iPad, l'ajout se fait depuis Safari :</p>
+                    <ol>
+                        <li>Appuyez sur <svg class="icon icon-sm"><use href="#ico-share"></use></svg> <strong>Partager</strong>, en bas de l'écran</li>
+                        <li>Choisissez <strong>« Sur l'écran d'accueil »</strong></li>
+                        <li>Confirmez avec <strong>« Ajouter »</strong></li>
+                    </ol>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%;" onclick="onboardStep = 2; renderOnboardStep();">Continuer</button>
+                    </div>`;
+            } else {
+                body = `
+                    <p>Vous pouvez ajouter Cantus à votre écran d'accueil depuis le menu de votre navigateur (souvent « Installer l'application » ou « Ajouter à l'écran d'accueil »).</p>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%;" onclick="onboardStep = 2; renderOnboardStep();">Continuer</button>
+                    </div>`;
+            }
+
+            el.innerHTML = `
+                ${onboardDots(1, 3)}
+                <div class="onboard-icon-wrap"><svg class="icon"><use href="#ico-share"></use></svg></div>
+                <h3 style="text-align:center;">Ajouter à l'écran d'accueil</h3>
+                ${body}`;
+            return;
+        }
+
+        if (onboardStep === 2) {
+            el.innerHTML = `
+                ${onboardDots(2, 3)}
+                <div class="onboard-icon-wrap"><svg class="icon"><use href="#ico-download"></use></svg></div>
+                <h3 style="text-align:center;">Mode hors-ligne</h3>
+                <p>Cantus peut télécharger toutes les partitions sur cet appareil pour les consulter sans connexion (répétition, église sans réseau…). Cela prend un peu de temps et de place au premier lancement — une barre de progression s'affichera pendant l'opération.</p>
+                <p>Vous pourrez changer d'avis à tout moment dans les Paramètres.</p>
+                <div class="onboard-actions">
+                    <button class="btn btn-primary" style="width:100%;" onclick="onboardFinish(true)">Activer le hors-ligne</button>
+                    <button class="btn btn-ghost" style="width:100%;" onclick="onboardFinish(false)">Non merci, à la demande</button>
+                </div>`;
+        }
+    }
+
+    async function onboardInstallApp() {
+        if (!deferredInstallPrompt) { onboardStep = 2; renderOnboardStep(); return; }
+        deferredInstallPrompt.prompt();
+        try { await deferredInstallPrompt.userChoice; } catch (e) {}
+        deferredInstallPrompt = null;
+        onboardStep = 2;
+        renderOnboardStep();
+    }
+
+    function onboardFinish(enableOffline) {
+        settings.offlineMode = enableOffline;
+        saveSettings();
+        finishOnboarding();
+        if (enableOffline) syncOfflineCache(state.songs);
     }
 
     /* ══════════════════════════════════════════
@@ -931,6 +1167,7 @@
         localStorage.removeItem(ADMIN_VAULT_KEY);
         adminTokenCache = null;
         renderAdminSection();
+        refreshActiveList();
         showToast('Accès administrateur oublié.');
     }
 
@@ -982,6 +1219,7 @@
             adminTokenCache = rawToken;
             closeAdminModal();
             renderAdminSection();
+            refreshActiveList();
             showToast('Accès administrateur activé sur cet appareil.');
         } catch (e) {
             setAdminModalError(e.message || 'Erreur de connexion à GitHub.');
@@ -1103,6 +1341,164 @@
         }
     }
 
+    /* ─── ÉDITION D'UNE PARTITION (renommer, changer de catégorie, supprimer) ─── */
+    let editSongId = null;
+
+    function openEditSongModal(id, event) {
+        if (event) event.stopPropagation();
+        const song = state.songs.find(s => s.id === id);
+        if (!song) return;
+        editSongId = id;
+
+        document.getElementById('edit-name-input').value = song.name;
+        const catSelect = document.getElementById('edit-cat-select');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.label}</option>`).join('');
+        setEditModalError('');
+
+        document.getElementById('edit-song-modal').classList.add('open');
+    }
+
+    function closeEditSongModal() {
+        document.getElementById('edit-song-modal').classList.remove('open');
+        editSongId = null;
+    }
+
+    function setEditModalError(msg) {
+        const el = document.getElementById('edit-modal-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    async function submitEditSong() {
+        const song = state.songs.find(s => s.id === editSongId);
+        if (!song) return;
+        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+
+        const newName = document.getElementById('edit-name-input').value.trim();
+        if (!newName) { setEditModalError('Donnez un nom au chant.'); return; }
+        const newCategory = document.getElementById('edit-cat-select').value;
+
+        const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
+        const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
+
+        if (newPath === song.path) {
+            closeEditSongModal();
+            return;
+        }
+
+        const btn = document.getElementById('edit-save-btn');
+        btn.disabled = true;
+        const originalLabel = btn.textContent;
+        btn.textContent = 'Enregistrement…';
+        setEditModalError('');
+
+        try {
+            // Le renommage/déplacement passe par une création à la nouvelle adresse suivie
+            // d'une suppression de l'ancienne (l'API Contents de GitHub n'a pas d'opération
+            // "rename" ; il faut donc récupérer le contenu existant puis le recopier).
+            const fileRes = await fetch(song.url);
+            if (!fileRes.ok) throw new Error('Impossible de récupérer le fichier existant.');
+            const base64Content = await fileToBase64(await fileRes.blob());
+
+            const newApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${newPath.split('/').map(encodeURIComponent).join('/')}`;
+            let existingSha = null;
+            try {
+                const checkRes = await fetch(newApiUrl, { headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' } });
+                if (checkRes.ok) existingSha = (await checkRes.json()).sha;
+            } catch (e) { /* on tentera une création simple */ }
+
+            const createBody = {
+                message: `Renomme la partition "${song.name}" en "${newName}" via l'application`,
+                content: base64Content,
+                branch: GITHUB_BRANCH
+            };
+            if (existingSha) createBody.sha = existingSha;
+
+            const createRes = await fetch(newApiUrl, {
+                method: 'PUT',
+                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                body: JSON.stringify(createBody)
+            });
+            if (!createRes.ok) {
+                const errData = await createRes.json().catch(() => ({}));
+                throw new Error(errData.message || `Erreur GitHub (${createRes.status})`);
+            }
+
+            const oldApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
+            const deleteRes = await fetch(oldApiUrl, {
+                method: 'DELETE',
+                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                body: JSON.stringify({
+                    message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
+                    sha: song.id,
+                    branch: GITHUB_BRANCH
+                })
+            });
+            if (!deleteRes.ok) {
+                const errData = await deleteRes.json().catch(() => ({}));
+                console.error("Échec de la suppression de l'ancien fichier :", errData.message);
+            }
+
+            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+
+            closeEditSongModal();
+            showToast(`"${newName}" mise à jour.`);
+            await loadLibrary();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+        } catch (e) {
+            setEditModalError(e.message || "Échec de la mise à jour.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalLabel;
+        }
+    }
+
+    async function deleteSongFromLibrary() {
+        const song = state.songs.find(s => s.id === editSongId);
+        if (!song) return;
+        if (!confirm(`Supprimer définitivement "${song.name}" ? Cette action est irréversible.`)) return;
+        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+
+        const btn = document.getElementById('edit-delete-btn');
+        btn.disabled = true;
+        setEditModalError('');
+
+        try {
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
+            const res = await fetch(apiUrl, {
+                method: 'DELETE',
+                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                body: JSON.stringify({
+                    message: `Supprime la partition "${song.name}" via l'application`,
+                    sha: song.id,
+                    branch: GITHUB_BRANCH
+                })
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Erreur GitHub (${res.status})`);
+            }
+
+            const favIdx = state.favorites.indexOf(song.id);
+            if (favIdx !== -1) {
+                state.favorites.splice(favIdx, 1);
+                localStorage.setItem('cantus_favorites', JSON.stringify(state.favorites));
+            }
+            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+
+            closeEditSongModal();
+            showToast(`"${song.name}" supprimée.`);
+            await loadLibrary();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+        } catch (e) {
+            setEditModalError(e.message || "Échec de la suppression.");
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     /* ══════════════════════════════════════════
        STATE
     ══════════════════════════════════════════ */
@@ -1195,9 +1591,18 @@
         document.getElementById('import-modal').addEventListener('click', function(e) {
             if (e.target === this) closeImportModal();
         });
+        document.getElementById('edit-song-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditSongModal();
+        });
 
         // Initialisation du moteur MediaPipe Face Mesh (chargé mais inactif tant que la caméra n'est pas démarrée)
         initFaceMeshEngine();
+
+        // Assistant de première connexion : explication de l'appli, installation sur l'écran
+        // d'accueil et consentement pour le téléchargement hors-ligne (jamais déclenché sans accord).
+        if (shouldShowOnboarding()) {
+            startOnboarding();
+        }
     }
 
     /* ══════════════════════════════════════════
@@ -1232,14 +1637,16 @@
                         type:     'song',
                         category: category,
                         name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
+                        path:     f.path,
                         url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`
                     };
                 });
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
 
-            // Téléchargement automatique de toutes les partitions en arrière-plan
-            preloadAllPDFs(state.songs);
+            // Le téléchargement des PDF pour la consultation hors-ligne n'a lieu que si
+            // l'utilisateur y a consenti (assistant de première connexion ou Paramètres).
+            syncOfflineCache(state.songs);
         } catch(e) {
             console.error('Échec de synchronisation avec GitHub :', e);
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
@@ -1248,26 +1655,96 @@
         }
     }
 
-    async function preloadAllPDFs(songs) {
-        if (!('caches' in window)) return;
-        try {
-            const cache = await caches.open('cantus-pdfs-v1');
-            await Promise.all(songs.map(async (song) => {
-                try {
-                    const response = await cache.match(song.url);
-                    if (!response) {
-                        const networkResponse = await fetch(song.url);
-                        if (networkResponse.ok) {
-                            await cache.put(song.url, networkResponse);
-                        }
-                    }
-                } catch (err) {
-                    console.warn(`Échec du pré-chargement pour : ${song.name}`);
-                }
-            }));
-        } catch (e) {
-            console.error('Erreur lors du pré-chargement global des PDF', e);
+    /* ══════════════════════════════════════════
+       TÉLÉCHARGEMENT HORS-LIGNE (opt-in, avec barre de progression)
+
+       L'ancienne version lançait un fetch() simultané pour chaque partition
+       (Promise.all sans limite), ce qui pouvait saturer l'appareil pendant
+       de longues minutes. Le téléchargement est maintenant limité à quelques
+       requêtes en parallèle, et une barre de progression bloquante s'affiche
+       dès qu'un volume important de fichiers doit être récupéré.
+    ══════════════════════════════════════════ */
+    const DOWNLOAD_CONCURRENCY = 4;
+    const BULK_DOWNLOAD_THRESHOLD = 6; // au-delà, on affiche l'overlay de progression
+    let downloadOverlayDismissed = false;
+
+    async function getMissingSongs(songs) {
+        if (!('caches' in window)) return [];
+        const cache = await caches.open(PDF_CACHE_NAME);
+        const missing = [];
+        for (const song of songs) {
+            if (!(await cache.match(song.url))) missing.push(song);
         }
+        return missing;
+    }
+
+    async function downloadPDFs(songs, onProgress) {
+        if (!('caches' in window) || songs.length === 0) {
+            if (onProgress) onProgress(songs.length, songs.length);
+            return;
+        }
+        const cache = await caches.open(PDF_CACHE_NAME);
+        const total = songs.length;
+        let done = 0;
+        let cursor = 0;
+
+        async function worker() {
+            while (cursor < songs.length) {
+                const song = songs[cursor++];
+                try {
+                    const res = await fetch(song.url);
+                    if (res.ok) await cache.put(song.url, res);
+                } catch (err) {
+                    console.warn(`Échec du téléchargement pour : ${song.name}`);
+                }
+                done++;
+                if (onProgress) onProgress(done, total);
+            }
+        }
+
+        await Promise.all(Array.from({ length: Math.min(DOWNLOAD_CONCURRENCY, songs.length) }, worker));
+    }
+
+    // Point d'entrée appelé après chaque synchronisation de bibliothèque : ne fait rien tant que
+    // le mode hors-ligne n'est pas activé par l'utilisateur, télécharge silencieusement les
+    // nouveautés en arrière-plan si elles sont peu nombreuses, ou affiche la barre de progression
+    // bloquante pour un gros volume (première activation, ou beaucoup d'ajouts d'un coup).
+    async function syncOfflineCache(songs) {
+        if (!settings.offlineMode || !('caches' in window)) return;
+        const missing = await getMissingSongs(songs);
+        if (missing.length === 0) return;
+
+        if (missing.length > BULK_DOWNLOAD_THRESHOLD) {
+            await runBulkDownload(missing);
+        } else {
+            downloadPDFs(missing);
+        }
+    }
+
+    async function runBulkDownload(songs) {
+        downloadOverlayDismissed = false;
+        const overlay = document.getElementById('download-overlay');
+        updateDownloadProgress(0, songs.length);
+        overlay.classList.add('open');
+
+        await downloadPDFs(songs, updateDownloadProgress);
+
+        overlay.classList.remove('open');
+        if (!downloadOverlayDismissed) showToast('Téléchargement des partitions terminé.');
+    }
+
+    function updateDownloadProgress(done, total) {
+        const fill = document.getElementById('dl-fill');
+        const count = document.getElementById('dl-count');
+        if (!fill || !count) return;
+        fill.style.width = (total > 0 ? Math.round((done / total) * 100) : 100) + '%';
+        count.textContent = `${done} / ${total} partitions`;
+    }
+
+    function dismissDownloadOverlay() {
+        downloadOverlayDismissed = true;
+        document.getElementById('download-overlay').classList.remove('open');
+        showToast('Téléchargement poursuivi en arrière-plan.');
     }
 
     function setSyncStatus(online) {
@@ -1349,6 +1826,7 @@
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
             const catLabel = CATEGORY_LABELS[s.category] || 'Autre';
+            const showEdit = s.type === 'song' && isAdminUnlocked();
             return `
             <div class="card">
                 <div class="card-content">
@@ -1356,6 +1834,10 @@
                     ${s.type === 'song' ? `<div class="cat-badge">${escHtml(catLabel)}</div>` : ''}
                 </div>
                 <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
+                    ${showEdit ? `
+                    <button class="btn btn-icon card-edit-btn" onclick="openEditSongModal('${s.id}', event)" title="Modifier" aria-label="Modifier">
+                        <svg class="icon"><use href="#ico-edit"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${s.id}', event)" title="Favori" aria-label="Favori">
                         <svg class="icon"><use href="${favIco}"/></svg>
                     </button>
@@ -1458,6 +1940,16 @@
 
     // Conservé pour compatibilité si appelé ailleurs
     function searchLibrary(query, targetListStr) { filterLibrary(targetListStr); }
+
+    // Re-rend la liste actuellement affichée (bibliothèque/favoris), sans perdre la recherche ou
+    // le filtre de catégorie en cours — utile pour faire apparaître/disparaître le bouton
+    // d'édition admin dès le déverrouillage, sans attendre un changement d'onglet.
+    function refreshActiveList() {
+        const activeTabBtn = document.querySelector('.tab-btn.active');
+        if (!activeTabBtn) return;
+        const view = activeTabBtn.id.replace('tab-', '');
+        if (view === 'library' || view === 'favorites') filterLibrary(view);
+    }
 
     /* ══════════════════════════════════════════
        FACE TRACKING RECOGNITION (MEDIAPIPE)
