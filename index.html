@@ -457,8 +457,6 @@
     </header>
 
 <nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>
-        <!-- BOUTON FERMER AJOUTÉ ICI TOUT À DROITE -->
-        <button class="tab-btn" onclick="window.location.href='v1.html'" aria-label="Fermer" style="margin-left: auto; color: var(--danger);">            <svg class="icon"><use href="#ico-x"></use></svg>            Fermer        </button>
     </nav>
 
     <main id="content">
@@ -626,11 +624,12 @@
     /* ══════════════════════════════════════════
        MISE À JOUR DE L'APPLICATION (sans re-télécharger les partitions)
 
-       À chaque nouvelle mise en ligne, il suffit de changer la date dans
-       version.json (ex: "2026-09-20"). Au prochain lancement, l'app compare
-       cette date à celle enregistrée localement : si elle a changé, seul le
-       cache du "code" (HTML/JS/CSS) est vidé et re-téléchargé — le cache des
-       PDF (cantus-pdfs-v1) n'est jamais touché.
+       À chaque nouvelle mise en ligne, il suffit de changer la date ET l'heure
+       dans version.json (ex: "2026-09-20T14:30"), pour distinguer plusieurs
+       mises à jour poussées le même jour. Au prochain lancement, l'app
+       compare cette valeur à celle enregistrée localement : si elle a
+       changé, seul le cache du "code" (HTML/JS/CSS) est vidé et
+       re-téléchargé — le cache des PDF (cantus-pdfs-v1) n'est jamais touché.
     ══════════════════════════════════════════ */
     const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 

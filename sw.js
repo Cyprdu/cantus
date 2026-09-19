@@ -1,13 +1,13 @@
-const CACHE_NAME = 'cantus-app-shell-v7';
+const CACHE_NAME = 'cantus-app-shell-v8';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
 const ASSETS = [
     '/',
     '/index.html',
-    '/index2.html',
-    '/index3.html',
-    '/v1.html',
+    '/v1/index.html',
+    '/v1/index2.html',
+    '/v1/index3.html',
     '/favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
