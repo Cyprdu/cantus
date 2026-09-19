@@ -387,6 +387,16 @@
         .toggle-switch input:checked ~ .toggle-track { background: var(--accent-dim); border-color: var(--accent); }
         .toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); background: var(--accent); }
 
+        /* ─── ADMINISTRATION (import de partitions) ─── */
+        #admin-modal, #import-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #admin-modal.open, #import-modal.open { display: flex; }
+        .admin-link-wrap { text-align: center; padding-top: var(--sp-xs); }
+        .admin-link { background: none; border: none; color: var(--text-3); font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 6px; }
+        .admin-link:hover { color: var(--text-2); }
+        .admin-status { display: flex; align-items: center; gap: var(--sp-sm); padding: 10px 12px; background: var(--accent-dim); border: 1px solid var(--accent-glow); border-radius: var(--r-md); font-size: 12px; color: var(--text); margin-bottom: var(--sp-sm); }
+        .admin-status svg { color: var(--accent); flex-shrink: 0; }
+        .admin-actions { display: flex; flex-direction: column; gap: var(--sp-sm); }
+
         /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
             main { padding: var(--sp-sm); }
@@ -438,6 +448,11 @@
         <symbol id="ico-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </symbol>
+        <symbol id="ico-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7.5" cy="15.5" r="5.5"></circle>
+            <path d="M21 2l-9.6 9.6"></path>
+            <path d="M15.5 7.5L19 4l3 3-3.5 3.5"></path>
         </symbol>
     </defs>
 </svg>
@@ -529,6 +544,44 @@
             </div>
             <p class="settings-note">Sans les boutons, on tourne les pages en touchant les bords gauche/droite de l'écran. Si la reconnaissance faciale est activée, l'inclinaison de la tête s'ajoute toujours à ce moyen de navigation (bords ou boutons), elle ne le remplace jamais.</p>
         </div>
+
+        <div id="admin-section" class="settings-section"></div>
+    </div>
+</div>
+
+<div id="admin-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Mode administrateur</h3>
+            <button class="btn btn-icon" onclick="closeAdminModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <p class="settings-note" style="margin-bottom: var(--sp-md);">
+            Entrez une clé d'accès GitHub (Personal Access Token) ayant les droits d'écriture sur le dépôt des partitions. Elle est chiffrée puis conservée uniquement sur cet appareil : on ne vous la redemandera plus.
+        </p>
+        <input type="password" id="admin-token-input" class="input-field" placeholder="Clé d'accès GitHub (ghp_…)" style="margin-bottom: var(--sp-sm);" autocomplete="off">
+        <div id="admin-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitAdminToken()" id="admin-submit-btn">Valider</button>
+    </div>
+</div>
+
+<div id="import-modal">
+    <div class="settings-card" style="max-width: 420px;">
+        <div class="settings-head">
+            <h3>Importer une partition</h3>
+            <button class="btn btn-icon" onclick="closeImportModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <input type="file" id="import-file-input" class="input-field" accept="application/pdf" style="margin-bottom: var(--sp-sm);" onchange="handleImportFileChange(event)">
+        <input type="text" id="import-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
+        <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <div id="import-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitImportPartition()" id="import-submit-btn">
+            <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
+            Envoyer sur GitHub
+        </button>
     </div>
 </div>
 
@@ -731,6 +784,7 @@
         });
         document.getElementById('toggle-face-reco').checked = settings.faceReco;
         document.getElementById('toggle-nav-buttons').checked = settings.navButtons;
+        renderAdminSection();
     }
 
     function setThemeSetting(t) {
@@ -759,6 +813,294 @@
         settings.navButtons = enabled;
         saveSettings();
         updateNavButtonsVisibility();
+    }
+
+    /* ══════════════════════════════════════════
+       ADMINISTRATION — import de partitions vers GitHub
+
+       La clé d'accès GitHub (Personal Access Token) saisie par l'admin n'est
+       jamais écrite en clair dans le code ni stockée telle quelle : elle est
+       chiffrée (AES-GCM via l'API Web Crypto du navigateur, dérivée par
+       PBKDF2 à partir d'un sel unique par appareil + d'un "pepper" propre à
+       cette application) puis gardée dans le localStorage de cet appareil.
+       Au chargement suivant, elle est déchiffrée automatiquement — on ne
+       redemande donc la clé qu'une seule fois par appareil.
+
+       Important : comme il n'existe pas de serveur, tout se passe dans le
+       navigateur — cette couche protège la clé d'une simple lecture du
+       stockage local, mais pas d'une personne qui aurait un accès complet
+       à cet appareil déverrouillé (outils de développement compris). Pour
+       limiter les risques, utilisez de préférence un jeton "fine-grained"
+       GitHub limité au seul dépôt des partitions.
+    ══════════════════════════════════════════ */
+    const ADMIN_VAULT_KEY = 'cantus_admin_vault';
+    const ADMIN_PEPPER = 'CantusPro::AdminVault::v1::partitions-import';
+    let adminTokenCache = null; // clé déchiffrée, gardée en mémoire pour la session en cours
+
+    function bufToB64(buf) {
+        let binary = '';
+        const bytes = new Uint8Array(buf);
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    }
+
+    function b64ToBuf(b64) {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    }
+
+    async function deriveVaultKey(saltBuf) {
+        const enc = new TextEncoder();
+        const baseKey = await crypto.subtle.importKey('raw', enc.encode(ADMIN_PEPPER), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: saltBuf, iterations: 100000, hash: 'SHA-256' },
+            baseKey,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptAdminToken(rawToken) {
+        const enc = new TextEncoder();
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveVaultKey(salt);
+        const cipherBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(rawToken));
+        return { salt: bufToB64(salt), iv: bufToB64(iv), data: bufToB64(cipherBuf) };
+    }
+
+    async function decryptAdminToken(payload) {
+        const salt = b64ToBuf(payload.salt);
+        const iv = b64ToBuf(payload.iv);
+        const data = b64ToBuf(payload.data);
+        const key = await deriveVaultKey(salt);
+        const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+        return new TextDecoder().decode(plainBuf);
+    }
+
+    async function tryAutoUnlockAdmin() {
+        const raw = localStorage.getItem(ADMIN_VAULT_KEY);
+        if (!raw) return;
+        if (!window.crypto || !window.crypto.subtle) return; // contexte non sécurisé : on retentera au prochain chargement HTTPS
+        try {
+            const payload = JSON.parse(raw);
+            adminTokenCache = await decryptAdminToken(payload);
+        } catch (e) {
+            // Coffre corrompu ou illisible : on l'efface pour repartir proprement
+            localStorage.removeItem(ADMIN_VAULT_KEY);
+            adminTokenCache = null;
+        }
+    }
+
+    function isAdminUnlocked() {
+        return !!adminTokenCache;
+    }
+
+    function renderAdminSection() {
+        const el = document.getElementById('admin-section');
+        if (!el) return;
+
+        if (!isAdminUnlocked()) {
+            el.innerHTML = `
+                <div class="admin-link-wrap">
+                    <button class="admin-link" onclick="openAdminModal()">Mode administrateur</button>
+                </div>`;
+            return;
+        }
+
+        el.innerHTML = `
+            <div class="settings-section-title">Administration</div>
+            <div class="admin-status">
+                <svg class="icon icon-sm"><use href="#ico-key"/></svg>
+                Accès administrateur actif sur cet appareil
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-primary" style="width:100%;" onclick="openImportModal()">
+                    <svg class="icon icon-sm"><use href="#ico-upload"/></svg>
+                    Importer une partition
+                </button>
+                <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
+            </div>`;
+    }
+
+    function logoutAdmin() {
+        if (!confirm('Oublier la clé administrateur enregistrée sur cet appareil ?')) return;
+        localStorage.removeItem(ADMIN_VAULT_KEY);
+        adminTokenCache = null;
+        renderAdminSection();
+        showToast('Accès administrateur oublié.');
+    }
+
+    function openAdminModal() {
+        document.getElementById('admin-token-input').value = '';
+        setAdminModalError('');
+        document.getElementById('admin-modal').classList.add('open');
+    }
+
+    function closeAdminModal() {
+        document.getElementById('admin-modal').classList.remove('open');
+    }
+
+    function setAdminModalError(msg) {
+        const el = document.getElementById('admin-modal-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    async function validateGithubToken(rawToken) {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}`, {
+            headers: { Authorization: `token ${rawToken}`, Accept: 'application/vnd.github+json' }
+        });
+        if (!res.ok) throw new Error(res.status === 401 ? 'Clé invalide.' : "Impossible d'accéder au dépôt avec cette clé.");
+        const repoData = await res.json();
+        if (!repoData.permissions || !repoData.permissions.push) {
+            throw new Error("Cette clé n'a pas les droits d'écriture sur le dépôt.");
+        }
+    }
+
+    async function submitAdminToken() {
+        const input = document.getElementById('admin-token-input');
+        const rawToken = input.value.trim();
+        if (!rawToken) { setAdminModalError('Entrez une clé.'); return; }
+        if (!window.crypto || !window.crypto.subtle) {
+            setAdminModalError('Chiffrement indisponible (nécessite une connexion HTTPS).');
+            return;
+        }
+
+        const btn = document.getElementById('admin-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Vérification…';
+        setAdminModalError('');
+
+        try {
+            await validateGithubToken(rawToken);
+            const encrypted = await encryptAdminToken(rawToken);
+            localStorage.setItem(ADMIN_VAULT_KEY, JSON.stringify(encrypted));
+            adminTokenCache = rawToken;
+            closeAdminModal();
+            renderAdminSection();
+            showToast('Accès administrateur activé sur cet appareil.');
+        } catch (e) {
+            setAdminModalError(e.message || 'Erreur de connexion à GitHub.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Valider';
+        }
+    }
+
+    /* ─── IMPORT D'UNE PARTITION ─── */
+    let importSelectedFile = null;
+
+    function openImportModal() {
+        importSelectedFile = null;
+        document.getElementById('import-file-input').value = '';
+        document.getElementById('import-name-input').value = '';
+        setImportModalError('');
+
+        const catSelect = document.getElementById('import-cat-select');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${c.label}</option>`).join('');
+
+        document.getElementById('import-modal').classList.add('open');
+    }
+
+    function closeImportModal() {
+        document.getElementById('import-modal').classList.remove('open');
+    }
+
+    function setImportModalError(msg) {
+        const el = document.getElementById('import-modal-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function handleImportFileChange(event) {
+        const file = event.target.files[0];
+        importSelectedFile = file || null;
+        if (file) {
+            const nameInput = document.getElementById('import-name-input');
+            if (!nameInput.value.trim()) {
+                nameInput.value = file.name.replace(/\.pdf$/i, '');
+            }
+        }
+    }
+
+    function sanitizePartitionFilename(name) {
+        return name.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function submitImportPartition() {
+        if (!importSelectedFile) { setImportModalError('Choisissez un fichier PDF.'); return; }
+        if (importSelectedFile.type !== 'application/pdf' && !importSelectedFile.name.toLowerCase().endsWith('.pdf')) {
+            setImportModalError('Le fichier doit être un PDF.');
+            return;
+        }
+        const displayName = document.getElementById('import-name-input').value.trim();
+        if (!displayName) { setImportModalError('Donnez un nom au chant.'); return; }
+        const category = document.getElementById('import-cat-select').value;
+        if (!adminTokenCache) { setImportModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+
+        const btn = document.getElementById('import-submit-btn');
+        btn.disabled = true;
+        const originalLabel = btn.innerHTML;
+        btn.innerHTML = 'Envoi en cours…';
+        setImportModalError('');
+
+        try {
+            const safeName = sanitizePartitionFilename(displayName) + '.pdf';
+            const path = `${GITHUB_PATH}/${category}/${safeName}`;
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+            const base64Content = await fileToBase64(importSelectedFile);
+
+            let existingSha = null;
+            try {
+                const checkRes = await fetch(apiUrl, {
+                    headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' }
+                });
+                if (checkRes.ok) existingSha = (await checkRes.json()).sha;
+            } catch (e) { /* on tentera une création simple */ }
+
+            const body = {
+                message: `Ajout de la partition "${displayName}" via l'application`,
+                content: base64Content,
+                branch: GITHUB_BRANCH
+            };
+            if (existingSha) body.sha = existingSha;
+
+            const res = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Erreur GitHub (${res.status})`);
+            }
+
+            closeImportModal();
+            showToast(`"${displayName}" envoyée sur GitHub.`);
+
+            await loadLibrary();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+        } catch (e) {
+            setImportModalError(e.message || "Échec de l'envoi.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalLabel;
+        }
     }
 
     /* ══════════════════════════════════════════
@@ -797,6 +1139,7 @@
     async function init() {
         applyTheme();
         checkForAppUpdate();
+        await tryAutoUnlockAdmin();
 
         const urlParams = new URLSearchParams(window.location.search);
         const importData = urlParams.get('import');
@@ -845,6 +1188,12 @@
         });
         document.getElementById('settings-modal').addEventListener('click', function(e) {
             if (e.target === this) closeSettings();
+        });
+        document.getElementById('admin-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAdminModal();
+        });
+        document.getElementById('import-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeImportModal();
         });
 
         // Initialisation du moteur MediaPipe Face Mesh (chargé mais inactif tant que la caméra n'est pas démarrée)
