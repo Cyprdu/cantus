@@ -252,7 +252,14 @@
         #live-qr-zoom canvas { background: #fff; padding: 16px; border-radius: var(--r-md); max-width: 90vw; max-height: 70vh; }
         #live-qr-zoom p { color: #ccc; font-size: 13px; margin: 0; }
         .live-participants { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: var(--sp-md); }
-        .live-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); }
+        .live-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); }
+        .live-badge.is-leader { background: var(--danger-dim); color: var(--danger); }
+        .live-badge-toggle { border: none; background: rgba(0,0,0,.15); color: inherit; border-radius: 50%; width: 16px; height: 16px; font-size: 12px; line-height: 1; padding: 0; cursor: pointer; }
+        .live-now-card { background: var(--surface); border: 1px solid var(--danger); border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-md); text-align: center; }
+        .live-now-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--danger); margin-bottom: 4px; }
+        .live-now-name { font-size: 16px; font-weight: 700; color: var(--text); }
+        .live-now-empty { font-size: 13px; color: var(--text-3); }
+        .live-queue-pos { font-size: 11px; font-weight: 700; color: var(--text-3); width: 18px; text-align: center; flex-shrink: 0; }
 
         /* ─── NOTE FORM ─── */
         .note-form { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; display: flex; flex-direction: column; gap: var(--sp-xs); }
@@ -2728,26 +2735,47 @@
        appareils, la mise en relation initiale (l'échange d'offre/réponse
        WebRTC) se fait via un QR code scanné avec l'appareil photo — avec,
        en secours, un champ où coller le code à la main si le scan ne
-       fonctionne pas (vieil appareil, caméra capricieuse, etc.). Pour que
-       le QR reste simple à scanner même sur un appareil ancien, le SDP est
-       allégé (candidats ICE redondants retirés) avant d'être encodé ; un
-       bouton "Agrandir" et un bouton "Partager" (partage natif du code,
-       ou copie) sont aussi disponibles en secours supplémentaire.
+       fonctionne pas. Le SDP est allégé au maximum (peu de candidats ICE)
+       avant d'être encodé pour que le QR reste le moins dense possible, et
+       le scan utilise en priorité le détecteur de code-barres natif du
+       navigateur (BarcodeDetector, le même moteur que l'appli Appareil
+       photo du téléphone) quand il est disponible, avec la bibliothèque
+       jsQR en repli sinon (Safari/iOS notamment).
 
-       Topologie en étoile : l'hôte ouvre une connexion dédiée par
-       participant et relaie tout message reçu de l'un vers tous les
-       autres. Les participants ne parlent qu'à l'hôte.
+       Rôles et statuts :
+       - Topologie en étoile : l'hôte (celui qui a lancé "Être hôte") ouvre
+         une connexion dédiée par participant. Les participants ne parlent
+         qu'à l'hôte, qui reste la seule source de vérité de l'état
+         partagé (file d'attente + chant en direct) : les leaders envoient
+         des DEMANDES, l'hôte les valide et rediffuse l'état résultant à
+         tout le monde. Ça évite tout risque de désynchronisation.
+       - Chacun entre son prénom en rejoignant. L'hôte principal peut
+         nommer n'importe quel participant connecté "leader" : lui seul
+         (en plus de l'hôte) peut alors ajouter/retirer des chants et
+         faire avancer la file. Les autres voient tout mais ne modifient
+         rien.
+       - Un seul chant est "en direct" à la fois (mis en évidence en
+         rouge, séparé de la file). La file d'attente (1, 2, 3…) est
+         alimentée par recherche dans la bibliothèque. "Chant terminé"
+         fait passer le chant en position n°1 de la file vers le statut
+         "en direct", pour tout le monde en même temps.
     ══════════════════════════════════════════ */
     const LIVE_ICE_SERVERS = [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' }
     ];
-    const LIVE_MAX_CANDIDATES = 6; // au-delà, les candidats ICE sont ignorés pour alléger le QR
+    const LIVE_MAX_CANDIDATES = 3; // au-delà, les candidats ICE sont ignorés pour alléger le QR au maximum
 
     let liveRole = null;              // 'host' | 'join' | null
     let liveScreen = 'select';        // voir renderLiveView() pour la liste des écrans
-    let liveQueue = [];               // { qid, songId, name, category }
-    let liveHostConnections = [];     // hôte : [{ pc, channel, label }]
+    let livePendingRoleAfterName = null;
+    let liveMyName = localStorage.getItem('cantus_live_name') || '';
+    let liveMyId = null;              // participant : identifiant attribué par l'hôte
+    let livePeople = [];              // [{ id, name, isLeader, isMainHost }] — vu par tout le monde
+    let liveNowItem = null;           // { qid, songId, name, category } | null — chant en direct
+    let liveQueue = [];               // file d'attente ordonnée : { qid, songId, name, category }
+    let liveLibSearchQuery = '';
+    let liveHostConnections = [];     // hôte : [{ id, pc, channel, name, isLeader }]
     let liveParticipantCounter = 0;
     let livePendingHostPc = null;     // hôte : connexion en cours de négociation
     let livePendingHostPayload = null;
@@ -2756,6 +2784,11 @@
     let liveJoinAnswerPayload = null;
     let liveScanStream = null;
     let liveScanRAF = null;
+
+    let liveBarcodeDetector = null;
+    if ('BarcodeDetector' in window) {
+        try { liveBarcodeDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { liveBarcodeDetector = null; }
+    }
 
     function waitIceGatheringComplete(pc) {
         if (pc.iceGatheringState === 'complete') return Promise.resolve();
@@ -2772,8 +2805,8 @@
 
     // Retire les candidats ICE en trop (TCP, doublons de multiples interfaces réseau…) : un seul
     // appareil peut annoncer 15-20 candidats une fois le STUN ajouté, ce qui rend le QR très dense
-    // et difficile à scanner sur un vieil appareil photo. On garde uniquement les premiers
-    // candidats UDP, largement suffisants pour établir la connexion.
+    // et difficile à scanner. On ne garde que les tout premiers candidats UDP, largement
+    // suffisants pour établir la connexion.
     function pruneSdpCandidates(sdp) {
         let kept = 0;
         return sdp.split('\r\n').filter(line => {
@@ -2800,7 +2833,7 @@
     function renderQR(canvasId, text) {
         const el = document.getElementById(canvasId);
         if (!el || !text) return;
-        new QRious({ element: el, value: text, size: 260, level: 'L' });
+        new QRious({ element: el, value: text, size: 300, level: 'L' });
     }
 
     function zoomLiveQr(text) {
@@ -2825,6 +2858,13 @@
         }
     }
 
+    /* ─── PERMISSIONS ─── */
+    function liveAmILeader() {
+        if (liveRole === 'host') return true;
+        const me = livePeople.find(p => p.id === liveMyId);
+        return !!(me && me.isLeader);
+    }
+
     function renderLiveView() {
         const c = document.getElementById('content');
 
@@ -2841,6 +2881,21 @@
                         Rejoindre
                     </button>
                 </div>`;
+            return;
+        }
+
+        if (liveScreen === 'enter-name') {
+            c.innerHTML = `
+                <div class="live-card">
+                    <h3>Votre prénom</h3>
+                    <p class="live-status">Pour que tout le monde voie qui est connecté.</p>
+                    <input type="text" id="live-name-input" class="input-field" placeholder="Votre prénom" style="margin-bottom: var(--sp-md);">
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%" onclick="confirmLiveName()">Continuer</button>
+                        <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
+                    </div>
+                </div>`;
+            document.getElementById('live-name-input').value = liveMyName;
             return;
         }
 
@@ -2922,37 +2977,47 @@
         }
 
         if (liveScreen === 'connected') {
-            const isHost = liveRole === 'host';
-            const participantsHtml = isHost
-                ? (liveHostConnections.length > 0
-                    ? liveHostConnections.map(p => `<span class="live-badge">${escHtml(p.label)}</span>`).join('')
-                    : '<span class="live-badge">En attente de participants…</span>')
-                : '<span class="live-badge">Connecté à l\'hôte</span>';
+            const isMainHost = liveRole === 'host';
+            const canManage = liveAmILeader();
 
             c.innerHTML = `
                 <div class="planner-header">
-                    ${isHost ? `
+                    ${isMainHost ? `
                     <button class="btn btn-ghost" style="flex:1" onclick="hostAddParticipant()" title="Ajouter un participant" aria-label="Ajouter un participant">
                         <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
                         Participant
                     </button>` : ''}
-                    <button class="btn btn-ghost" style="${isHost ? '' : 'flex:1'}" onclick="leaveLiveMode()" title="Quitter le mode live" aria-label="Quitter">
+                    <button class="btn btn-ghost" style="${isMainHost ? '' : 'flex:1'}" onclick="leaveLiveMode()" title="Quitter le mode live" aria-label="Quitter">
                         <svg class="icon icon-sm"><use href="#ico-x"/></svg>
                         Quitter
                     </button>
                 </div>
-                <div class="live-participants">${participantsHtml}</div>
-                <div class="editor-grid">
+                <div class="live-participants">${renderLivePeopleBadges()}</div>
+                <div class="live-now-card">
+                    <div class="live-now-label">● En direct</div>
+                    ${liveNowItem
+                        ? `<div class="live-now-name">${escHtml(liveNowItem.name)}</div>
+                           <button class="btn btn-primary" style="margin-top:8px" onclick="playLiveNow()">
+                               <svg class="icon icon-sm"><use href="#ico-play"/></svg> Lire
+                           </button>`
+                        : `<div class="live-now-empty">Aucun chant en direct pour l'instant</div>`}
+                    ${canManage ? `
+                    <button class="btn btn-ghost" style="width:100%; margin-top:10px" onclick="liveActionFinishSong()" ${liveQueue.length === 0 ? 'disabled' : ''}>
+                        ${liveNowItem ? 'Chant terminé → suivant' : 'Démarrer le direct'}
+                    </button>` : ''}
+                </div>
+                <div class="editor-grid" style="${canManage ? '' : 'grid-template-columns: 1fr;'}">
+                    ${canManage ? `
                     <div class="editor-col">
                         <div class="col-header">Bibliothèque</div>
                         <div class="search-wrap" style="padding:8px 8px 0">
                             <svg class="icon"><use href="#ico-search"/></svg>
-                            <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" oninput="filterLiveLibrary(this.value)">
+                            <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" value="${escHtml(liveLibSearchQuery)}" oninput="filterLiveLibrary(this.value)">
                         </div>
-                        <div id="live-lib-list" class="col-body">${renderLiveLibraryList(state.songs)}</div>
-                    </div>
+                        <div id="live-lib-list" class="col-body">${renderLiveLibraryList(liveFilteredLibrary())}</div>
+                    </div>` : ''}
                     <div class="editor-col">
-                        <div class="col-header" id="live-queue-header">File live — ${liveQueue.length} chant${liveQueue.length !== 1 ? 's' : ''}</div>
+                        <div class="col-header" id="live-queue-header">File d'attente — ${liveQueue.length} chant${liveQueue.length !== 1 ? 's' : ''}</div>
                         <div id="live-queue-list" class="col-body">${renderLiveQueueList()}</div>
                     </div>
                 </div>`;
@@ -2960,10 +3025,40 @@
         }
     }
 
+    function renderLivePeopleBadges() {
+        const isMainHost = liveRole === 'host';
+        if (livePeople.length === 0) return '<span class="live-badge">En attente de participants…</span>';
+        return livePeople.map(p => `
+            <span class="live-badge ${p.isLeader ? 'is-leader' : ''}">
+                ${escHtml(p.name)}${p.isMainHost ? ' (hôte)' : p.isLeader ? ' (leader)' : ''}
+                ${isMainHost && !p.isMainHost ? `<button class="live-badge-toggle" onclick="toggleLeaderById(${p.id})" title="${p.isLeader ? 'Retirer leader' : 'Nommer leader'}">${p.isLeader ? '−' : '+'}</button>` : ''}
+            </span>`).join('');
+    }
+
+    /* ─── PRÉNOM ─── */
+    function confirmLiveName() {
+        const input = document.getElementById('live-name-input');
+        const name = input ? input.value.trim() : '';
+        if (!name) { showToast('Entrez votre prénom.'); return; }
+        liveMyName = name;
+        localStorage.setItem('cantus_live_name', name);
+
+        if (livePendingRoleAfterName === 'host') {
+            liveRole = 'host';
+            hostCreateOffer();
+        } else {
+            liveRole = 'join';
+            liveScreen = 'join-scan-offer';
+            renderLiveView();
+            startLiveScanner(text => joinSubmitOfferCode(text));
+        }
+    }
+
     /* ─── HÔTE ─── */
     function startLiveHost() {
-        liveRole = 'host';
-        hostCreateOffer();
+        livePendingRoleAfterName = 'host';
+        liveScreen = 'enter-name';
+        renderLiveView();
     }
 
     function hostAddParticipant() {
@@ -2973,27 +3068,23 @@
     async function hostCreateOffer() {
         const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
         const channel = pc.createDataChannel('live');
+        const connId = ++liveParticipantCounter;
+        const conn = { id: connId, pc, channel, name: null, isLeader: false };
 
         channel.onopen = () => {
-            liveParticipantCounter++;
-            liveHostConnections.push({ pc, channel, label: 'Participant ' + liveParticipantCounter });
-            try { channel.send(JSON.stringify({ type: 'sync', queue: liveQueue })); } catch (e) {}
+            liveHostConnections.push(conn);
             livePendingHostPc = null;
             livePendingHostPayload = null;
             liveScreen = 'connected';
             renderLiveView();
         };
         channel.onmessage = e => {
-            try {
-                const op = JSON.parse(e.data);
-                applyLiveQueueOp(op);
-                broadcastLiveOp(op, channel);
-                refreshLiveQueueIfVisible();
-            } catch (err) { console.error('Message live invalide :', err); }
+            try { hostHandleMessage(conn, JSON.parse(e.data)); }
+            catch (err) { console.error('Message live invalide :', err); }
         };
         channel.onclose = () => {
-            liveHostConnections = liveHostConnections.filter(c2 => c2.channel !== channel);
-            if (liveScreen === 'connected') renderLiveView();
+            liveHostConnections = liveHostConnections.filter(c2 => c2.id !== connId);
+            broadcastPresence();
         };
 
         try {
@@ -3010,6 +3101,50 @@
         livePendingHostPayload = encodeSignal(pc.localDescription);
         liveScreen = 'host-wait';
         renderLiveView();
+    }
+
+    // Traite un message reçu d'UN participant précis. "hello" (prénom) est toujours accepté ;
+    // toute demande de gestion de la file (ajout/retrait/avancement) est ignorée si ce
+    // participant n'est pas leader — l'hôte reste seul arbitre de l'état partagé.
+    function hostHandleMessage(conn, msg) {
+        if (msg.type === 'hello') {
+            conn.name = msg.name || 'Sans nom';
+            try {
+                conn.channel.send(JSON.stringify({ type: 'youAre', id: conn.id }));
+                conn.channel.send(JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue }));
+            } catch (e) {}
+            broadcastPresence();
+            return;
+        }
+        if (!conn.isLeader) return;
+        if (msg.type === 'requestAdd') liveAddSong(msg.songId);
+        else if (msg.type === 'requestRemove') liveRemoveSong(msg.qid);
+        else if (msg.type === 'requestFinish') liveFinishSong();
+        else return;
+        broadcastLiveState();
+        if (liveScreen === 'connected') renderLiveView();
+    }
+
+    function broadcastPresence() {
+        livePeople = [
+            { id: 0, name: liveMyName + ' (hôte)', isLeader: true, isMainHost: true },
+            ...liveHostConnections.map(c2 => ({ id: c2.id, name: c2.name || 'Connexion en cours…', isLeader: c2.isLeader, isMainHost: false }))
+        ];
+        const payload = JSON.stringify({ type: 'presence', people: livePeople });
+        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+        if (liveScreen === 'connected') renderLiveView();
+    }
+
+    function broadcastLiveState() {
+        const payload = JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue });
+        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+    }
+
+    function toggleLeaderById(id) {
+        const conn = liveHostConnections.find(c2 => c2.id === id);
+        if (!conn) return;
+        conn.isLeader = !conn.isLeader;
+        broadcastPresence();
     }
 
     function hostScanAnswer() {
@@ -3052,10 +3187,9 @@
 
     /* ─── PARTICIPANT ─── */
     function startLiveJoin() {
-        liveRole = 'join';
-        liveScreen = 'join-scan-offer';
+        livePendingRoleAfterName = 'join';
+        liveScreen = 'enter-name';
         renderLiveView();
-        startLiveScanner(text => joinSubmitOfferCode(text));
     }
 
     async function joinSubmitOfferCode(text) {
@@ -3074,15 +3208,13 @@
             pc.ondatachannel = (e) => {
                 liveJoinChannel = e.channel;
                 liveJoinChannel.onopen = () => {
+                    try { liveJoinChannel.send(JSON.stringify({ type: 'hello', name: liveMyName })); } catch (e2) {}
                     liveScreen = 'connected';
                     renderLiveView();
                 };
                 liveJoinChannel.onmessage = ev => {
-                    try {
-                        const op = JSON.parse(ev.data);
-                        applyLiveQueueOp(op);
-                        refreshLiveQueueIfVisible();
-                    } catch (err) { console.error('Message live invalide :', err); }
+                    try { joinHandleMessage(JSON.parse(ev.data)); }
+                    catch (err) { console.error('Message live invalide :', err); }
                 };
             };
 
@@ -3103,6 +3235,19 @@
         }
     }
 
+    function joinHandleMessage(msg) {
+        if (msg.type === 'youAre') {
+            liveMyId = msg.id;
+        } else if (msg.type === 'state') {
+            liveNowItem = msg.liveNow;
+            liveQueue = msg.queue || [];
+            if (liveScreen === 'connected') renderLiveView();
+        } else if (msg.type === 'presence') {
+            livePeople = msg.people || [];
+            if (liveScreen === 'connected') renderLiveView();
+        }
+    }
+
     function submitLiveFallbackCode() {
         const input = document.getElementById('live-fallback-input');
         const text = input ? input.value.trim() : '';
@@ -3111,39 +3256,43 @@
         else if (liveScreen === 'join-scan-offer') joinSubmitOfferCode(text);
     }
 
-    /* ─── FILE LIVE (état partagé) ─── */
-    function applyLiveQueueOp(op) {
-        if (op.type === 'add') liveQueue.unshift(op.item);
-        else if (op.type === 'remove') liveQueue = liveQueue.filter(i => i.qid !== op.qid);
-        else if (op.type === 'sync') liveQueue = op.queue || [];
-    }
-
-    function broadcastLiveOp(op, excludeChannel) {
-        const payload = JSON.stringify(op);
-        if (liveRole === 'host') {
-            liveHostConnections.forEach(c2 => {
-                if (c2.channel !== excludeChannel && c2.channel.readyState === 'open') {
-                    try { c2.channel.send(payload); } catch (e) {}
-                }
-            });
-        } else if (liveRole === 'join' && liveJoinChannel && liveJoinChannel.readyState === 'open') {
-            try { liveJoinChannel.send(payload); } catch (e) {}
+    function sendToHost(msg) {
+        if (liveJoinChannel && liveJoinChannel.readyState === 'open') {
+            try { liveJoinChannel.send(JSON.stringify(msg)); } catch (e) {}
         }
     }
 
-    function addSongToLiveQueue(songId) {
+    /* ─── FILE LIVE (mutations, appliquées uniquement côté hôte) ─── */
+    function liveAddSong(songId) {
         const song = state.songs.find(s => s.id === songId);
         if (!song) return;
-        const item = { qid: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), songId: song.id, name: song.name, category: song.category };
-        applyLiveQueueOp({ type: 'add', item });
-        broadcastLiveOp({ type: 'add', item });
-        refreshLiveQueueIfVisible();
+        liveQueue.push({ qid: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), songId: song.id, name: song.name, category: song.category });
     }
 
-    function removeSongFromLiveQueue(qid) {
-        applyLiveQueueOp({ type: 'remove', qid });
-        broadcastLiveOp({ type: 'remove', qid });
-        refreshLiveQueueIfVisible();
+    function liveRemoveSong(qid) {
+        liveQueue = liveQueue.filter(i => i.qid !== qid);
+    }
+
+    function liveFinishSong() {
+        if (liveQueue.length === 0) return;
+        liveNowItem = liveQueue.shift();
+    }
+
+    // Points d'entrée UI, communs à tous les rôles : l'hôte applique directement, un leader
+    // participant envoie une demande que l'hôte validera.
+    function liveActionAddSong(songId) {
+        if (liveRole === 'host') { liveAddSong(songId); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestAdd', songId });
+    }
+
+    function liveActionRemoveSong(qid) {
+        if (liveRole === 'host') { liveRemoveSong(qid); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestRemove', qid });
+    }
+
+    function liveActionFinishSong() {
+        if (liveRole === 'host') { liveFinishSong(); broadcastLiveState(); renderLiveView(); }
+        else sendToHost({ type: 'requestFinish' });
     }
 
     function liveItemToSong(item) {
@@ -3151,59 +3300,78 @@
             || { id: item.songId, type: 'song', name: item.name, category: item.category, url: null };
     }
 
-    // Lit un seul chant de la file live (pas de file d'attente enchaînée : chacun choisit et
-    // lance le chant qu'il veut, au moment où le groupe est prêt à le chanter).
+    function playLiveNow() {
+        if (!liveNowItem) return;
+        startPerformance([liveItemToSong(liveNowItem)]);
+    }
+
+    // Lit un seul chant de la file (aperçu) sans le faire passer en direct.
     function playLiveQueueItem(qid) {
         const item = liveQueue.find(i => i.qid === qid);
         if (!item) return;
         startPerformance([liveItemToSong(item)]);
     }
 
+    function liveFilteredLibrary() {
+        const q = normalizeSearch(liveLibSearchQuery);
+        return q ? state.songs.filter(s => normalizeSearch(s.name).includes(q)) : state.songs;
+    }
+
     function renderLiveLibraryList(list) {
         if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
         return list.map(s => `
-            <div class="ed-item ed-item--add" onclick="addSongToLiveQueue('${s.id}')">
+            <div class="ed-item ed-item--add" onclick="liveActionAddSong('${s.id}')">
                 <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
                 <span class="ed-name">${escHtml(s.name)}</span>
             </div>`).join('');
     }
 
     function filterLiveLibrary(query) {
-        const q = normalizeSearch(query);
-        document.getElementById('live-lib-list').innerHTML = renderLiveLibraryList(
-            state.songs.filter(s => normalizeSearch(s.name).includes(q))
-        );
+        liveLibSearchQuery = query;
+        const el = document.getElementById('live-lib-list');
+        if (el) el.innerHTML = renderLiveLibraryList(liveFilteredLibrary());
     }
 
     function renderLiveQueueList() {
-        if (liveQueue.length === 0) return `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">Personne n'a encore ajouté de chant.</p></div>`;
-        return liveQueue.map(item => `
+        if (liveQueue.length === 0) return `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">File d'attente vide.</p></div>`;
+        const canManage = liveAmILeader();
+        return liveQueue.map((item, i) => `
             <div class="ed-item">
+                <span class="live-queue-pos">${i + 1}</span>
                 <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="#ico-file"/></svg>
                 <span class="ed-name">${escHtml(item.name)}</span>
                 <button class="btn btn-icon" onclick="playLiveQueueItem('${item.qid}')" title="Lire" aria-label="Lire">
                     <svg class="icon icon-sm"><use href="#ico-play"/></svg>
                 </button>
-                <button class="btn btn-icon danger" onclick="removeSongFromLiveQueue('${item.qid}')" aria-label="Retirer">
+                ${canManage ? `
+                <button class="btn btn-icon danger" onclick="liveActionRemoveSong('${item.qid}')" aria-label="Retirer">
                     <svg class="icon icon-sm"><use href="#ico-x"/></svg>
-                </button>
+                </button>` : ''}
             </div>`).join('');
     }
 
-    function refreshLiveQueueIfVisible() {
-        const listEl = document.getElementById('live-queue-list');
-        if (!listEl) return; // pas sur l'écran live actuellement : la file reste à jour en mémoire
-        listEl.innerHTML = renderLiveQueueList();
-        const headerEl = document.getElementById('live-queue-header');
-        if (headerEl) headerEl.textContent = `File live — ${liveQueue.length} chant${liveQueue.length !== 1 ? 's' : ''}`;
+    /* ─── SCAN QR (caméra) ─── */
+    // Décodage en priorité via l'API native BarcodeDetector (même moteur que l'appli Appareil
+    // photo du téléphone sur Android/Chrome, très fiable), avec jsQR en repli si indisponible
+    // (Safari/iOS notamment).
+    async function decodeQrFrame(canvas, imageData) {
+        if (liveBarcodeDetector) {
+            try {
+                const results = await liveBarcodeDetector.detect(canvas);
+                if (results && results.length > 0 && results[0].rawValue) return results[0].rawValue;
+            } catch (e) { /* repli sur jsQR ci-dessous */ }
+        }
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        return code ? code.data : null;
     }
 
-    /* ─── SCAN QR (caméra) ─── */
     async function startLiveScanner(onDecode) {
         const video = document.getElementById('live-scan-video');
         if (!video) return;
         try {
-            liveScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            liveScanStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+            });
         } catch (e) {
             showToast("Caméra indisponible : utilisez le champ pour coller le code.");
             return;
@@ -3214,17 +3382,17 @@
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        const tick = () => {
+        const tick = async () => {
             if (!liveScanStream) return; // scan arrêté entre-temps
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code && code.data) {
+                const data = await decodeQrFrame(canvas, imageData);
+                if (data) {
                     stopLiveScanner();
-                    onDecode(code.data);
+                    onDecode(data);
                     return;
                 }
             }
@@ -3258,6 +3426,14 @@
     }
 
     /* ─── SORTIE ─── */
+    function liveResetSharedState() {
+        liveNowItem = null;
+        liveQueue = [];
+        livePeople = [];
+        liveMyId = null;
+        liveLibSearchQuery = '';
+    }
+
     // Annule une négociation en cours (avant toute connexion établie) sans demander de
     // confirmation : utilisé par les boutons "Annuler" des écrans d'échange de code.
     function leaveLiveModeSilent() {
@@ -3268,7 +3444,7 @@
         livePendingHostPayload = null;
         liveRole = null;
         liveScreen = 'select';
-        liveQueue = [];
+        liveResetSharedState();
         renderLiveView();
     }
 
@@ -3293,7 +3469,7 @@
 
         liveRole = null;
         liveScreen = 'select';
-        liveQueue = [];
+        liveResetSharedState();
         renderLiveView();
     }
 
