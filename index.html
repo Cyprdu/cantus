@@ -295,8 +295,16 @@
         .nav-page-btn:active { transform: scale(.9); background: rgba(200,149,108,.55); }
         .nav-page-btn.btn-page-prev { left: max(20px, env(safe-area-inset-left)); }
         .nav-page-btn.btn-page-next { right: max(20px, env(safe-area-inset-right)); }
+        .nav-page-btn.btn-page-exit { bottom: auto; top: max(20px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: 44px; height: 44px; }
+        .nav-page-btn.btn-page-exit:active { transform: translateX(-50%) scale(.9); background: rgba(200,149,108,.55); }
+        .nav-page-btn.btn-page-exit .icon { width: 20px; height: 20px; }
         .nav-page-btn .icon { width: 24px; height: 24px; }
-        #performance-mode.show-nav-buttons .nav-page-btn { display: flex; }
+        /* Précédent/Suivant suivent le réglage "Boutons de page" ET nécessitent plusieurs pages ;
+           le bouton de sortie ne dépend que du réglage, il doit rester joignable même sur une
+           partition d'une seule page. */
+        #performance-mode.show-nav-buttons .nav-page-btn.btn-page-prev,
+        #performance-mode.show-nav-buttons .nav-page-btn.btn-page-next { display: flex; }
+        #performance-mode.show-exit-btn .nav-page-btn.btn-page-exit { display: flex; }
 
         /* ─── HUD INDICATORS (DROITE / GAUCHE, reconnaissance faciale) ─── */
         .hud-indicators {
@@ -572,14 +580,24 @@
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Boutons de page</div>
-                    <div class="settings-row-desc">2 boutons visibles pour tourner les pages (si la partition en a plusieurs).</div>
+                    <div class="settings-row-desc">3 boutons visibles pour tourner les pages (si la partition en a plusieurs) et en sortir.</div>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" id="toggle-nav-buttons" onchange="setNavButtonsSetting(this.checked)">
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
             </div>
-            <p class="settings-note">Sans les boutons, on tourne les pages en touchant les bords gauche/droite de l'écran. Si la reconnaissance faciale est activée, l'inclinaison de la tête s'ajoute toujours à ce moyen de navigation (bords ou boutons), elle ne le remplace jamais.</p>
+            <p class="settings-note">Sans les boutons, on tourne les pages en touchant les bords gauche/droite de l'écran, et on sort avec un glissement vers le bas ou la touche Échap. Si la reconnaissance faciale est activée, l'inclinaison de la tête s'ajoute toujours à ce moyen de navigation (bords ou boutons), elle ne le remplace jamais.</p>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Mode pédale</div>
+                    <div class="settings-row-desc">Pour une pédale externe (ESP32) simulant les touches + / - du clavier : + tourne la page, - revient en arrière.</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-pedal-mode" onchange="setPedalModeSetting(this.checked)">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
         </div>
 
         <div class="settings-section">
@@ -697,6 +715,9 @@
     </button>
     <button class="nav-page-btn btn-page-next" onclick="nextPage(event)" aria-label="Page suivante">
         <svg class="icon" style="transform:scaleX(-1);"><use href="#ico-arrow-left"></use></svg>
+    </button>
+    <button class="nav-page-btn btn-page-exit" onclick="exitPerformanceToHome(event)" aria-label="Fermer la partition" title="Fermer la partition">
+        <svg class="icon"><use href="#ico-x"></use></svg>
     </button>
     <div id="perf-hud">
         <span id="perf-hud-title"></span>
@@ -838,7 +859,7 @@
     /* ══════════════════════════════════════════
        PARAMÈTRES (thème, reconnaissance faciale, boutons de page)
     ══════════════════════════════════════════ */
-    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false };
+    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false, pedalMode: false };
 
     function loadSettings() {
         try {
@@ -890,6 +911,7 @@
         });
         document.getElementById('toggle-face-reco').checked = settings.faceReco;
         document.getElementById('toggle-nav-buttons').checked = settings.navButtons;
+        document.getElementById('toggle-pedal-mode').checked = settings.pedalMode;
         document.getElementById('toggle-offline-mode').checked = settings.offlineMode;
         renderAdminSection();
     }
@@ -920,6 +942,11 @@
         settings.navButtons = enabled;
         saveSettings();
         updateNavButtonsVisibility();
+    }
+
+    function setPedalModeSetting(enabled) {
+        settings.pedalMode = enabled;
+        saveSettings();
     }
 
     function setOfflineModeSetting(enabled) {
@@ -2224,8 +2251,10 @@
     function updateNavButtonsVisibility() {
         const perfEl = document.getElementById('performance-mode');
         const multiPage = state.totalPages > 1;
-        const show = settings.navButtons && multiPage;
-        perfEl.classList.toggle('show-nav-buttons', show);
+        // Précédent/Suivant n'ont de sens que sur plusieurs pages ; le bouton de sortie, lui,
+        // reste utile même sur une partition d'une seule page.
+        perfEl.classList.toggle('show-nav-buttons', settings.navButtons && multiPage);
+        perfEl.classList.toggle('show-exit-btn', settings.navButtons);
     }
 
     function nextPage(e) {
@@ -2250,7 +2279,8 @@
         }
     }
 
-    function exitPerformanceToHome() {
+    function exitPerformanceToHome(e) {
+        if (e) e.stopPropagation();
         if (document.fullscreenElement && document.exitFullscreen) {
             document.exitFullscreen().catch(() => {});
         }
@@ -2332,7 +2362,20 @@
     });
 
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && document.getElementById('performance-mode').style.display === 'flex') exitPerformanceToHome();
+        const insidePerf = document.getElementById('performance-mode').style.display === 'flex';
+        if (!insidePerf) return;
+
+        if (e.key === 'Escape') { exitPerformanceToHome(); return; }
+
+        // Mode pédale : une pédale externe (ESP32) simule l'appui sur les touches +/- du
+        // clavier pour tourner les pages sans les mains.
+        if (!settings.pedalMode) return;
+        const isNext = e.key === '+' || e.code === 'NumpadAdd';
+        const isPrev = e.key === '-' || e.code === 'NumpadSubtract';
+        if (isNext || isPrev) {
+            e.preventDefault();
+            if (isNext) nextPage(); else prevPage();
+        }
     });
 
     window.addEventListener('resize', () => {
