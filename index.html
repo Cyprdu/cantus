@@ -1207,7 +1207,15 @@
         try {
             // Un seul appel récursif : renvoie tout l'arbre du dépôt (fichiers + dossiers),
             // ce qui permet de récupérer les sous-dossiers de catégories (partitions/adoration/, etc.)
-            const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`);
+            // cache: 'no-store' car GitHub répond avec "Cache-Control: max-age=60" : sans ça, le
+            // navigateur peut resservir une arborescence périmée jusqu'à 60s après un import.
+            // On passe aussi le jeton admin quand il est disponible : les requêtes anonymes sont
+            // limitées à 60/heure par IP (facilement atteint en testant un import), alors qu'un
+            // jeton authentifié passe à 5000/heure.
+            const r = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`, {
+                cache: 'no-store',
+                headers: adminTokenCache ? { Authorization: `token ${adminTokenCache}` } : {}
+            });
             if (!r.ok) throw new Error('Réponse GitHub non valide : ' + r.status);
             const d = await r.json();
             if (!Array.isArray(d.tree)) throw new Error('Réponse GitHub inattendue (pas d\'arbre)');
@@ -1233,6 +1241,7 @@
             // Téléchargement automatique de toutes les partitions en arrière-plan
             preloadAllPDFs(state.songs);
         } catch(e) {
+            console.error('Échec de synchronisation avec GitHub :', e);
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
             state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' }));
             setSyncStatus(false);
