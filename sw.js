@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantus-app-shell-v5';
+const CACHE_NAME = 'cantus-app-shell-v7';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
@@ -7,6 +7,7 @@ const ASSETS = [
     '/index.html',
     '/index2.html',
     '/index3.html',
+    '/v1.html',
     '/favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
@@ -49,6 +50,12 @@ self.addEventListener('fetch', (event) => {
 
     // Ne pas intercepter l'API GitHub pour le listing brut en ligne
     if (url.includes('api.github.com')) {
+        return;
+    }
+
+    // Ne jamais mettre en cache version.json : il doit toujours être lu depuis le réseau
+    // pour que la vérification de mise à jour de l'app fonctionne.
+    if (url.includes('version.json')) {
         return;
     }
 

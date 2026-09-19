@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cantus Pro</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favico.ico">
+
+    <style>
+        /* ─── SYSTÈME DE DESIGN ─── */
+        :root {
+            --bg:           #090909;
+            --surface:      #141414;
+            --surface-2:    #1c1c1c;
+            --surface-3:    #252525;
+            --border:       #2a2a2a;
+            --accent:       #c8956c;
+            --accent-dim:   rgba(200,149,108,.18);
+            --accent-glow:  rgba(200,149,108,.35);
+            --text:         #e8e8e8;
+            --text-2:       #888;
+            --text-3:       #555;
+            
+            --r-lg:         14px;
+            --r-xl:         20px;
+            --sp-sm:        8px;
+            --sp-md:        14px;
+            --sp-lg:        22px;
+            --sp-xl:        36px;
+            
+            --shadow-lg:    0 6px 30px rgba(0,0,0,.6);
+            --ease:         cubic-bezier(.4,0,.2,1);
+            --t-fast:       150ms;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        .choice-container {
+            width: 100%;
+            max-width: 600px;
+            padding: var(--sp-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-lg);
+            text-align: center;
+        }
+
+        .choice-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 8px;
+            letter-spacing: .02em;
+        }
+
+        .choice-header p {
+            font-size: 0.95rem;
+            color: var(--text-2);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-md);
+        }
+
+        .choice-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-xl);
+            padding: var(--sp-xl) var(--sp-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--sp-md);
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text);
+            transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .choice-card:hover {
+            border-color: var(--accent);
+            background: var(--surface-2);
+            transform: translateY(-4px);
+        }
+
+        .card-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            transition: background var(--t-fast), border-color var(--t-fast);
+        }
+
+        .choice-card:hover .card-icon-wrap {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .card-icon-wrap svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-2);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 480px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .choice-container {
+                padding: var(--sp-md);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <symbol id="ico-touch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a2 2 0 1 0-4 0v5"></path>
+            <path d="M14 10V4a2 2 0 1 0-4 0v6"></path>
+            <path d="M10 10.5V6a2 2 0 1 0-4 0v8"></path>
+            <path d="M6 14v-2a2 2 0 1 0-4 0v2a8 8 0 0 0 8 8h3a6 6 0 0 0 6-6v-3a2 2 0 1 0-4 0v2"></path>
+        </symbol>
+        <symbol id="ico-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4"></path>
+            <path d="M15 3h4a2 2 0 0 1 2 2v4"></path>
+            <path d="M9 21H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="M15 21h4a2 2 0 0 0 2-2v-4"></path>
+            <circle cx="9" cy="10" r="1"></circle>
+            <circle cx="15" cy="10" r="1"></circle>
+            <path d="M9.5 15a3.5 3.5 0 0 0 5 0"></path>
+        </symbol>
+    </defs>
+</svg>
+
+<div class="choice-container">
+    <div class="choice-header">
+        <h1>Cantus Pro</h1>
+        <p>Sélectionnez votre mode de défilement pour la session de partitions.</p>
+    </div>
+
+    <div class="cards-grid">
+        <!-- Option Tactile -->
+        <a class="choice-card" href="index2.html">
+            <div class="card-icon-wrap">
+                <svg class="icon"><use href="#ico-touch"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Tactile / Manuel</h2>
+                <p class="card-desc">Navigation par clics directs, zones tactiles ou clavier sur la tablette.</p>
+            </div>
+        </a>
+
+        <!-- Option Reconnaissance Faciale -->
+        <a class="choice-card" href="index3.html">
+            <div class="card-icon-wrap">
+                <svg class="icon"><use href="#ico-face"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Reconnaissance Faciale</h2>
+                <p class="card-desc">Penchez la tête à droite ou à gauche pour changer de page automatiquement.</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
