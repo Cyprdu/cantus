@@ -30,8 +30,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- Lecture de QR code (Mode Live) : décodage local dans le navigateur, aucun envoi réseau -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <!-- Scripts MediaPipe Face Mesh & Camera : chargés une fois, activés uniquement si la reconnaissance faciale est ON dans les paramètres -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -241,10 +239,7 @@
         .live-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
         .live-status { font-size: 13px; color: var(--text-2); margin: 0 0 var(--sp-md); line-height: 1.5; }
         .live-status strong { color: var(--text); }
-        .live-qr-canvas { display: block; margin: 0 auto var(--sp-md); padding: 12px; background: #fff; border-radius: var(--r-md); max-width: 240px; width: 100%; }
-        .live-scan-wrap { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1; margin: 0 auto var(--sp-md); border-radius: var(--r-lg); overflow: hidden; background: #000; }
-        .live-scan-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .live-scan-frame { position: absolute; inset: 14%; border: 3px solid var(--accent); border-radius: var(--r-md); pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,.4); }
+        .live-code-box { width: 100%; min-height: 90px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.4; word-break: break-all; margin-bottom: var(--sp-sm); }
         .live-participants { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: var(--sp-md); }
         .live-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); }
 
@@ -513,7 +508,6 @@
         </symbol>
         <symbol id="ico-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></symbol>
         <symbol id="ico-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></symbol>
-        <symbol id="ico-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></symbol>
         <symbol id="ico-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="7.5" cy="15.5" r="5.5"></circle>
             <path d="M21 2l-9.6 9.6"></path>
@@ -2710,23 +2704,31 @@
        MODE LIVE — playlist collaborative en pair-à-pair, sans serveur
 
        Aucun serveur, aucune base de données, aucun droit GitHub requis.
-       La synchronisation repose uniquement sur WebRTC configuré sans le
-       moindre serveur STUN/TURN (iceServers: []) : seules les adresses du
-       réseau local sont utilisées, donc ça ne fonctionne qu'entre appareils
-       du même réseau — exactement le périmètre demandé.
+       La synchronisation passe uniquement par WebRTC, avec un serveur
+       STUN public (Google) pour la découverte d'adresse : ce serveur ne
+       voit jamais les données échangées (chants, playlist…), il sert
+       juste à ce que chaque appareil découvre sa propre adresse joignable
+       depuis l'extérieur — ça permet à Mode Live de fonctionner même
+       entre deux réseaux différents, pas seulement sur le même WiFi.
 
        Comme un navigateur ne peut pas découvrir tout seul les autres
-       appareils du réseau, la mise en relation initiale (l'échange
-       d'offre/réponse WebRTC) se fait manuellement via un QR code scanné
-       avec l'appareil photo : l'hôte affiche un code, le participant le
-       scanne et affiche à son tour un code que l'hôte scanne pour
-       terminer la connexion. Une fois connectés, plus aucune action
-       manuelle : les messages passent directement entre les appareils.
+       appareils, la mise en relation initiale (l'échange d'offre/réponse
+       WebRTC) se fait par un code à copier-coller : l'hôte affiche un
+       code et l'envoie au participant (message, ou directement si les
+       deux appareils sont sous la main), qui le colle puis renvoie à son
+       tour un code que l'hôte colle pour terminer la connexion. Une fois
+       connectés, plus aucune action manuelle : les messages passent en
+       direct entre les appareils.
 
        Topologie en étoile : l'hôte ouvre une connexion dédiée par
        participant et relaie tout message reçu de l'un vers tous les
        autres. Les participants ne parlent qu'à l'hôte.
     ══════════════════════════════════════════ */
+    const LIVE_ICE_SERVERS = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ];
+
     let liveRole = null;              // 'host' | 'join' | null
     let liveScreen = 'select';        // voir renderLiveView() pour la liste des écrans
     let liveQueue = [];               // { qid, songId, name, category }
@@ -2737,13 +2739,13 @@
     let liveJoinPc = null;            // participant
     let liveJoinChannel = null;
     let liveJoinAnswerPayload = null;
-    let liveScanStream = null;
-    let liveScanRAF = null;
 
-    function renderQR(canvasId, text) {
-        const el = document.getElementById(canvasId);
-        if (!el || !text) return;
-        new QRious({ element: el, value: text, size: 260, level: 'L' });
+    function copyLiveCode(elId) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.value)
+            .then(() => showToast('Code copié.'))
+            .catch(() => { el.select(); showToast('Sélectionnez le code et copiez-le (Ctrl/Cmd+C).'); });
     }
 
     function waitIceGatheringComplete(pc) {
@@ -2760,14 +2762,14 @@
     }
 
     // Encodage compact (compression LZString, comme pour les liens d'export de messe) du SDP
-    // WebRTC à faire tenir dans un QR code.
+    // WebRTC, pour que le code à copier-coller reste le plus court possible.
     function encodeSignal(desc) {
         return LZString.compressToEncodedURIComponent(JSON.stringify({ sdp: desc.sdp, type: desc.type }));
     }
 
     function decodeSignal(text) {
         const parsed = JSON.parse(LZString.decompressFromEncodedURIComponent(text));
-        if (!parsed || !parsed.sdp || !parsed.type) throw new Error('QR code invalide.');
+        if (!parsed || !parsed.sdp || !parsed.type) throw new Error('Code invalide.');
         return new RTCSessionDescription(parsed);
     }
 
@@ -2777,13 +2779,13 @@
         if (liveScreen === 'select') {
             c.innerHTML = `
                 <div class="live-choice">
-                    <p>Construisez la playlist du moment ensemble, en direct, avec les appareils connectés au même réseau local — sans compte, sans serveur, sans toucher au dépôt GitHub.</p>
+                    <p>Construisez la playlist du moment ensemble, en direct — sans compte, sans serveur de données, sans toucher au dépôt GitHub.</p>
                     <button class="btn btn-primary" onclick="startLiveHost()">
                         <svg class="icon"><use href="#ico-live"/></svg>
                         Être hôte
                     </button>
                     <button class="btn btn-ghost" onclick="startLiveJoin()">
-                        <svg class="icon"><use href="#ico-camera"/></svg>
+                        <svg class="icon"><use href="#ico-link"/></svg>
                         Rejoindre
                     </button>
                 </div>`;
@@ -2793,29 +2795,34 @@
         if (liveScreen === 'host-wait') {
             c.innerHTML = `
                 <div class="live-card">
-                    <h3>Faites scanner ce code</h3>
-                    <p class="live-status">Sur l'autre appareil : onglet <strong>Mode Live → Rejoindre</strong>, puis scannez ce QR code.</p>
-                    <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
-                    <p class="live-status">Une fois scanné, cet appareil affichera à son tour un code : appuyez ci-dessous pour le scanner et terminer la connexion.</p>
+                    <h3>Envoyez ce code</h3>
+                    <p class="live-status">Sur l'autre appareil : onglet <strong>Mode Live → Rejoindre</strong>, puis collez-y ce code (message, ou copier-coller direct si les deux appareils sont sous la main).</p>
+                    <textarea id="live-offer-code" class="input-field live-code-box" readonly onclick="this.select()"></textarea>
+                    <button class="btn btn-ghost" style="width:100%; margin-bottom: var(--sp-md);" onclick="copyLiveCode('live-offer-code')">
+                        <svg class="icon icon-sm"><use href="#ico-link"/></svg>
+                        Copier le code
+                    </button>
+                    <p class="live-status">Une fois qu'il vous répond avec son propre code, collez-le ici :</p>
+                    <textarea id="live-answer-input" class="input-field live-code-box" placeholder="Collez ici le code reçu…"></textarea>
                     <div class="onboard-actions">
-                        <button class="btn btn-primary" style="width:100%" onclick="hostScanAnswer()">Scanner sa réponse</button>
+                        <button class="btn btn-primary" style="width:100%" onclick="hostSubmitAnswerCode()">Se connecter</button>
                         <button class="btn btn-ghost" style="width:100%" onclick="cancelPendingHostConnection()">Annuler</button>
                     </div>
                 </div>`;
-            renderQR('live-qr-canvas', livePendingHostPayload);
+            document.getElementById('live-offer-code').value = livePendingHostPayload || '';
             return;
         }
 
-        if (liveScreen === 'host-scan-answer' || liveScreen === 'join-scan-offer') {
-            const title = liveScreen === 'host-scan-answer' ? 'Scannez la réponse du participant' : "Scannez le code affiché par l'hôte";
+        if (liveScreen === 'join-enter-offer') {
             c.innerHTML = `
                 <div class="live-card">
-                    <h3>${title}</h3>
-                    <div class="live-scan-wrap">
-                        <video id="live-scan-video" autoplay playsinline muted></video>
-                        <div class="live-scan-frame"></div>
+                    <h3>Rejoindre une session</h3>
+                    <p class="live-status">Collez ici le code que l'hôte vous a envoyé :</p>
+                    <textarea id="live-offer-input" class="input-field live-code-box" placeholder="Collez ici le code reçu…"></textarea>
+                    <div class="onboard-actions">
+                        <button class="btn btn-primary" style="width:100%" onclick="joinSubmitOfferCode()">Rejoindre</button>
+                        <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
                     </div>
-                    <button class="btn btn-ghost" style="width:100%" onclick="cancelLiveScan()">Annuler</button>
                 </div>`;
             return;
         }
@@ -2823,12 +2830,17 @@
         if (liveScreen === 'join-show-answer') {
             c.innerHTML = `
                 <div class="live-card">
-                    <h3>Montrez ce code à l'hôte</h3>
-                    <p class="live-status">L'hôte doit appuyer sur « Scanner sa réponse » puis scanner ce QR code pour terminer la connexion.</p>
-                    <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
+                    <h3>Envoyez ce code à l'hôte</h3>
+                    <p class="live-status">L'hôte doit coller ce code de son côté pour terminer la connexion.</p>
+                    <textarea id="live-answer-code" class="input-field live-code-box" readonly onclick="this.select()"></textarea>
+                    <button class="btn btn-ghost" style="width:100%; margin-bottom: var(--sp-md);" onclick="copyLiveCode('live-answer-code')">
+                        <svg class="icon icon-sm"><use href="#ico-link"/></svg>
+                        Copier le code
+                    </button>
+                    <p class="live-status">La connexion se termine automatiquement dès que l'hôte l'a acceptée.</p>
                     <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
                 </div>`;
-            renderQR('live-qr-canvas', liveJoinAnswerPayload);
+            document.getElementById('live-answer-code').value = liveJoinAnswerPayload || '';
             return;
         }
 
@@ -2894,7 +2906,7 @@
     }
 
     async function hostCreateOffer() {
-        const pc = new RTCPeerConnection({ iceServers: [] });
+        const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
         const channel = pc.createDataChannel('live');
 
         channel.onopen = () => {
@@ -2935,23 +2947,20 @@
         renderLiveView();
     }
 
-    function hostScanAnswer() {
-        liveScreen = 'host-scan-answer';
-        renderLiveView();
-        startLiveScanner(async (text) => {
-            try {
-                const answer = decodeSignal(text);
-                await livePendingHostPc.setRemoteDescription(answer);
-                liveScreen = 'host-connecting';
-                renderLiveView();
-            } catch (e) {
-                alert("QR code invalide ou connexion impossible.");
-                if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e2) {} livePendingHostPc = null; }
-                liveScreen = liveHostConnections.length > 0 ? 'connected' : 'select';
-                if (liveScreen === 'select') liveRole = null;
-                renderLiveView();
-            }
-        });
+    async function hostSubmitAnswerCode() {
+        const input = document.getElementById('live-answer-input');
+        const text = input ? input.value.trim() : '';
+        if (!text) { showToast('Collez le code reçu avant de continuer.'); return; }
+        if (!livePendingHostPc) { showToast('Session expirée, relancez « Être hôte ».'); return; }
+
+        try {
+            const answer = decodeSignal(text);
+            await livePendingHostPc.setRemoteDescription(answer);
+            liveScreen = 'host-connecting';
+            renderLiveView();
+        } catch (e) {
+            alert('Code invalide. Vérifiez que vous avez bien copié tout le code, puis réessayez.');
+        }
     }
 
     function cancelPendingHostConnection() {
@@ -2969,44 +2978,46 @@
     /* ─── PARTICIPANT ─── */
     function startLiveJoin() {
         liveRole = 'join';
-        liveScreen = 'join-scan-offer';
+        liveScreen = 'join-enter-offer';
         renderLiveView();
-        startLiveScanner(async (text) => {
-            try {
-                const offer = decodeSignal(text);
-                const pc = new RTCPeerConnection({ iceServers: [] });
-                liveJoinPc = pc;
+    }
 
-                pc.ondatachannel = (e) => {
-                    liveJoinChannel = e.channel;
-                    liveJoinChannel.onopen = () => {
-                        liveScreen = 'connected';
-                        renderLiveView();
-                    };
-                    liveJoinChannel.onmessage = ev => {
-                        try {
-                            const op = JSON.parse(ev.data);
-                            applyLiveQueueOp(op);
-                            refreshLiveQueueIfVisible();
-                        } catch (err) { console.error('Message live invalide :', err); }
-                    };
+    async function joinSubmitOfferCode() {
+        const input = document.getElementById('live-offer-input');
+        const text = input ? input.value.trim() : '';
+        if (!text) { showToast('Collez le code reçu avant de continuer.'); return; }
+
+        try {
+            const offer = decodeSignal(text);
+            const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
+            liveJoinPc = pc;
+
+            pc.ondatachannel = (e) => {
+                liveJoinChannel = e.channel;
+                liveJoinChannel.onopen = () => {
+                    liveScreen = 'connected';
+                    renderLiveView();
                 };
+                liveJoinChannel.onmessage = ev => {
+                    try {
+                        const op = JSON.parse(ev.data);
+                        applyLiveQueueOp(op);
+                        refreshLiveQueueIfVisible();
+                    } catch (err) { console.error('Message live invalide :', err); }
+                };
+            };
 
-                await pc.setRemoteDescription(offer);
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                await waitIceGatheringComplete(pc);
+            await pc.setRemoteDescription(offer);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await waitIceGatheringComplete(pc);
 
-                liveJoinAnswerPayload = encodeSignal(pc.localDescription);
-                liveScreen = 'join-show-answer';
-                renderLiveView();
-            } catch (e) {
-                alert("QR code invalide.");
-                liveRole = null;
-                liveScreen = 'select';
-                renderLiveView();
-            }
-        });
+            liveJoinAnswerPayload = encodeSignal(pc.localDescription);
+            liveScreen = 'join-show-answer';
+            renderLiveView();
+        } catch (e) {
+            alert('Code invalide. Vérifiez que vous avez bien copié tout le code, puis réessayez.');
+        }
     }
 
     /* ─── FILE LIVE (état partagé) ─── */
@@ -3085,68 +3096,14 @@
         if (headerEl) headerEl.textContent = `File live — ${liveQueue.length} chant${liveQueue.length !== 1 ? 's' : ''}`;
     }
 
-    /* ─── SCAN QR (caméra) ─── */
-    async function startLiveScanner(onDecode) {
-        const video = document.getElementById('live-scan-video');
-        if (!video) return;
-        try {
-            liveScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        } catch (e) {
-            alert("Impossible d'accéder à la caméra pour scanner le QR code.");
-            cancelLiveScan();
-            return;
-        }
-        video.srcObject = liveScanStream;
-        await video.play();
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-        const tick = () => {
-            if (!liveScanStream) return; // scan annulé entre-temps
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code && code.data) {
-                    stopLiveScanner();
-                    onDecode(code.data);
-                    return;
-                }
-            }
-            liveScanRAF = requestAnimationFrame(tick);
-        };
-        liveScanRAF = requestAnimationFrame(tick);
-    }
-
-    function stopLiveScanner() {
-        if (liveScanRAF) cancelAnimationFrame(liveScanRAF);
-        liveScanRAF = null;
-        if (liveScanStream) {
-            liveScanStream.getTracks().forEach(t => t.stop());
-            liveScanStream = null;
-        }
-    }
-
-    function cancelLiveScan() {
-        stopLiveScanner();
-        if (liveRole === 'host') {
-            if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
-            liveScreen = liveHostConnections.length > 0 ? 'connected' : 'select';
-            if (liveScreen === 'select') liveRole = null;
-        } else {
-            if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
-            liveRole = null;
-            liveScreen = 'select';
-        }
-        renderLiveView();
-    }
-
     /* ─── SORTIE ─── */
+    // Annule une négociation en cours (avant toute connexion établie) sans demander de
+    // confirmation : utilisé par les boutons "Annuler" des écrans d'échange de code.
     function leaveLiveModeSilent() {
-        stopLiveScanner();
+        if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
+        liveJoinChannel = null;
+        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
+        livePendingHostPayload = null;
         liveRole = null;
         liveScreen = 'select';
         liveQueue = [];
@@ -3159,7 +3116,6 @@
             : 'Quitter le mode live ?';
         if (!confirm(msg)) return;
 
-        stopLiveScanner();
         liveHostConnections.forEach(c2 => {
             try { c2.channel.close(); } catch (e) {}
             try { c2.pc.close(); } catch (e) {}
