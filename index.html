@@ -799,6 +799,33 @@
         { key: 'autre',         label: 'Autre' }
     ];
     const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
+    // Ordre d'affichage de la bibliothèque : suit l'ordre de CATEGORIES (donc "Autre" en tout
+    // dernier, puisqu'il termine ce tableau), puis tri naturel du nom dans chaque catégorie pour
+    // que A1, A2 … A10 s'enchaînent au lieu de A1, A10, A11, A2 … (tri alphabétique classique).
+    const CATEGORY_ORDER = Object.fromEntries(CATEGORIES.map((c, i) => [c.key, i]));
+
+    function naturalCompare(a, b) {
+        const chunk = s => s.match(/\d+|\D+/g) || [];
+        const ax = chunk(a), bx = chunk(b);
+        for (let i = 0; i < Math.min(ax.length, bx.length); i++) {
+            const an = parseInt(ax[i], 10), bn = parseInt(bx[i], 10);
+            if (!isNaN(an) && !isNaN(bn)) {
+                if (an !== bn) return an - bn;
+            } else {
+                const cmp = ax[i].localeCompare(bx[i]);
+                if (cmp) return cmp;
+            }
+        }
+        return ax.length - bx.length;
+    }
+
+    function sortSongsList(list) {
+        return list.slice().sort((s1, s2) => {
+            const c1 = CATEGORY_ORDER[s1.category] ?? CATEGORY_ORDER.autre;
+            const c2 = CATEGORY_ORDER[s2.category] ?? CATEGORY_ORDER.autre;
+            return c1 !== c2 ? c1 - c2 : naturalCompare(s1.name, s2.name);
+        });
+    }
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -1714,6 +1741,7 @@
                         url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`
                     };
                 });
+            state.songs = sortSongsList(state.songs);
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
             setSyncStatus(true);
 
@@ -1723,7 +1751,7 @@
         } catch(e) {
             console.error('Échec de synchronisation avec GitHub :', e);
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
-            state.songs = cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' }));
+            state.songs = sortSongsList(cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' })));
             setSyncStatus(false);
         }
     }
