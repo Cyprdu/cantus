@@ -166,9 +166,13 @@
         /* ─── SEARCH ─── */
         /* Sticky plutôt que relative : la barre de recherche reste visible en haut de la zone de
            défilement (bibliothèque, favoris, playlists…) même en scrollant dans une longue liste,
-           au lieu de disparaître avec le reste du contenu. Fond opaque nécessaire pour masquer
-           les cartes qui défilent en dessous. */
-        .search-wrap { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: 2px; padding-bottom: 2px; margin-bottom: var(--sp-md); }
+           au lieu de disparaître avec le reste du contenu. "top" négatif + marge négative +
+           padding compensé : <main> a un padding-top (var(--sp-md)) qui, sans ça, resterait un
+           espace "vide" entre le haut réel de la zone de défilement et la barre une fois fixée
+           (on y voyait les cartes défiler derrière, sans fond opaque pour les masquer). En
+           remontant la barre de la valeur de ce padding puis en le recréant à l'intérieur, son
+           fond plein couvre aussi cette zone, et la position visuelle de la barre ne change pas. */
+        .search-wrap { position: sticky; top: calc(-1 * var(--sp-md)); z-index: 50; background: var(--bg); margin: calc(-1 * var(--sp-md)) 0 var(--sp-md); padding: var(--sp-md) 0 2px; }
         .search-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
         .search-input { width: 100%; padding: 12px 14px 12px 42px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t-fast) var(--ease); }
         .search-input::placeholder { color: var(--text-3); }
