@@ -327,7 +327,12 @@
         #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; text-align: center; max-width: 80ch; }
         #note-ref-display { display: none; font-size: clamp(.85rem, 2vw, 1.15rem); color: #999; font-style: italic; margin-bottom: 1.6rem; text-align: center; }
         #note-ref-display.visible { display: block; }
-        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.4; word-break: break-word; max-width: 75ch; text-align: left; }
+        /* L'ancien "3.5vw, 2rem" grandissait avec la largeur d'écran sans plafond raisonnable :
+           sur tablette/ordinateur (grande largeur), le texte plafonnait à 2rem (32px) — bien
+           trop gros pour un long texte de lecture, alors que 1.1rem convenait sur téléphone
+           (viewport étroit, où 3.5vw reste sous 1.1rem). Un plafond nettement plus bas règle le
+           problème sans changer le rendu sur téléphone. */
+        #note-content-display { font-size: clamp(1rem, 2vw, 1.35rem); white-space: pre-wrap; line-height: 1.5; word-break: break-word; max-width: 70ch; text-align: left; }
 
         .tap-zone { position: absolute; top: 0; height: 100%; width: 22%; z-index: 100; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .tap-zone.tap-left  { left: 0; }
