@@ -753,7 +753,15 @@
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
+        <div class="segmented" style="margin-bottom: var(--sp-sm);">
+            <button type="button" class="import-mode-btn active" data-mode="file" onclick="setImportMode('file')">Depuis mon appareil</button>
+            <button type="button" class="import-mode-btn" data-mode="url" onclick="setImportMode('url')">Depuis un lien</button>
+        </div>
         <input type="file" id="import-file-input" class="input-field" accept="application/pdf" style="margin-bottom: var(--sp-sm);" onchange="handleImportFileChange(event)">
+        <div id="import-url-row" style="display:none; gap: var(--sp-sm); margin-bottom: var(--sp-sm);">
+            <input type="url" id="import-url-input" class="input-field" placeholder="https://…partition.pdf" style="flex:1;">
+            <button type="button" class="btn btn-ghost" onclick="fetchImportUrl()" id="import-url-fetch-btn">Récupérer</button>
+        </div>
         <input type="text" id="import-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
         <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
         <div id="import-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
@@ -1539,12 +1547,15 @@
 
     /* ─── IMPORT D'UNE PARTITION ─── */
     let importSelectedFile = null;
+    let importMode = 'file'; // 'file' | 'url'
 
     function openImportModal() {
         importSelectedFile = null;
         document.getElementById('import-file-input').value = '';
+        document.getElementById('import-url-input').value = '';
         document.getElementById('import-name-input').value = '';
         setImportModalError('');
+        setImportMode('file');
 
         const catSelect = document.getElementById('import-cat-select');
         catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${c.label}</option>`).join('');
@@ -1562,8 +1573,77 @@
         el.style.display = msg ? 'block' : 'none';
     }
 
+    function setImportMode(mode) {
+        importMode = mode;
+        document.getElementById('import-file-input').style.display = mode === 'file' ? 'block' : 'none';
+        document.getElementById('import-url-row').style.display = mode === 'url' ? 'flex' : 'none';
+        document.querySelectorAll('.import-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    }
+
+    // Récupère un PDF directement depuis un lien externe : évite à l'admin de devoir d'abord le
+    // télécharger sur son appareil puis le réimporter via le sélecteur de fichier. Une fois
+    // récupéré, il est traité exactement comme un fichier choisi localement (setImportSelectedFile).
+    async function fetchImportUrl() {
+        const input = document.getElementById('import-url-input');
+        const url = input.value.trim();
+        if (!url) { setImportModalError('Collez un lien vers le PDF.'); return; }
+
+        const btn = document.getElementById('import-url-fetch-btn');
+        btn.disabled = true;
+        const originalLabel = btn.textContent;
+        btn.textContent = 'Récupération…';
+        setImportModalError('');
+
+        let res;
+        try {
+            res = await fetch(url);
+        } catch (e) {
+            // Échec réseau : le plus souvent un lien en http:// depuis une appli en https (bloqué
+            // par le navigateur) ou un site distant qui refuse l'accès direct depuis un autre site
+            // (protection CORS) — dans les deux cas, l'appli ne peut rien récupérer elle-même.
+            btn.disabled = false;
+            btn.textContent = originalLabel;
+            offerInsecureLinkFallback(url);
+            return;
+        }
+
+        try {
+            if (!res.ok) throw new Error(`Réponse invalide du lien (${res.status}).`);
+            const blob = await res.blob();
+            const looksLikePdf = blob.type === 'application/pdf' || url.toLowerCase().split('?')[0].endsWith('.pdf');
+            if (!looksLikePdf) throw new Error("Le fichier récupéré ne semble pas être un PDF.");
+
+            const rawName = decodeURIComponent(url.split('/').pop().split('?')[0]) || 'partition.pdf';
+            const filename = rawName.toLowerCase().endsWith('.pdf') ? rawName : rawName + '.pdf';
+            setImportSelectedFile(new File([blob], filename, { type: 'application/pdf' }));
+            showToast('Fichier récupéré depuis le lien.');
+        } catch (e) {
+            setImportModalError(e.message || 'Échec de la récupération du lien.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalLabel;
+        }
+    }
+
+    // Repli quand le lien ne peut pas être récupéré directement (sécurité du navigateur) : on
+    // laisse l'utilisateur l'ouvrir lui-même pour le télécharger, avant de l'importer normalement
+    // via "Depuis mon appareil".
+    function offerInsecureLinkFallback(url) {
+        const proceed = confirm(
+            "Ce lien n'a pas pu être récupéré directement depuis l'application : soit il n'est pas en connexion sécurisée (http:// depuis une appli en https://), soit le site distant bloque l'accès direct depuis d'autres sites.\n\n" +
+            "Voulez-vous l'ouvrir dans un nouvel onglet pour le télécharger vous-même, puis l'importer ensuite via « Depuis mon appareil » ?"
+        );
+        if (proceed) window.open(url, '_blank', 'noopener');
+    }
+
     function handleImportFileChange(event) {
-        const file = event.target.files[0];
+        setImportSelectedFile(event.target.files[0] || null);
+    }
+
+    // Point d'entrée commun, que le fichier vienne du sélecteur natif ou d'un lien récupéré
+    // (voir fetchImportUrl) : préremplit le nom si vide, comme handleImportFileChange le
+    // faisait déjà pour le sélecteur de fichier.
+    function setImportSelectedFile(file) {
         importSelectedFile = file || null;
         if (file) {
             const nameInput = document.getElementById('import-name-input');
