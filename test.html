@@ -319,10 +319,15 @@
         #performance-mode { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
         #pdf-viewport { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         #pdf-canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-        #text-display { display: none; color: #e8e8e8; text-align: center; padding: 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: center; align-items: center; flex-direction: column; }
+        /* justify-content: flex-start (et non centré) pour qu'un texte long commence tout en
+           haut, comme dans une appli de lecture, plutôt que de démarrer centré verticalement
+           (ce qui poussait le début hors de l'écran pour les lectures AELF). */
+        #text-display { display: none; color: #e8e8e8; padding: 7vmin 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; }
         #text-display.visible { display: flex; }
-        #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.5rem; }
-        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.55; word-break: break-word; max-width: 80ch; }
+        #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; text-align: center; max-width: 80ch; }
+        #note-ref-display { display: none; font-size: clamp(.85rem, 2vw, 1.15rem); color: #999; font-style: italic; margin-bottom: 1.6rem; text-align: center; }
+        #note-ref-display.visible { display: block; }
+        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.6; word-break: break-word; max-width: 75ch; text-align: left; }
 
         .tap-zone { position: absolute; top: 0; height: 100%; width: 22%; z-index: 100; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .tap-zone.tap-left  { left: 0; }
@@ -691,7 +696,12 @@
                     <div class="settings-row-label">Partitions téléchargées</div>
                     <div class="settings-row-desc" id="offline-storage-desc">—</div>
                 </div>
-                <button class="btn btn-ghost" onclick="openOfflineDownloadModal()">Gérer</button>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-ghost" onclick="openOfflineDownloadModal()">Gérer</button>
+                    <button class="btn btn-icon danger" onclick="clearAllDownloads()" title="Tout supprimer" aria-label="Tout supprimer les téléchargements">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -818,6 +828,7 @@
         <canvas id="pdf-canvas"></canvas>
         <div id="text-display">
             <div id="note-title-display"></div>
+            <div id="note-ref-display"></div>
             <div id="note-content-display"></div>
         </div>
     </div>
@@ -2230,6 +2241,54 @@
         await runBulkDownload(missing);
     }
 
+    // Supprime en un coup tout ce qui a été téléchargé pour le hors-ligne (bibliothèque, messes,
+    // playlists confondues) : vide entièrement le cache dédié aux PDF.
+    async function clearAllDownloads() {
+        if (!('caches' in window)) return;
+        if (!confirm('Supprimer toutes les partitions téléchargées sur cet appareil ? Vous pourrez les retélécharger à tout moment.')) return;
+        await caches.delete(PDF_CACHE_NAME);
+        await refreshCachedUrlSet();
+        refreshActiveList();
+        updateOfflineStorageDesc();
+        showToast('Téléchargements supprimés.');
+    }
+
+    /* ─── TÉLÉCHARGEMENT PAR MESSE / PLAYLIST ───
+
+       Même logique que le téléchargement individuel d'un chant (toggleSongDownload), mais
+       appliquée à tous les chants d'une messe ou d'une playlist en une fois — pour ne pas avoir
+       à cocher chant par chant quand on veut préparer tout un déroulé pour le hors-ligne.
+    ── */
+    function collectionSongs(item) {
+        return item.songs
+            .filter(s => s.type !== 'note')
+            .map(s => state.songs.find(x => x.id === s.id) || s);
+    }
+
+    function isCollectionFullyDownloaded(item) {
+        const songs = collectionSongs(item);
+        return songs.length > 0 && songs.every(isSongDownloaded);
+    }
+
+    async function toggleCollectionDownload(kind, idx, event) {
+        if (event) event.stopPropagation();
+        const item = kind === 'messe' ? state.messes[idx] : state.playlists[idx];
+        if (!item || !('caches' in window)) return;
+        const songs = collectionSongs(item);
+        if (songs.length === 0) { showToast('Aucun chant à télécharger dans cet ensemble.'); return; }
+
+        if (isCollectionFullyDownloaded(item)) {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            for (const s of songs) await cache.delete(s.url);
+            await refreshCachedUrlSet();
+            refreshActiveList();
+            updateOfflineStorageDesc();
+            showToast(`"${item.name}" retirée du hors-ligne.`);
+        } else {
+            await runBulkDownload(songs.filter(s => !isSongDownloaded(s)));
+        }
+    }
+
     function setSyncStatus(online) {
         const badge = document.getElementById('sync-badge');
         const text  = document.getElementById('sync-text');
@@ -2363,6 +2422,10 @@
                     <div class="messe-meta">${m.songs.length} élément${m.songs.length !== 1 ? 's' : ''}</div>
                 </div>
                 <div class="messe-actions">
+                    ${settings.offlineMode ? `
+                    <button class="btn btn-icon ${isCollectionFullyDownloaded(m) ? 'is-downloaded' : ''}" onclick="toggleCollectionDownload('messe', ${i}, event)" title="${isCollectionFullyDownloaded(m) ? 'Téléchargée — retirer' : 'Télécharger pour le hors-ligne'}" aria-label="Téléchargement">
+                        <svg class="icon"><use href="${isCollectionFullyDownloaded(m) ? '#ico-check' : '#ico-download'}"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" onclick="openExportModal(${i})" title="Partager" aria-label="Partager">
                         <svg class="icon"><use href="#ico-share"/></svg>
                     </button>
@@ -2584,7 +2647,17 @@
         const activeTabBtn = document.querySelector('.tab-btn.active');
         if (!activeTabBtn) return;
         const view = activeTabBtn.id.replace('tab-', '');
-        if (view === 'library' || view === 'favorites') filterLibrary(view);
+        if (view === 'library' || view === 'favorites') {
+            filterLibrary(view);
+        } else if (view === 'planner') {
+            const el = document.getElementById('messes-list');
+            if (el) el.innerHTML = renderMesses();
+        } else if (view === 'playlist') {
+            // Rien à faire si on est dans le détail d'une playlist plutôt que la liste :
+            // playlists-list n'existe alors pas dans le DOM.
+            const el = document.getElementById('playlists-list');
+            if (el) el.innerHTML = renderPlaylists();
+        }
     }
 
     /* ══════════════════════════════════════════
@@ -2792,7 +2865,11 @@
             canvas.style.display = 'none';
             textEl.classList.add('visible');
             document.getElementById('note-title-display').textContent = item.name;
+            const refEl = document.getElementById('note-ref-display');
+            refEl.textContent = item.ref || '';
+            refEl.classList.toggle('visible', !!item.ref);
             document.getElementById('note-content-display').textContent = item.content || '';
+            textEl.scrollTop = 0; // toujours revenir en haut du texte en changeant d'élément
             state.totalPages = 1;
             updateHUD(`Élément ${state.currentIdx + 1} / ${state.activeSet.length}`);
             updateNavButtonsVisibility();
@@ -3207,16 +3284,24 @@
     };
     let aelfCache = {}; // date (YYYY-MM-DD) -> réponse déjà récupérée, pour éviter les doublons de requête
 
-    // Convertit le HTML renvoyé par AELF (paragraphes, <br/>) en texte brut avec sauts de ligne,
-    // pour correspondre au format déjà utilisé par les notes de messe (content en texte simple).
+    // Convertit le HTML renvoyé par AELF en texte fluide. Le HTML source d'AELF met un <br/>
+    // après quasiment chaque ligne (mise en forme d'origine, façon poème) : les garder comme
+    // autant de retours à la ligne durs cassait l'affichage (texte qui débordait du cadre,
+    // ligne par ligne au lieu de s'enrouler normalement). On les remplace donc par un espace,
+    // pour que le texte s'enroule comme une lecture normale, et on ne garde un vrai saut de
+    // ligne qu'entre deux paragraphes <p> (= les strophes/versets).
     function aelfHtmlToText(html) {
         if (!html) return '';
         return html
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<\/p>/gi, '\n\n')
-            .replace(/<[^>]+>/g, '')
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
+            .split(/<\/p>/i)
+            .map(block => block
+                .replace(/<br\s*\/?>/gi, ' ')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+            )
+            .filter(Boolean)
+            .join('\n\n');
     }
 
     async function fetchAelfReadings(dateStr) {
@@ -3272,10 +3357,11 @@
             if (lec.type === 'psaume' && lec.refrain_psalmique) {
                 content += aelfHtmlToText(lec.refrain_psalmique) + '\n\n';
             }
-            if (lec.ref) content += lec.ref + '\n\n';
             content += aelfHtmlToText(lec.contenu);
 
-            m.songs.push({ type: 'note', name: label.toUpperCase(), content: content.trim() });
+            // Titre (doré) / référence biblique / texte : affichés séparément en mode lecture
+            // (voir loadItem()), plutôt que tout mélangé dans un seul bloc de texte.
+            m.songs.push({ type: 'note', name: label.toUpperCase(), ref: lec.ref || '', content: content.trim() });
             saveMesses();
             editMesse(state.currentMesseIdx);
             showToast(`"${label}" ajoutée.`);
@@ -4315,6 +4401,10 @@
                     <div class="playlist-meta">${p.songs.length} chant${p.songs.length !== 1 ? 's' : ''}</div>
                 </div>
                 <div class="playlist-actions" onclick="event.stopPropagation()">
+                    ${settings.offlineMode ? `
+                    <button class="btn btn-icon ${isCollectionFullyDownloaded(p) ? 'is-downloaded' : ''}" onclick="toggleCollectionDownload('playlist', ${i}, event)" title="${isCollectionFullyDownloaded(p) ? 'Téléchargée — retirer' : 'Télécharger pour le hors-ligne'}" aria-label="Téléchargement">
+                        <svg class="icon"><use href="${isCollectionFullyDownloaded(p) ? '#ico-check' : '#ico-download'}"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" onclick="openExportPlaylistModal(${i})" title="Partager" aria-label="Partager">
                         <svg class="icon"><use href="#ico-share"/></svg>
                     </button>
