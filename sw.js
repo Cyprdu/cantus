@@ -9,12 +9,14 @@ const ASSETS = [
     '/v1/index2.html',
     '/v1/index3.html',
     '/v2/index.html',
+    '/v3/index.html',
     '/favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
     'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
     'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
 ];

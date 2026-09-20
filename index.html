@@ -155,6 +155,8 @@
         .btn-ghost:hover { background: var(--surface-3); }
         .btn-primary { background: var(--accent); color: #090909; }
         .btn-primary:hover { background: #d4a57d; }
+        /* En thème clair, le fond doré est plus lumineux : le texte foncé n'y ressort plus bien */
+        :root[data-theme="light"] .btn-primary { color: #fff; }
         .btn-danger { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(224,80,80,.25); }
         .btn-danger:hover { background: rgba(224,80,80,.25); }
         .btn-icon { padding: 10px; background: transparent; color: var(--text-2); min-height: 44px; min-width: 44px; }
@@ -174,6 +176,22 @@
         .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
         .card-title { font-size: 14px; font-weight: 500; letter-spacing: .01em; color: var(--text); min-width: 0; word-break: break-word; }
         .cat-badge { display: inline-block; margin-top: 4px; padding: 2px 9px; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); border-radius: 20px; align-self: flex-start; }
+        .cat-badge.local-badge { color: var(--text-2); background: var(--surface-3); }
+        /* ─── ACCORDÉON DE CATÉGORIES (bibliothèque, "Toutes les catégories") ─── */
+        .cat-group { margin-bottom: var(--sp-sm); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+        .cat-group-header { width: 100%; display: flex; align-items: center; gap: var(--sp-sm); padding: var(--sp-md); background: var(--surface); border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
+        .cat-group-header span:first-child { flex: 1; }
+        .cat-group-count { font-size: 11px; font-weight: 700; color: var(--text-3); background: var(--surface-3); border-radius: 20px; padding: 2px 9px; flex-shrink: 0; }
+        .cat-group-chevron { transition: transform var(--t-fast) var(--ease); color: var(--text-3); flex-shrink: 0; }
+        .cat-group-chevron.open { transform: rotate(180deg); }
+        .cat-group-body { padding: var(--sp-sm); background: var(--surface-2); }
+        .cat-group-body .card:last-child { margin-bottom: 0; }
+        /* ─── LECTURES AELF (éditeur de messe) ─── */
+        .aelf-panel { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; }
+        .aelf-panel-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: var(--sp-xs); }
+        .aelf-add-btn { width: 100%; justify-content: flex-start; margin-bottom: 6px; }
+        .aelf-add-btn:last-child { margin-bottom: 0; }
+        .btn-icon.is-downloaded { color: var(--accent); }
         /* ─── CATEGORY SELECT ─── */
         select.search-input {
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
@@ -301,10 +319,20 @@
         #performance-mode { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
         #pdf-viewport { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         #pdf-canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-        #text-display { display: none; color: #e8e8e8; text-align: center; padding: 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: center; align-items: center; flex-direction: column; }
+        /* justify-content: flex-start (et non centré) pour qu'un texte long commence tout en
+           haut, comme dans une appli de lecture, plutôt que de démarrer centré verticalement
+           (ce qui poussait le début hors de l'écran pour les lectures AELF). */
+        #text-display { display: none; color: #e8e8e8; padding: 7vmin 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; }
         #text-display.visible { display: flex; }
-        #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.5rem; }
-        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.55; word-break: break-word; max-width: 80ch; }
+        #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; text-align: center; max-width: 80ch; }
+        #note-ref-display { display: none; font-size: clamp(.85rem, 2vw, 1.15rem); color: #999; font-style: italic; margin-bottom: 1.6rem; text-align: center; }
+        #note-ref-display.visible { display: block; }
+        /* L'ancien "3.5vw, 2rem" grandissait avec la largeur d'écran sans plafond raisonnable :
+           sur tablette/ordinateur (grande largeur), le texte plafonnait à 2rem (32px) — bien
+           trop gros pour un long texte de lecture, alors que 1.1rem convenait sur téléphone
+           (viewport étroit, où 3.5vw reste sous 1.1rem). Un plafond nettement plus bas règle le
+           problème sans changer le rendu sur téléphone. */
+        #note-content-display { font-size: clamp(1rem, 2vw, 1.35rem); white-space: pre-wrap; line-height: 1.5; word-break: break-word; max-width: 70ch; text-align: left; }
 
         .tap-zone { position: absolute; top: 0; height: 100%; width: 22%; z-index: 100; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .tap-zone.tap-left  { left: 0; }
@@ -445,8 +473,8 @@
         .toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); background: var(--accent); }
 
         /* ─── ADMINISTRATION (import de partitions) ─── */
-        #admin-modal, #import-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-        #admin-modal.open, #import-modal.open { display: flex; }
+        #admin-modal, #import-modal, #offline-download-modal, #new-messe-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #admin-modal.open, #import-modal.open, #offline-download-modal.open, #new-messe-modal.open { display: flex; }
         .admin-link-wrap { text-align: center; padding-top: var(--sp-xs); }
         .admin-link { background: none; border: none; color: var(--text-3); font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 6px; }
         .admin-link:hover { color: var(--text-2); }
@@ -547,6 +575,7 @@
         <symbol id="ico-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></symbol>
         <symbol id="ico-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
         <symbol id="ico-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+        <symbol id="ico-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></symbol>
         <symbol id="ico-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></symbol>
         <symbol id="ico-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></symbol>
         <symbol id="ico-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -642,7 +671,6 @@
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
             </div>
-            <p class="settings-note">Sans les boutons, on tourne les pages en touchant les bords gauche/droite de l'écran, et on sort avec un glissement vers le bas ou la touche Échap. Si la reconnaissance faciale est activée, l'inclinaison de la tête s'ajoute toujours à ce moyen de navigation (bords ou boutons), elle ne le remplace jamais.</p>
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Mode pédale</div>
@@ -661,12 +689,38 @@
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Mode hors-ligne</div>
-                    <div class="settings-row-desc">Télécharge toutes les partitions sur cet appareil pour les consulter sans connexion.</div>
+                    <div class="settings-row-desc">Permet de télécharger des partitions pour les consulter sans connexion.</div>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" id="toggle-offline-mode" onchange="setOfflineModeSetting(this.checked)">
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
+            </div>
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Partitions téléchargées</div>
+                    <div class="settings-row-desc" id="offline-storage-desc">—</div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-ghost" onclick="openOfflineDownloadModal()">Gérer</button>
+                    <button class="btn btn-icon danger" onclick="clearAllDownloads()" title="Tout supprimer" aria-label="Tout supprimer les téléchargements">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Mes partitions</div>
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Importer une partition</div>
+                    <div class="settings-row-desc">Ajoutée uniquement sur cet appareil (pas partagée), sauf en mode administrateur où elle devient visible par tout le monde.</div>
+                </div>
+                <button class="btn btn-ghost" onclick="openImportModal()">
+                    <svg class="icon icon-sm"><use href="#ico-upload"/></svg>
+                    Importer
+                </button>
             </div>
         </div>
 
@@ -731,6 +785,20 @@
     </div>
 </div>
 
+<div id="new-messe-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Nouvelle messe</h3>
+            <button class="btn btn-icon" onclick="closeNewMesseModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <p class="settings-note" style="margin-bottom: var(--sp-sm);">La date sert à retrouver automatiquement les lectures du jour (AELF).</p>
+        <input type="date" id="new-messe-date" class="input-field" style="margin-bottom: var(--sp-md);">
+        <button class="btn btn-primary" style="width:100%;" onclick="confirmNewMesse()">Créer la messe</button>
+    </div>
+</div>
+
 <div id="onboarding-modal">
     <div class="onboard-card" id="onboard-content"></div>
 </div>
@@ -746,6 +814,18 @@
     </div>
 </div>
 
+<div id="offline-download-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Mode hors-ligne</h3>
+            <button class="btn btn-icon" onclick="closeOfflineDownloadModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div id="offline-download-body"></div>
+    </div>
+</div>
+
 <div id="performance-mode" style="display: none;">
     <div id="pdf-viewport" style="display: flex;">
         <div class="tap-zone tap-left" onclick="prevPage(event)"></div>
@@ -753,6 +833,7 @@
         <canvas id="pdf-canvas"></canvas>
         <div id="text-display">
             <div id="note-title-display"></div>
+            <div id="note-ref-display"></div>
             <div id="note-content-display"></div>
         </div>
     </div>
@@ -1037,6 +1118,7 @@
         document.getElementById('toggle-nav-buttons').checked = settings.navButtons;
         document.getElementById('toggle-pedal-mode').checked = settings.pedalMode;
         document.getElementById('toggle-offline-mode').checked = settings.offlineMode;
+        updateOfflineStorageDesc();
         renderAdminSection();
         renderPedalKeysSection();
     }
@@ -1120,7 +1202,11 @@
     function setOfflineModeSetting(enabled) {
         settings.offlineMode = enabled;
         saveSettings();
-        if (enabled) syncOfflineCache(state.songs);
+        refreshActiveList();
+        updateOfflineStorageDesc();
+        // On ne télécharge plus tout automatiquement à l'activation : on propose d'abord le
+        // choix (tout télécharger avec la taille annoncée, ou chant par chant depuis les listes).
+        if (enabled) openOfflineDownloadModal();
     }
 
     /* ══════════════════════════════════════════
@@ -1330,6 +1416,25 @@
         return !!adminTokenCache;
     }
 
+    // isAdminUnlocked() = une clé est mémorisée sur cet appareil. isAdminActive() = en plus, les
+    // pouvoirs sont actuellement activés via le petit interrupteur ci-dessous : ça permet de
+    // garder la clé enregistrée (pas besoin de la retaper) tout en repassant ponctuellement en
+    // "utilisateur normal" (import de partition en local uniquement, pas d'édition) sans avoir à
+    // l'oublier puis la resaisir à chaque fois.
+    let adminPowersEnabled = localStorage.getItem('cantus_admin_powers_enabled') !== 'false';
+
+    function isAdminActive() {
+        return isAdminUnlocked() && adminPowersEnabled;
+    }
+
+    function setAdminPowersEnabled(enabled) {
+        adminPowersEnabled = enabled;
+        localStorage.setItem('cantus_admin_powers_enabled', enabled ? 'true' : 'false');
+        renderAdminSection();
+        refreshActiveList();
+        showToast(enabled ? 'Pouvoirs administrateur activés.' : 'Pouvoirs administrateur désactivés.');
+    }
+
     function renderAdminSection() {
         const el = document.getElementById('admin-section');
         if (!el) return;
@@ -1344,15 +1449,19 @@
 
         el.innerHTML = `
             <div class="settings-section-title">Administration</div>
-            <div class="admin-status">
-                <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                Accès administrateur actif sur cet appareil
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Pouvoirs administrateur</div>
+                    <div class="settings-row-desc">${adminPowersEnabled
+                        ? "Actifs : modifier ou importer une partition l'envoie sur GitHub, visible par tout le monde."
+                        : "Désactivés : appli normale pour vous — l'import d'une partition reste local, sans droit de modification."}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" onchange="setAdminPowersEnabled(this.checked)" ${adminPowersEnabled ? 'checked' : ''}>
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
             </div>
             <div class="admin-actions">
-                <button class="btn btn-primary" style="width:100%;" onclick="openImportModal()">
-                    <svg class="icon icon-sm"><use href="#ico-upload"/></svg>
-                    Importer une partition
-                </button>
                 <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
             </div>`;
     }
@@ -1361,6 +1470,10 @@
         if (!confirm('Oublier la clé administrateur enregistrée sur cet appareil ?')) return;
         localStorage.removeItem(ADMIN_VAULT_KEY);
         adminTokenCache = null;
+        // Repart sur une base saine : une prochaine clé validée sur cet appareil aura les
+        // pouvoirs actifs par défaut, plutôt que d'hériter d'un interrupteur oublié désactivé.
+        adminPowersEnabled = true;
+        localStorage.removeItem('cantus_admin_powers_enabled');
         renderAdminSection();
         refreshActiveList();
         showToast('Accès administrateur oublié.');
@@ -1473,6 +1586,43 @@
         });
     }
 
+    /* ─── PARTITIONS LOCALES (import sans mode administrateur) ───
+
+       Stockées uniquement sur cet appareil : le PDF va dans le Cache Storage du navigateur
+       (même mécanisme que le hors-ligne, sous une URL "/local-songs/<id>.pdf" propre à
+       l'origine du site — jamais vraiment récupérée sur le réseau, juste utilisée comme clé),
+       et les métadonnées (nom, catégorie) dans localStorage. Rien n'est envoyé sur GitHub ni
+       ailleurs ; supprimer les données du site ou désinstaller l'appli les efface.
+    ── */
+    function loadLocalSongs() {
+        try { return JSON.parse(localStorage.getItem('cantus_local_songs')) || []; }
+        catch (e) { return []; }
+    }
+
+    function saveLocalSongs(list) {
+        localStorage.setItem('cantus_local_songs', JSON.stringify(list));
+    }
+
+    async function importLocalSong(file, displayName, category) {
+        const id = 'local-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        const url = `/local-songs/${id}.pdf`;
+        const cache = await caches.open(PDF_CACHE_NAME);
+        await cache.put(url, new Response(file, { headers: { 'Content-Type': 'application/pdf' } }));
+
+        const meta = { id, type: 'song', category, name: displayName.trim().toUpperCase(), url, size: file.size, isLocal: true };
+        const list = loadLocalSongs();
+        list.push(meta);
+        saveLocalSongs(list);
+        return meta;
+    }
+
+    // Recharge state.songs avec les partitions locales à jour, sans refaire d'appel réseau à
+    // GitHub — utilisé après tout ajout/modification/suppression d'une partition locale.
+    async function refreshLocalSongsIntoState() {
+        state.songs = sortSongsList([...state.songs.filter(s => !s.isLocal), ...loadLocalSongs()]);
+        await refreshCachedUrlSet();
+    }
+
     async function submitImportPartition() {
         if (!importSelectedFile) { setImportModalError('Choisissez un fichier PDF.'); return; }
         if (importSelectedFile.type !== 'application/pdf' && !importSelectedFile.name.toLowerCase().endsWith('.pdf')) {
@@ -1482,7 +1632,38 @@
         const displayName = document.getElementById('import-name-input').value.trim();
         if (!displayName) { setImportModalError('Donnez un nom au chant.'); return; }
         const category = document.getElementById('import-cat-select').value;
-        if (!adminTokenCache) { setImportModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+
+        // Sans les pouvoirs administrateur actifs : import local uniquement (cache du
+        // navigateur de cet appareil), avec avertissement explicite avant d'enregistrer.
+        if (!isAdminActive()) {
+            const warned = confirm(
+                "Cette partition sera enregistrée uniquement sur cet appareil (dans le cache du navigateur) : " +
+                "elle n'est envoyée sur aucun serveur et personne d'autre ne la verra. " +
+                "Si vous désinstallez l'application ou effacez les données du site, elle sera perdue. Continuer ?"
+            );
+            if (!warned) return;
+
+            const btn = document.getElementById('import-submit-btn');
+            btn.disabled = true;
+            const originalLabel = btn.innerHTML;
+            btn.innerHTML = 'Enregistrement…';
+            setImportModalError('');
+
+            try {
+                await importLocalSong(importSelectedFile, displayName, category);
+                closeImportModal();
+                showToast(`"${displayName}" enregistrée sur cet appareil.`);
+                await refreshLocalSongsIntoState();
+                const activeTabBtn = document.querySelector('.tab-btn.active');
+                if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            } catch (e) {
+                setImportModalError("Échec de l'enregistrement local.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalLabel;
+            }
+            return;
+        }
 
         const btn = document.getElementById('import-submit-btn');
         btn.disabled = true;
@@ -1567,11 +1748,30 @@
     async function submitEditSong() {
         const song = state.songs.find(s => s.id === editSongId);
         if (!song) return;
-        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
 
         const newName = document.getElementById('edit-name-input').value.trim();
         if (!newName) { setEditModalError('Donnez un nom au chant.'); return; }
         const newCategory = document.getElementById('edit-cat-select').value;
+
+        // Partition locale (importée sans mode administrateur) : simple mise à jour des
+        // métadonnées, le fichier reste au même endroit dans le cache.
+        if (song.isLocal) {
+            const list = loadLocalSongs();
+            const entry = list.find(s => s.id === song.id);
+            if (entry) {
+                entry.name = newName.toUpperCase();
+                entry.category = newCategory;
+                saveLocalSongs(list);
+            }
+            closeEditSongModal();
+            showToast(`"${newName}" mise à jour.`);
+            await refreshLocalSongsIntoState();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            return;
+        }
+
+        if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
 
         const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
         const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
@@ -1653,7 +1853,24 @@
         const song = state.songs.find(s => s.id === editSongId);
         if (!song) return;
         if (!confirm(`Supprimer définitivement "${song.name}" ? Cette action est irréversible.`)) return;
-        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+
+        if (song.isLocal) {
+            saveLocalSongs(loadLocalSongs().filter(s => s.id !== song.id));
+            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+            const favIdx = state.favorites.indexOf(song.id);
+            if (favIdx !== -1) {
+                state.favorites.splice(favIdx, 1);
+                localStorage.setItem('cantus_favorites', JSON.stringify(state.favorites));
+            }
+            closeEditSongModal();
+            showToast(`"${song.name}" supprimée.`);
+            await refreshLocalSongsIntoState();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            return;
+        }
+
+        if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
 
         const btn = document.getElementById('edit-delete-btn');
         btn.disabled = true;
@@ -1731,6 +1948,9 @@
         applyTheme();
         checkForAppUpdate();
         await tryAutoUnlockAdmin();
+        // L'écran ne doit jamais s'éteindre tant que l'appli est ouverte (peu importe l'onglet,
+        // Mode Live actif ou non) — voir aussi le ré-acquière au retour au premier plan plus bas.
+        requestWakeLock();
 
         const urlParams = new URLSearchParams(window.location.search);
         const importData = urlParams.get('import');
@@ -1786,6 +2006,12 @@
         document.getElementById('import-modal').addEventListener('click', function(e) {
             if (e.target === this) closeImportModal();
         });
+        document.getElementById('offline-download-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeOfflineDownloadModal();
+        });
+        document.getElementById('new-messe-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeNewMesseModal();
+        });
         document.getElementById('edit-song-modal').addEventListener('click', function(e) {
             if (e.target === this) closeEditSongModal();
         });
@@ -1839,12 +2065,17 @@
                         category: category,
                         name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
                         path:     f.path,
+                        size:     f.size || null,
                         url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`
                     };
                 });
             state.songs = sortSongsList(state.songs);
             localStorage.setItem('cantus_cache', JSON.stringify(state.songs));
+            // Les partitions importées localement (voir importLocalSong) s'ajoutent après coup :
+            // elles ne viennent pas de GitHub et ne doivent pas polluer le cache de secours ci-dessus.
+            state.songs = sortSongsList([...state.songs, ...loadLocalSongs()]);
             setSyncStatus(true);
+            await refreshCachedUrlSet();
 
             // Le téléchargement des PDF pour la consultation hors-ligne n'a lieu que si
             // l'utilisateur y a consenti (assistant de première connexion ou Paramètres).
@@ -1852,42 +2083,64 @@
         } catch(e) {
             console.error('Échec de synchronisation avec GitHub :', e);
             let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
-            state.songs = sortSongsList(cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' })));
+            state.songs = sortSongsList([
+                ...cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' })),
+                ...loadLocalSongs()
+            ]);
             setSyncStatus(false);
+            await refreshCachedUrlSet();
         }
     }
 
     /* ══════════════════════════════════════════
-       TÉLÉCHARGEMENT HORS-LIGNE (opt-in, avec barre de progression)
+       TÉLÉCHARGEMENT HORS-LIGNE (opt-in, choix de la taille, par chant ou en bloc)
 
-       L'ancienne version lançait un fetch() simultané pour chaque partition
-       (Promise.all sans limite), ce qui pouvait saturer l'appareil pendant
-       de longues minutes. Le téléchargement est maintenant limité à quelques
-       requêtes en parallèle, et une barre de progression bloquante s'affiche
-       dès qu'un volume important de fichiers doit être récupéré.
+       cachedUrlSet mémorise en mémoire les URLs déjà en cache (rafraîchi via
+       refreshCachedUrlSet, un seul appel à cache.keys() plutôt qu'un cache.match()
+       par chant) pour pouvoir afficher l'état téléchargé/non téléchargé de chaque
+       chant instantanément dans les listes, sans requête asynchrone à chaque rendu.
     ══════════════════════════════════════════ */
     const DOWNLOAD_CONCURRENCY = 4;
     const BULK_DOWNLOAD_THRESHOLD = 6; // au-delà, on affiche l'overlay de progression
     let downloadOverlayDismissed = false;
+    let cachedUrlSet = new Set();
+
+    function resolveUrl(u) { return new URL(u, location.href).href; }
+
+    async function refreshCachedUrlSet() {
+        if (!('caches' in window)) { cachedUrlSet = new Set(); return; }
+        try {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            const keys = await cache.keys();
+            cachedUrlSet = new Set(keys.map(k => k.url));
+        } catch (e) { cachedUrlSet = new Set(); }
+    }
+
+    function isSongDownloaded(song) {
+        return cachedUrlSet.has(resolveUrl(song.url));
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return 'taille inconnue';
+        if (bytes < 1024) return bytes + ' o';
+        if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' Ko';
+        return (bytes / 1024 / 1024).toFixed(1) + ' Mo';
+    }
 
     async function getMissingSongs(songs) {
-        if (!('caches' in window)) return [];
-        const cache = await caches.open(PDF_CACHE_NAME);
-        const missing = [];
-        for (const song of songs) {
-            if (!(await cache.match(song.url))) missing.push(song);
-        }
-        return missing;
+        await refreshCachedUrlSet();
+        return songs.filter(s => !isSongDownloaded(s));
     }
 
     async function downloadPDFs(songs, onProgress) {
         if (!('caches' in window) || songs.length === 0) {
-            if (onProgress) onProgress(songs.length, songs.length);
+            if (onProgress) onProgress(songs.length, songs.length, 0, 0);
             return;
         }
         const cache = await caches.open(PDF_CACHE_NAME);
         const total = songs.length;
-        let done = 0;
+        const totalBytes = songs.reduce((sum, s) => sum + (s.size || 0), 0);
+        let done = 0, doneBytes = 0;
         let cursor = 0;
 
         async function worker() {
@@ -1900,53 +2153,176 @@
                     console.warn(`Échec du téléchargement pour : ${song.name}`);
                 }
                 done++;
-                if (onProgress) onProgress(done, total);
+                doneBytes += song.size || 0;
+                if (onProgress) onProgress(done, total, doneBytes, totalBytes);
             }
         }
 
         await Promise.all(Array.from({ length: Math.min(DOWNLOAD_CONCURRENCY, songs.length) }, worker));
+        await refreshCachedUrlSet();
     }
 
     // Point d'entrée appelé après chaque synchronisation de bibliothèque : ne fait rien tant que
     // le mode hors-ligne n'est pas activé par l'utilisateur, télécharge silencieusement les
-    // nouveautés en arrière-plan si elles sont peu nombreuses, ou affiche la barre de progression
-    // bloquante pour un gros volume (première activation, ou beaucoup d'ajouts d'un coup).
+    // nouveautés en arrière-plan si elles sont peu nombreuses (un ajout ponctuel), ou affiche la
+    // barre de progression bloquante pour un gros volume (beaucoup d'ajouts d'un coup). Le tout
+    // premier téléchargement massif passe par openOfflineDownloadModal(), pas ici.
     async function syncOfflineCache(songs) {
         if (!settings.offlineMode || !('caches' in window)) return;
         const missing = await getMissingSongs(songs);
-        if (missing.length === 0) return;
-
-        if (missing.length > BULK_DOWNLOAD_THRESHOLD) {
-            await runBulkDownload(missing);
-        } else {
-            downloadPDFs(missing);
-        }
+        if (missing.length === 0 || missing.length > BULK_DOWNLOAD_THRESHOLD) return;
+        await downloadPDFs(missing);
+        refreshActiveList();
     }
 
     async function runBulkDownload(songs) {
         downloadOverlayDismissed = false;
         const overlay = document.getElementById('download-overlay');
-        updateDownloadProgress(0, songs.length);
+        updateDownloadProgress(0, songs.length, 0, songs.reduce((s, x) => s + (x.size || 0), 0));
         overlay.classList.add('open');
 
         await downloadPDFs(songs, updateDownloadProgress);
 
         overlay.classList.remove('open');
         if (!downloadOverlayDismissed) showToast('Téléchargement des partitions terminé.');
+        refreshActiveList();
+        updateOfflineStorageDesc();
     }
 
-    function updateDownloadProgress(done, total) {
+    function updateDownloadProgress(done, total, doneBytes, totalBytes) {
         const fill = document.getElementById('dl-fill');
         const count = document.getElementById('dl-count');
         if (!fill || !count) return;
         fill.style.width = (total > 0 ? Math.round((done / total) * 100) : 100) + '%';
-        count.textContent = `${done} / ${total} partitions`;
+        count.textContent = totalBytes
+            ? `${formatBytes(doneBytes)} / ${formatBytes(totalBytes)} — ${done}/${total} partitions`
+            : `${done} / ${total} partitions`;
     }
 
     function dismissDownloadOverlay() {
         downloadOverlayDismissed = true;
         document.getElementById('download-overlay').classList.remove('open');
         showToast('Téléchargement poursuivi en arrière-plan.');
+    }
+
+    // Bascule le téléchargement hors-ligne d'UN chant précis, depuis son bouton dans une liste
+    // (bibliothèque, playlist, messe…). Indépendant du téléchargement en masse ci-dessus.
+    async function toggleSongDownload(songId, event) {
+        if (event) event.stopPropagation();
+        const song = state.songs.find(s => s.id === songId);
+        if (!song || !('caches' in window)) return;
+        const cache = await caches.open(PDF_CACHE_NAME);
+        if (isSongDownloaded(song)) {
+            await cache.delete(song.url);
+            showToast(`"${song.name}" retirée du hors-ligne.`);
+        } else {
+            try {
+                const res = await fetch(song.url);
+                if (!res.ok) throw new Error('Réponse réseau invalide');
+                await cache.put(song.url, res);
+                showToast(`"${song.name}" téléchargée.`);
+            } catch (e) {
+                showToast('Échec du téléchargement.');
+            }
+        }
+        await refreshCachedUrlSet();
+        refreshActiveList();
+        updateOfflineStorageDesc();
+    }
+
+    /* ─── POPUP DE GESTION DU HORS-LIGNE (depuis les Paramètres) ───
+
+       Affichée dès l'activation du mode hors-ligne : indique la taille totale
+       restant à télécharger avant de lancer quoi que ce soit, plutôt que de
+       tout télécharger silencieusement comme avant. Le téléchargement au cas
+       par cas reste possible directement depuis les listes (toggleSongDownload).
+    ── */
+    async function updateOfflineStorageDesc() {
+        const el = document.getElementById('offline-storage-desc');
+        if (!el) return;
+        if (!('caches' in window)) { el.textContent = 'Mode hors-ligne indisponible sur ce navigateur.'; return; }
+        const missing = await getMissingSongs(state.songs);
+        const cachedCount = state.songs.length - missing.length;
+        const cachedBytes = state.songs.reduce((sum, s) => sum + (isSongDownloaded(s) ? (s.size || 0) : 0), 0);
+        el.textContent = `${cachedCount} / ${state.songs.length} partitions téléchargées (${formatBytes(cachedBytes)})`;
+    }
+
+    async function openOfflineDownloadModal() {
+        const modal = document.getElementById('offline-download-modal');
+        const body = document.getElementById('offline-download-body');
+        modal.classList.add('open');
+        body.innerHTML = `<p class="settings-note">Calcul de la taille…</p>`;
+
+        const missing = await getMissingSongs(state.songs);
+        if (missing.length === 0) {
+            body.innerHTML = `<p class="settings-note">Toutes les partitions sont déjà sur cet appareil.</p>`;
+            return;
+        }
+        const missingBytes = missing.reduce((sum, s) => sum + (s.size || 0), 0);
+        body.innerHTML = `
+            <p class="settings-note">${missing.length} partition${missing.length !== 1 ? 's' : ''} restent à télécharger, pour environ <strong>${formatBytes(missingBytes)}</strong>.</p>
+            <p class="settings-note">Vous pouvez aussi ne télécharger que certains chants un par un, via leur bouton de téléchargement dans la bibliothèque, les playlists ou les messes.</p>
+            <button class="btn btn-primary" style="width:100%; margin-top: var(--sp-md);" onclick="startOfflineBulkDownloadFromModal()">
+                Tout télécharger (${formatBytes(missingBytes)})
+            </button>`;
+    }
+
+    function closeOfflineDownloadModal() {
+        document.getElementById('offline-download-modal').classList.remove('open');
+    }
+
+    async function startOfflineBulkDownloadFromModal() {
+        closeOfflineDownloadModal();
+        const missing = await getMissingSongs(state.songs);
+        await runBulkDownload(missing);
+    }
+
+    // Supprime en un coup tout ce qui a été téléchargé pour le hors-ligne (bibliothèque, messes,
+    // playlists confondues) : vide entièrement le cache dédié aux PDF.
+    async function clearAllDownloads() {
+        if (!('caches' in window)) return;
+        if (!confirm('Supprimer toutes les partitions téléchargées sur cet appareil ? Vous pourrez les retélécharger à tout moment.')) return;
+        await caches.delete(PDF_CACHE_NAME);
+        await refreshCachedUrlSet();
+        refreshActiveList();
+        updateOfflineStorageDesc();
+        showToast('Téléchargements supprimés.');
+    }
+
+    /* ─── TÉLÉCHARGEMENT PAR MESSE / PLAYLIST ───
+
+       Même logique que le téléchargement individuel d'un chant (toggleSongDownload), mais
+       appliquée à tous les chants d'une messe ou d'une playlist en une fois — pour ne pas avoir
+       à cocher chant par chant quand on veut préparer tout un déroulé pour le hors-ligne.
+    ── */
+    function collectionSongs(item) {
+        return item.songs
+            .filter(s => s.type !== 'note')
+            .map(s => state.songs.find(x => x.id === s.id) || s);
+    }
+
+    function isCollectionFullyDownloaded(item) {
+        const songs = collectionSongs(item);
+        return songs.length > 0 && songs.every(isSongDownloaded);
+    }
+
+    async function toggleCollectionDownload(kind, idx, event) {
+        if (event) event.stopPropagation();
+        const item = kind === 'messe' ? state.messes[idx] : state.playlists[idx];
+        if (!item || !('caches' in window)) return;
+        const songs = collectionSongs(item);
+        if (songs.length === 0) { showToast('Aucun chant à télécharger dans cet ensemble.'); return; }
+
+        if (isCollectionFullyDownloaded(item)) {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            for (const s of songs) await cache.delete(s.url);
+            await refreshCachedUrlSet();
+            refreshActiveList();
+            updateOfflineStorageDesc();
+            showToast(`"${item.name}" retirée du hors-ligne.`);
+        } else {
+            await runBulkDownload(songs.filter(s => !isSongDownloaded(s)));
+        }
     }
 
     function setSyncStatus(online) {
@@ -1973,7 +2349,7 @@
                            oninput="filterLibrary('library')">
                 </div>
                 ${renderCategorySelect('lib-cat', 'library')}
-                <div id="lib-list">${renderList(state.songs, 'ico-music', 'Aucun chant trouvé.')}</div>`;
+                <div id="lib-list">${renderCategoryAccordion(state.songs)}</div>`;
         } else if (v === 'favorites') {
             const favSongs = state.songs.filter(s => state.favorites.includes(s.id));
             c.innerHTML = `
@@ -2040,14 +2416,23 @@
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
             const catLabel = CATEGORY_LABELS[s.category] || 'Autre';
-            const showEdit = s.type === 'song' && isAdminUnlocked();
+            const showEdit = s.type === 'song' && (isAdminActive() || s.isLocal);
+            const downloaded = s.type === 'song' && isSongDownloaded(s);
             return `
             <div class="card">
                 <div class="card-content">
                     <div class="card-title">${escHtml(s.name)}</div>
-                    ${s.type === 'song' ? `<div class="cat-badge">${escHtml(catLabel)}</div>` : ''}
+                    ${s.type === 'song' ? `
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <div class="cat-badge" style="margin-top:4px;">${escHtml(catLabel)}</div>
+                        ${s.isLocal ? `<div class="cat-badge local-badge" style="margin-top:4px;">Local</div>` : ''}
+                    </div>` : ''}
                 </div>
                 <div style="display: flex; gap: var(--sp-xs); flex-shrink: 0; align-items: center;">
+                    ${settings.offlineMode && s.type === 'song' ? `
+                    <button class="btn btn-icon ${downloaded ? 'is-downloaded' : ''}" onclick="toggleSongDownload('${s.id}', event)" title="${downloaded ? 'Téléchargée — retirer' : 'Télécharger pour le hors-ligne'}" aria-label="Téléchargement">
+                        <svg class="icon"><use href="${downloaded ? '#ico-check' : '#ico-download'}"/></svg>
+                    </button>` : ''}
                     ${showEdit ? `
                     <button class="btn btn-icon card-edit-btn" onclick="openEditSongModal('${s.id}', event)" title="Modifier" aria-label="Modifier">
                         <svg class="icon"><use href="#ico-edit"/></svg>
@@ -2073,6 +2458,10 @@
                     <div class="messe-meta">${m.songs.length} élément${m.songs.length !== 1 ? 's' : ''}</div>
                 </div>
                 <div class="messe-actions">
+                    ${settings.offlineMode ? `
+                    <button class="btn btn-icon ${isCollectionFullyDownloaded(m) ? 'is-downloaded' : ''}" onclick="toggleCollectionDownload('messe', ${i}, event)" title="${isCollectionFullyDownloaded(m) ? 'Téléchargée — retirer' : 'Télécharger pour le hors-ligne'}" aria-label="Téléchargement">
+                        <svg class="icon"><use href="${isCollectionFullyDownloaded(m) ? '#ico-check' : '#ico-download'}"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" onclick="openExportModal(${i})" title="Partager" aria-label="Partager">
                         <svg class="icon"><use href="#ico-share"/></svg>
                     </button>
@@ -2223,26 +2612,65 @@
     }
 
     function filterLibrary(targetListStr) {
-        const isFav = targetListStr === 'favorites';
-        const searchEl = document.getElementById(isFav ? 'fav-search' : 'lib-search');
-        const catEl    = document.getElementById(isFav ? 'fav-cat' : 'lib-cat');
+        if (targetListStr !== 'favorites') {
+            document.getElementById('lib-list').innerHTML = renderLibraryList();
+            return;
+        }
+
+        const searchEl = document.getElementById('fav-search');
+        const catEl    = document.getElementById('fav-cat');
         const q   = normalizeSearch(searchEl ? searchEl.value : '');
         const cat = catEl ? catEl.value : '';
 
-        let sourceList = state.songs;
-        let icon = 'ico-music';
-        let emptyTxt = 'Aucun chant trouvé.';
-
-        if (isFav) {
-            sourceList = state.songs.filter(s => state.favorites.includes(s.id));
-            icon = 'ico-heart';
-            emptyTxt = "Aucun favori ne correspond à votre recherche.";
-        }
-
+        const sourceList = state.songs.filter(s => state.favorites.includes(s.id));
         const filtered = sourceList.filter(s =>
             (!cat || s.category === cat) && normalizeSearch(s.name).includes(q)
         );
-        document.getElementById(isFav ? 'fav-list' : 'lib-list').innerHTML = renderList(filtered, icon, emptyTxt);
+        document.getElementById('fav-list').innerHTML = renderList(filtered, 'ico-heart', "Aucun favori ne correspond à votre recherche.");
+    }
+
+    // Bibliothèque : en "Toutes les catégories" sans recherche, on regroupe par catégorie
+    // (repliable) plutôt que d'afficher les 200+ chants à la suite — dès qu'une catégorie est
+    // choisie ou qu'une recherche est tapée, on repasse à une liste plate filtrée classique.
+    let expandedLibCategories = new Set();
+
+    function renderLibraryList() {
+        const searchEl = document.getElementById('lib-search');
+        const catEl    = document.getElementById('lib-cat');
+        const q   = normalizeSearch(searchEl ? searchEl.value : '');
+        const cat = catEl ? catEl.value : '';
+
+        if (!cat && !q) return renderCategoryAccordion(state.songs);
+
+        const filtered = state.songs.filter(s => (!cat || s.category === cat) && normalizeSearch(s.name).includes(q));
+        return renderList(filtered, 'ico-music', 'Aucun chant trouvé.');
+    }
+
+    function renderCategoryAccordion(songs) {
+        const groups = CATEGORIES
+            .map(c => ({ key: c.key, label: c.label, items: songs.filter(s => s.category === c.key) }))
+            .filter(g => g.items.length > 0);
+        if (groups.length === 0) return emptyState('ico-music', 'Aucun chant trouvé.');
+
+        return groups.map(g => {
+            const isOpen = expandedLibCategories.has(g.key);
+            return `
+            <div class="cat-group">
+                <button class="cat-group-header" onclick="toggleLibCategory('${g.key}')">
+                    <span>${escHtml(g.label)}</span>
+                    <span class="cat-group-count">${g.items.length}</span>
+                    <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}"><use href="#ico-chevron"/></svg>
+                </button>
+                ${isOpen ? `<div class="cat-group-body">${renderList(g.items, 'ico-music', '')}</div>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function toggleLibCategory(key) {
+        if (expandedLibCategories.has(key)) expandedLibCategories.delete(key);
+        else expandedLibCategories.add(key);
+        const el = document.getElementById('lib-list');
+        if (el) el.innerHTML = renderLibraryList();
     }
 
     // Conservé pour compatibilité si appelé ailleurs
@@ -2255,7 +2683,17 @@
         const activeTabBtn = document.querySelector('.tab-btn.active');
         if (!activeTabBtn) return;
         const view = activeTabBtn.id.replace('tab-', '');
-        if (view === 'library' || view === 'favorites') filterLibrary(view);
+        if (view === 'library' || view === 'favorites') {
+            filterLibrary(view);
+        } else if (view === 'planner') {
+            const el = document.getElementById('messes-list');
+            if (el) el.innerHTML = renderMesses();
+        } else if (view === 'playlist') {
+            // Rien à faire si on est dans le détail d'une playlist plutôt que la liste :
+            // playlists-list n'existe alors pas dans le DOM.
+            const el = document.getElementById('playlists-list');
+            if (el) el.innerHTML = renderPlaylists();
+        }
     }
 
     /* ══════════════════════════════════════════
@@ -2347,14 +2785,10 @@
         }
     }
 
-    function releaseWakeLock() {
-        if (wakeLock !== null) {
-            wakeLock.release().then(() => wakeLock = null);
-        }
-    }
-
     document.addEventListener('visibilitychange', async () => {
-        if (wakeLock !== null && document.visibilityState === 'visible') {
+        // Le verrou d'écran est systématiquement relâché par le navigateur quand l'onglet passe
+        // en arrière-plan ; on le redemande à chaque retour au premier plan.
+        if (document.visibilityState === 'visible') {
             await requestWakeLock();
         }
     });
@@ -2467,7 +2901,11 @@
             canvas.style.display = 'none';
             textEl.classList.add('visible');
             document.getElementById('note-title-display').textContent = item.name;
+            const refEl = document.getElementById('note-ref-display');
+            refEl.textContent = item.ref || '';
+            refEl.classList.toggle('visible', !!item.ref);
             document.getElementById('note-content-display').textContent = item.content || '';
+            textEl.scrollTop = 0; // toujours revenir en haut du texte en changeant d'élément
             state.totalPages = 1;
             updateHUD(`Élément ${state.currentIdx + 1} / ${state.activeSet.length}`);
             updateNavButtonsVisibility();
@@ -2588,9 +3026,8 @@
             document.exitFullscreen().catch(() => {});
         }
 
-        // En Mode Live, l'écran doit rester allumé tant qu'on n'a pas explicitement quitté la
-        // session (comme une vidéo en plein écran) : on ne relâche pas le verrou ici.
-        if (liveRole === null) releaseWakeLock();
+        // L'écran doit rester allumé tant que l'appli reste ouverte : on ne relâche jamais le
+        // verrou ici (voir requestWakeLock()/init()).
         liveThreadActive = false;
 
         if (state.pdf) {
@@ -2708,12 +3145,30 @@
        MESSES — EDITOR
     ══════════════════════════════════════════ */
     function newMesse() {
-        const n = prompt('Nom de la messe (ex: Dimanche 12 Mai) :');
-        if (n) {
-            state.messes.push({ name: n, songs: [] });
-            saveMesses();
-            showView('planner');
-        }
+        document.getElementById('new-messe-date').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('new-messe-modal').classList.add('open');
+    }
+
+    function closeNewMesseModal() {
+        document.getElementById('new-messe-modal').classList.remove('open');
+    }
+
+    // Le nom de la messe est dérivé de sa date (ex: "Dimanche 12 mai 2026") plutôt que saisi
+    // librement : c'est cette date qui sert ensuite à aller chercher les lectures du jour sur
+    // l'API AELF (voir loadAelfPanel).
+    function formatMesseDateLabel(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const label = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    function confirmNewMesse() {
+        const dateStr = document.getElementById('new-messe-date').value;
+        if (!dateStr) { showToast('Choisissez une date.'); return; }
+        state.messes.push({ name: formatMesseDateLabel(dateStr), date: dateStr, songs: [] });
+        saveMesses();
+        closeNewMesseModal();
+        editMesse(state.messes.length - 1);
     }
 
     function editMesse(idx) {
@@ -2743,6 +3198,10 @@
                 </div>
                 <div class="editor-col">
                     <div class="col-header">Ordre de passage</div>
+                    <div class="aelf-panel">
+                        <div class="aelf-panel-title">Lectures du jour (AELF)</div>
+                        <div id="aelf-readings">${renderAelfPanel(m)}</div>
+                    </div>
                     <div class="note-form">
                         <input type="text" id="note-title" class="input-field" placeholder="TITRE (ex: PREMIÈRE LECTURE)">
                         <textarea id="note-content" class="input-field" placeholder="Texte, accords…"></textarea>
@@ -2770,6 +3229,8 @@
                 editMesse(state.currentMesseIdx);
             }
         });
+
+        loadAelfPanel(m);
     }
 
     function edItem(s, i) {
@@ -2839,6 +3300,110 @@
         state.messes.splice(i, 1);
         saveMesses();
         showView('planner');
+    }
+
+    /* ══════════════════════════════════════════
+       LECTURES DU JOUR (API AELF) — api.aelf.org
+
+       Une messe est maintenant datée (voir newMesse/confirmNewMesse) ; on utilise cette date
+       pour proposer en un clic les lectures officielles du jour (1ère lecture, psaume, 2e
+       lecture si présente, évangile) sous forme de notes ajoutées à l'ordre de passage, comme
+       n'importe quelle autre note manuelle — donc affichées de la même façon en mode lecture.
+       Pas de clé requise, l'API est publique.
+    ══════════════════════════════════════════ */
+    const AELF_TYPE_LABELS = {
+        lecture_1: 'Première lecture',
+        lecture_2: 'Deuxième lecture',
+        psaume: 'Psaume',
+        evangile: 'Évangile',
+        cantique: 'Cantique'
+    };
+    let aelfCache = {}; // date (YYYY-MM-DD) -> réponse déjà récupérée, pour éviter les doublons de requête
+
+    // Convertit le HTML renvoyé par AELF en texte fluide. Le HTML source d'AELF met un <br/>
+    // après quasiment chaque ligne (mise en forme d'origine, façon poème) : les garder comme
+    // autant de retours à la ligne durs cassait l'affichage (texte qui débordait du cadre,
+    // ligne par ligne au lieu de s'enrouler normalement). On les remplace donc par un espace,
+    // pour que le texte s'enroule comme une lecture normale, et on ne garde un vrai saut de
+    // ligne qu'entre deux paragraphes <p> (= les strophes/versets).
+    function aelfHtmlToText(html) {
+        if (!html) return '';
+        return html
+            .split(/<\/p>/i)
+            .map(block => block
+                .replace(/<br\s*\/?>/gi, ' ')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+            )
+            .filter(Boolean)
+            .join('\n\n');
+    }
+
+    async function fetchAelfReadings(dateStr) {
+        if (aelfCache[dateStr]) return aelfCache[dateStr];
+        const res = await fetch(`https://api.aelf.org/v1/messes/${dateStr}/france`);
+        if (!res.ok) throw new Error('Réponse AELF invalide : ' + res.status);
+        const data = await res.json();
+        aelfCache[dateStr] = data;
+        return data;
+    }
+
+    function renderAelfPanel(m) {
+        if (!m.date) return `<p class="settings-note">Messe sans date associée (créée avant cette fonctionnalité) : pas de lectures automatiques.</p>`;
+        return `<p class="settings-note">Chargement des lectures du jour…</p>`;
+    }
+
+    async function loadAelfPanel(m) {
+        if (!m.date) return;
+        const el = document.getElementById('aelf-readings');
+        if (!el) return;
+        try {
+            const data = await fetchAelfReadings(m.date);
+            const messeData = data.messes && data.messes[0];
+            const lectures = messeData ? messeData.lectures : [];
+            if (!lectures.length) {
+                el.innerHTML = `<p class="settings-note">Aucune lecture trouvée pour cette date sur AELF.</p>`;
+                return;
+            }
+            el.innerHTML = lectures.map((lec, i) => {
+                const label = AELF_TYPE_LABELS[lec.type] || lec.titre || lec.type;
+                return `
+                <button class="btn btn-ghost aelf-add-btn" onclick="addAelfReading(${i})">
+                    <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
+                    ${escHtml(label)}
+                </button>`;
+            }).join('');
+        } catch (e) {
+            el.innerHTML = `<p class="settings-note">Lectures AELF indisponibles pour l'instant (hors-ligne ou service momentanément inaccessible).</p>`;
+        }
+    }
+
+    async function addAelfReading(idx) {
+        const m = state.messes[state.currentMesseIdx];
+        if (!m || !m.date) return;
+        try {
+            const data = await fetchAelfReadings(m.date);
+            const messeData = data.messes && data.messes[0];
+            const lec = messeData && messeData.lectures[idx];
+            if (!lec) return;
+
+            const label = AELF_TYPE_LABELS[lec.type] || lec.titre || lec.type;
+            let content = '';
+            if (lec.type === 'psaume' && lec.refrain_psalmique) {
+                content += aelfHtmlToText(lec.refrain_psalmique) + '\n\n';
+            }
+            content += aelfHtmlToText(lec.contenu);
+
+            // Titre (doré) / référence biblique / texte : affichés séparément en mode lecture
+            // (voir loadItem()), plutôt que tout mélangé dans un seul bloc de texte.
+            m.songs.push({ type: 'note', name: label.toUpperCase(), ref: lec.ref || '', content: content.trim() });
+            saveMesses();
+            editMesse(state.currentMesseIdx);
+            showToast(`"${label}" ajoutée.`);
+        } catch (e) {
+            showToast("Échec de l'ajout de la lecture.");
+        }
     }
 
     /* ══════════════════════════════════════════
@@ -3743,7 +4308,6 @@
         liveScreen = 'select';
         liveThreadActive = false;
         liveResetSharedState();
-        releaseWakeLock();
         renderLiveView();
     }
 
@@ -3770,7 +4334,6 @@
         liveScreen = 'select';
         liveThreadActive = false;
         liveResetSharedState();
-        releaseWakeLock();
         renderLiveView();
     }
 
@@ -3874,6 +4437,10 @@
                     <div class="playlist-meta">${p.songs.length} chant${p.songs.length !== 1 ? 's' : ''}</div>
                 </div>
                 <div class="playlist-actions" onclick="event.stopPropagation()">
+                    ${settings.offlineMode ? `
+                    <button class="btn btn-icon ${isCollectionFullyDownloaded(p) ? 'is-downloaded' : ''}" onclick="toggleCollectionDownload('playlist', ${i}, event)" title="${isCollectionFullyDownloaded(p) ? 'Téléchargée — retirer' : 'Télécharger pour le hors-ligne'}" aria-label="Téléchargement">
+                        <svg class="icon"><use href="${isCollectionFullyDownloaded(p) ? '#ico-check' : '#ico-download'}"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" onclick="openExportPlaylistModal(${i})" title="Partager" aria-label="Partager">
                         <svg class="icon"><use href="#ico-share"/></svg>
                     </button>
