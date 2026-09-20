@@ -327,7 +327,7 @@
         #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; text-align: center; max-width: 80ch; }
         #note-ref-display { display: none; font-size: clamp(.85rem, 2vw, 1.15rem); color: #999; font-style: italic; margin-bottom: 1.6rem; text-align: center; }
         #note-ref-display.visible { display: block; }
-        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.6; word-break: break-word; max-width: 75ch; text-align: left; }
+        #note-content-display { font-size: clamp(1.1rem, 3.5vw, 2rem); white-space: pre-wrap; line-height: 1.4; word-break: break-word; max-width: 75ch; text-align: left; }
 
         .tap-zone { position: absolute; top: 0; height: 100%; width: 22%; z-index: 100; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .tap-zone.tap-left  { left: 0; }
@@ -1411,6 +1411,25 @@
         return !!adminTokenCache;
     }
 
+    // isAdminUnlocked() = une clé est mémorisée sur cet appareil. isAdminActive() = en plus, les
+    // pouvoirs sont actuellement activés via le petit interrupteur ci-dessous : ça permet de
+    // garder la clé enregistrée (pas besoin de la retaper) tout en repassant ponctuellement en
+    // "utilisateur normal" (import de partition en local uniquement, pas d'édition) sans avoir à
+    // l'oublier puis la resaisir à chaque fois.
+    let adminPowersEnabled = localStorage.getItem('cantus_admin_powers_enabled') !== 'false';
+
+    function isAdminActive() {
+        return isAdminUnlocked() && adminPowersEnabled;
+    }
+
+    function setAdminPowersEnabled(enabled) {
+        adminPowersEnabled = enabled;
+        localStorage.setItem('cantus_admin_powers_enabled', enabled ? 'true' : 'false');
+        renderAdminSection();
+        refreshActiveList();
+        showToast(enabled ? 'Pouvoirs administrateur activés.' : 'Pouvoirs administrateur désactivés.');
+    }
+
     function renderAdminSection() {
         const el = document.getElementById('admin-section');
         if (!el) return;
@@ -1425,9 +1444,17 @@
 
         el.innerHTML = `
             <div class="settings-section-title">Administration</div>
-            <div class="admin-status">
-                <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                Accès administrateur actif sur cet appareil — les partitions importées ci-dessus sont désormais visibles par tout le monde.
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Pouvoirs administrateur</div>
+                    <div class="settings-row-desc">${adminPowersEnabled
+                        ? "Actifs : modifier ou importer une partition l'envoie sur GitHub, visible par tout le monde."
+                        : "Désactivés : appli normale pour vous — l'import d'une partition reste local, sans droit de modification."}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" onchange="setAdminPowersEnabled(this.checked)" ${adminPowersEnabled ? 'checked' : ''}>
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
             </div>
             <div class="admin-actions">
                 <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
@@ -1438,6 +1465,10 @@
         if (!confirm('Oublier la clé administrateur enregistrée sur cet appareil ?')) return;
         localStorage.removeItem(ADMIN_VAULT_KEY);
         adminTokenCache = null;
+        // Repart sur une base saine : une prochaine clé validée sur cet appareil aura les
+        // pouvoirs actifs par défaut, plutôt que d'hériter d'un interrupteur oublié désactivé.
+        adminPowersEnabled = true;
+        localStorage.removeItem('cantus_admin_powers_enabled');
         renderAdminSection();
         refreshActiveList();
         showToast('Accès administrateur oublié.');
@@ -1597,9 +1628,9 @@
         if (!displayName) { setImportModalError('Donnez un nom au chant.'); return; }
         const category = document.getElementById('import-cat-select').value;
 
-        // Sans mode administrateur : import local uniquement (cache du navigateur de cet
-        // appareil), avec avertissement explicite avant d'enregistrer quoi que ce soit.
-        if (!isAdminUnlocked()) {
+        // Sans les pouvoirs administrateur actifs : import local uniquement (cache du
+        // navigateur de cet appareil), avec avertissement explicite avant d'enregistrer.
+        if (!isAdminActive()) {
             const warned = confirm(
                 "Cette partition sera enregistrée uniquement sur cet appareil (dans le cache du navigateur) : " +
                 "elle n'est envoyée sur aucun serveur et personne d'autre ne la verra. " +
@@ -1735,7 +1766,7 @@
             return;
         }
 
-        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+        if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
 
         const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
         const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
@@ -1834,7 +1865,7 @@
             return;
         }
 
-        if (!adminTokenCache) { setEditModalError('Session administrateur expirée, reconnectez-vous.'); return; }
+        if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
 
         const btn = document.getElementById('edit-delete-btn');
         btn.disabled = true;
@@ -2380,7 +2411,7 @@
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
             const catLabel = CATEGORY_LABELS[s.category] || 'Autre';
-            const showEdit = s.type === 'song' && (isAdminUnlocked() || s.isLocal);
+            const showEdit = s.type === 'song' && (isAdminActive() || s.isLocal);
             const downloaded = s.type === 'song' && isSongDownloaded(s);
             return `
             <div class="card">
