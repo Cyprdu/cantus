@@ -164,7 +164,11 @@
         .btn-icon.danger:hover { color: var(--danger); background: var(--danger-dim); }
 
         /* ─── SEARCH ─── */
-        .search-wrap { position: relative; margin-bottom: var(--sp-md); }
+        /* Sticky plutôt que relative : la barre de recherche reste visible en haut de la zone de
+           défilement (bibliothèque, favoris, playlists…) même en scrollant dans une longue liste,
+           au lieu de disparaître avec le reste du contenu. Fond opaque nécessaire pour masquer
+           les cartes qui défilent en dessous. */
+        .search-wrap { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: 2px; padding-bottom: 2px; margin-bottom: var(--sp-md); }
         .search-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
         .search-input { width: 100%; padding: 12px 14px 12px 42px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t-fast) var(--ease); }
         .search-input::placeholder { color: var(--text-3); }
@@ -980,6 +984,7 @@
         { key: 'communion',     label: 'Communion' },
         { key: 'marie',         label: 'Marie' },
         { key: 'polyphonique',  label: 'Polyphonique' },
+        { key: 'emmanuel',      label: "Chants de l'Emmanuel" },
         { key: 'autre',         label: 'Autre' }
     ];
     const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
