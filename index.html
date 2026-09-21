@@ -415,12 +415,22 @@
         /* ─── MESSAGERIE MODE LIVE (bouton flottant + bannière + modale) ─── */
         .live-chat-fab { position: fixed; top: max(20px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); width: 40px; height: 40px; border-radius: 50%; background: rgba(20,20,20,.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.12); color: #f0f0f0; display: flex; align-items: center; justify-content: center; z-index: 450; cursor: pointer; }
         .live-chat-fab .icon { width: 18px; height: 18px; }
-        #live-chat-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 10500; display: none; align-items: center; gap: var(--sp-sm); background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px var(--sp-lg); box-shadow: var(--shadow-lg); }
-        #live-chat-banner.open { display: flex; }
+        /* Un peu de dégradé et de couleur d'accent pour que l'arrivée d'un message se remarque
+           tout de suite, sans pour autant devenir envahissant : la bannière reste fine et fixée
+           en haut, elle ne fait qu'attirer l'œil un court instant à son apparition. */
+        #live-chat-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 10500; display: none; align-items: center; gap: var(--sp-sm); background: linear-gradient(135deg, var(--surface) 55%, color-mix(in srgb, var(--accent) 20%, var(--surface)) 100%); border-bottom: 2px solid var(--accent); padding: 12px var(--sp-lg); box-shadow: 0 6px 24px rgba(0,0,0,.4), var(--shadow-lg); }
+        #live-chat-banner.open { display: flex; animation: liveChatBannerIn .4s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes liveChatBannerIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .live-chat-banner-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; animation: liveChatPulse 1.6s ease-out 2; }
+        .live-chat-banner-icon .icon { width: 16px; height: 16px; color: #1a1208; }
+        @keyframes liveChatPulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 100% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent); } }
         .live-chat-banner-inner { flex: 1; min-width: 0; }
         .live-chat-banner-from { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
         .live-chat-banner-text { font-size: 14px; color: var(--text); word-break: break-word; }
-        #live-chat-modal, #live-participants-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7500; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        /* Au-dessus du mode performance (z-index 9999) : sans ça, le compositeur de message et la
+           liste des participants s'ouvraient sous la partition en plein écran, invisibles tant
+           qu'on n'en sortait pas. */
+        #live-chat-modal, #live-participants-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10600; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
         #live-chat-modal.open, #live-participants-modal.open { display: flex; }
 
         /* ─── HUD INDICATORS (DROITE / GAUCHE, reconnaissance faciale) ─── */
@@ -969,6 +979,7 @@
 
 <!-- Bannière de message Mode Live : visible même en plein écran pendant la lecture -->
 <div id="live-chat-banner">
+    <div class="live-chat-banner-icon"><svg class="icon"><use href="#ico-message"></use></svg></div>
     <div class="live-chat-banner-inner">
         <div class="live-chat-banner-from" id="live-chat-banner-from"></div>
         <div class="live-chat-banner-text" id="live-chat-banner-text"></div>
