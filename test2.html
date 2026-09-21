@@ -341,10 +341,10 @@
         #text-display.visible { display: flex; }
 
         /* ─── MODE PAROLES (paroles du chant, lecture fluide façon lectures AELF) ─── */
-        #lyrics-display { display: none; color: #f2f2f2; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; box-sizing: border-box; padding: 7vmin 8vmin calc(7vmin + env(safe-area-inset-bottom)); }
+        #lyrics-display { display: none; color: #f2f2f2; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; box-sizing: border-box; padding: 7vmin 8vmin calc(7vmin + env(safe-area-inset-bottom)); }
         #lyrics-display.visible { display: flex; }
         #lyrics-content { max-width: 62ch; width: 100%; }
-        .lyrics-block { font-size: clamp(1.15rem, 2.6vw, 1.9rem); line-height: 1.65; margin: 0 0 1.6em; }
+        .lyrics-block { font-size: clamp(1.15rem, 2.6vw, 1.9rem); line-height: 1.65; margin: 0 0 1.6em; word-break: break-word; }
         .lyrics-block:last-child { margin-bottom: 0; }
         .lyrics-heading { display: block; color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .68em; margin-bottom: .3em; }
 
