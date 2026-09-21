@@ -848,6 +848,9 @@
         </div>
         <input type="text" id="edit-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
         <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <div class="settings-row-label" style="margin-bottom: 4px;">Paroles</div>
+        <div class="settings-row-desc" style="margin-bottom: 6px;">Ajoutez-les si elles manquent, corrigez-les, ou videz le champ pour les retirer.</div>
+        <textarea id="edit-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 140px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
         <div id="edit-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
         <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
             <button class="btn btn-primary" style="width:100%;" onclick="submitEditSong()" id="edit-save-btn">Enregistrer</button>
@@ -1806,6 +1809,22 @@
         }
     }
 
+    // Retire un fichier de paroles sur GitHub (déplacement lors d'un renommage, ou suppression
+    // quand l'admin vide le champ) — n'échoue pas si le fichier n'existe déjà plus.
+    async function deleteGithubTextFile(path, message) {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+        const checkRes = await fetch(apiUrl, {
+            headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' }
+        });
+        if (!checkRes.ok) return; // déjà absent
+        const sha = (await checkRes.json()).sha;
+        await fetch(apiUrl, {
+            method: 'DELETE',
+            headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+            body: JSON.stringify({ message, sha, branch: GITHUB_BRANCH })
+        });
+    }
+
     /* ─── PARTITIONS LOCALES (import sans mode administrateur) ───
 
        Stockées uniquement sur cet appareil : le PDF va dans le Cache Storage du navigateur
@@ -1953,10 +1972,11 @@
         }
     }
 
-    /* ─── ÉDITION D'UNE PARTITION (renommer, changer de catégorie, supprimer) ─── */
+    /* ─── ÉDITION D'UNE PARTITION (renommer, changer de catégorie, modifier les paroles, supprimer) ─── */
     let editSongId = null;
+    let editSongOriginalLyrics = ''; // paroles au moment de l'ouverture, pour ne réécrire/déplacer que si elles ont changé
 
-    function openEditSongModal(id, event) {
+    async function openEditSongModal(id, event) {
         if (event) event.stopPropagation();
         const song = state.songs.find(s => s.id === id);
         if (!song) return;
@@ -1967,7 +1987,23 @@
         catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.label}</option>`).join('');
         setEditModalError('');
 
+        const lyricsInput = document.getElementById('edit-lyrics-input');
+        lyricsInput.value = '';
+        lyricsInput.disabled = true;
+        lyricsInput.placeholder = 'Chargement des paroles existantes…';
+        editSongOriginalLyrics = '';
+
         document.getElementById('edit-song-modal').classList.add('open');
+
+        // Chargées à l'ouverture (et non tant que le chant est juste affiché) : la modale
+        // d'édition est le seul endroit où on a besoin du texte complet plutôt que de sa seule
+        // disponibilité.
+        const text = await getLyricsForSong(song);
+        if (editSongId !== id) return; // modale refermée ou autre chant ouvert entre-temps
+        editSongOriginalLyrics = text || '';
+        lyricsInput.value = editSongOriginalLyrics;
+        lyricsInput.disabled = false;
+        lyricsInput.placeholder = 'Collez ici les paroles du chant…';
     }
 
     function closeEditSongModal() {
@@ -1988,6 +2024,7 @@
         const newName = document.getElementById('edit-name-input').value.trim();
         if (!newName) { setEditModalError('Donnez un nom au chant.'); return; }
         const newCategory = document.getElementById('edit-cat-select').value;
+        const newLyricsText = document.getElementById('edit-lyrics-input').value.trim();
 
         // Partition locale (importée sans mode administrateur) : simple mise à jour des
         // métadonnées, le fichier reste au même endroit dans le cache.
@@ -1997,6 +2034,8 @@
             if (entry) {
                 entry.name = newName.toUpperCase();
                 entry.category = newCategory;
+                if (newLyricsText) entry.lyricsText = newLyricsText;
+                else delete entry.lyricsText;
                 saveLocalSongs(list);
             }
             closeEditSongModal();
@@ -2011,8 +2050,14 @@
 
         const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
         const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
+        // Même convention qu'à l'import (voir LYRICS_PATH) : le fichier de paroles suit
+        // toujours le même chemin relatif que le PDF, catégorie et nom compris.
+        const oldLyricsPath = LYRICS_PATH + song.path.slice(GITHUB_PATH.length, -4) + '.txt';
+        const newLyricsPath = `${LYRICS_PATH}/${newCategory}/${sanitizePartitionFilename(newName)}.txt`;
+        const pdfRenamed = newPath !== song.path;
+        const lyricsChanged = newLyricsText !== editSongOriginalLyrics;
 
-        if (newPath === song.path) {
+        if (!pdfRenamed && !lyricsChanged) {
             closeEditSongModal();
             return;
         }
@@ -2024,53 +2069,73 @@
         setEditModalError('');
 
         try {
-            // Le renommage/déplacement passe par une création à la nouvelle adresse suivie
-            // d'une suppression de l'ancienne (l'API Contents de GitHub n'a pas d'opération
-            // "rename" ; il faut donc récupérer le contenu existant puis le recopier).
-            const fileRes = await fetch(song.url);
-            if (!fileRes.ok) throw new Error('Impossible de récupérer le fichier existant.');
-            const base64Content = await fileToBase64(await fileRes.blob());
+            if (pdfRenamed) {
+                // Le renommage/déplacement passe par une création à la nouvelle adresse suivie
+                // d'une suppression de l'ancienne (l'API Contents de GitHub n'a pas d'opération
+                // "rename" ; il faut donc récupérer le contenu existant puis le recopier).
+                const fileRes = await fetch(song.url);
+                if (!fileRes.ok) throw new Error('Impossible de récupérer le fichier existant.');
+                const base64Content = await fileToBase64(await fileRes.blob());
 
-            const newApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${newPath.split('/').map(encodeURIComponent).join('/')}`;
-            let existingSha = null;
-            try {
-                const checkRes = await fetch(newApiUrl, { headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' } });
-                if (checkRes.ok) existingSha = (await checkRes.json()).sha;
-            } catch (e) { /* on tentera une création simple */ }
+                const newApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${newPath.split('/').map(encodeURIComponent).join('/')}`;
+                let existingSha = null;
+                try {
+                    const checkRes = await fetch(newApiUrl, { headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' } });
+                    if (checkRes.ok) existingSha = (await checkRes.json()).sha;
+                } catch (e) { /* on tentera une création simple */ }
 
-            const createBody = {
-                message: `Renomme la partition "${song.name}" en "${newName}" via l'application`,
-                content: base64Content,
-                branch: GITHUB_BRANCH
-            };
-            if (existingSha) createBody.sha = existingSha;
-
-            const createRes = await fetch(newApiUrl, {
-                method: 'PUT',
-                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
-                body: JSON.stringify(createBody)
-            });
-            if (!createRes.ok) {
-                const errData = await createRes.json().catch(() => ({}));
-                throw new Error(errData.message || `Erreur GitHub (${createRes.status})`);
-            }
-
-            const oldApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
-            const deleteRes = await fetch(oldApiUrl, {
-                method: 'DELETE',
-                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
-                body: JSON.stringify({
-                    message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
-                    sha: song.id,
+                const createBody = {
+                    message: `Renomme la partition "${song.name}" en "${newName}" via l'application`,
+                    content: base64Content,
                     branch: GITHUB_BRANCH
-                })
-            });
-            if (!deleteRes.ok) {
-                const errData = await deleteRes.json().catch(() => ({}));
-                console.error("Échec de la suppression de l'ancien fichier :", errData.message);
+                };
+                if (existingSha) createBody.sha = existingSha;
+
+                const createRes = await fetch(newApiUrl, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                    body: JSON.stringify(createBody)
+                });
+                if (!createRes.ok) {
+                    const errData = await createRes.json().catch(() => ({}));
+                    throw new Error(errData.message || `Erreur GitHub (${createRes.status})`);
+                }
+
+                const oldApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
+                const deleteRes = await fetch(oldApiUrl, {
+                    method: 'DELETE',
+                    headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                    body: JSON.stringify({
+                        message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
+                        sha: song.id,
+                        branch: GITHUB_BRANCH
+                    })
+                });
+                if (!deleteRes.ok) {
+                    const errData = await deleteRes.json().catch(() => ({}));
+                    console.error("Échec de la suppression de l'ancien fichier :", errData.message);
+                }
+
+                if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
             }
 
-            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+            // Paroles : écrites à la nouvelle adresse si un texte est présent (texte modifié
+            // et/ou chant renommé/déplacé), puis l'ancien fichier est retiré s'il existait ; si
+            // le champ a simplement été vidé, on retire les paroles existantes sans rien recréer.
+            if (newLyricsText) {
+                if (lyricsChanged || pdfRenamed) {
+                    await commitTextToGithub(newLyricsPath, newLyricsText, `Modifie les paroles de "${newName}" via l'application`);
+                }
+                if (pdfRenamed && editSongOriginalLyrics) {
+                    await deleteGithubTextFile(oldLyricsPath, `Supprime l'ancien fichier de paroles de "${song.name}" (renommé en "${newName}")`).catch(() => {});
+                }
+            } else if (editSongOriginalLyrics) {
+                await deleteGithubTextFile(oldLyricsPath, `Retire les paroles de "${song.name}" via l'application`).catch(() => {});
+            }
+            // Le sha du PDF (donc l'id du chant) ne change pas lors d'un renommage à contenu
+            // identique : sans ça, une consultation ultérieure en mode Paroles resservirait la
+            // valeur mise en cache avant cette modification (texte périmé, ou absence à tort).
+            if (lyricsChanged) delete lyricsCache[song.id];
 
             closeEditSongModal();
             showToast(`"${newName}" mise à jour.`);
