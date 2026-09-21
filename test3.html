@@ -343,6 +343,7 @@
         /* ─── MODE PAROLES (paroles du chant, lecture fluide façon lectures AELF) ─── */
         #lyrics-display { display: none; color: #f2f2f2; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; box-sizing: border-box; padding: 7vmin 8vmin calc(7vmin + env(safe-area-inset-bottom)); }
         #lyrics-display.visible { display: flex; }
+        #lyrics-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.4rem; text-align: center; max-width: 80ch; }
         #lyrics-content { max-width: 62ch; width: 100%; }
         .lyrics-block { font-size: clamp(1.15rem, 2.6vw, 1.9rem); line-height: 1.65; margin: 0 0 1.6em; word-break: break-word; }
         .lyrics-block:last-child { margin-bottom: 0; }
@@ -911,7 +912,7 @@
             <canvas id="pdf-canvas"></canvas>
             <canvas id="pdf-canvas-2"></canvas>
         </div>
-        <div id="lyrics-display"><div id="lyrics-content"></div></div>
+        <div id="lyrics-display"><div id="lyrics-title-display"></div><div id="lyrics-content"></div></div>
         <div id="lyrics-missing-msg">
             <svg class="icon"><use href="#ico-note"></use></svg>
             <p>Il n'y a pas de paroles disponibles pour cette partition. Voulez-vous ouvrir le PDF ?</p>
@@ -3334,6 +3335,7 @@
             zoomControls.style.display = 'none';
             missingEl.classList.remove('visible');
             lyricsEl.classList.add('visible');
+            document.getElementById('lyrics-title-display').textContent = item.name;
             const contentEl = document.getElementById('lyrics-content');
             contentEl.innerHTML = '<p class="lyrics-block" style="opacity:.55;">Chargement des paroles…</p>';
 

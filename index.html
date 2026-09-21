@@ -326,12 +326,44 @@
         /* ─── MODE PERFORMANCE (toujours en noir, quel que soit le thème, pour préserver le confort de lecture) ─── */
         #performance-mode { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
         #pdf-viewport { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        #pdf-canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        /* Conteneur zoomable/déplaçable : regroupe la (ou les deux, en mode page double) page(s)
+           rendues, pour que le zoom (molette, pincement, boutons) et le glisser s'appliquent
+           uniformément aux deux pages à la fois plutôt qu'indépendamment. */
+        #score-zoom-wrap { display: none; align-items: center; justify-content: center; gap: 2vmin; width: 100%; height: 100%; touch-action: none; transform-origin: center center; }
+        #score-zoom-wrap.visible { display: flex; }
+        #performance-mode.zoomed .tap-zone { pointer-events: none; }
+        #pdf-canvas, #pdf-canvas-2 { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        #pdf-canvas-2 { display: none; }
         /* justify-content: flex-start (et non centré) pour qu'un texte long commence tout en
            haut, comme dans une appli de lecture, plutôt que de démarrer centré verticalement
            (ce qui poussait le début hors de l'écran pour les lectures AELF). */
         #text-display { display: none; color: #e8e8e8; padding: 7vmin 8vmin; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; }
         #text-display.visible { display: flex; }
+
+        /* ─── MODE PAROLES (paroles du chant, lecture fluide façon lectures AELF) ─── */
+        #lyrics-display { display: none; color: #f2f2f2; width: 100%; height: 100%; overflow-y: auto; justify-content: flex-start; align-items: center; flex-direction: column; box-sizing: border-box; padding: 7vmin 8vmin calc(7vmin + env(safe-area-inset-bottom)); }
+        #lyrics-display.visible { display: flex; }
+        #lyrics-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.4rem; text-align: center; max-width: 80ch; }
+        #lyrics-content { max-width: 62ch; width: 100%; }
+        .lyrics-block { font-size: clamp(1.15rem, 2.6vw, 1.9rem); line-height: 1.65; margin: 0 0 1.6em; word-break: break-word; }
+        .lyrics-block:last-child { margin-bottom: 0; }
+        .lyrics-heading { display: block; color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .68em; margin-bottom: .3em; }
+
+        #lyrics-missing-msg { display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-md); width: 100%; height: 100%; padding: 0 8vmin; text-align: center; color: #ccc; box-sizing: border-box; }
+        #lyrics-missing-msg.visible { display: flex; }
+        #lyrics-missing-msg .icon { width: 40px; height: 40px; opacity: .45; }
+        #lyrics-missing-msg p { font-size: 15px; line-height: 1.5; max-width: 40ch; margin: 0; }
+
+        /* ─── OUTILS DE LA VISIONNEUSE (zoom + bascule partition/paroles) ───
+           Repris de l'esthétique des pilules HUD existantes ; visible avec le HUD (triple-tap)
+           pour ne pas encombrer l'écran pendant la lecture. */
+        #viewer-toolbar { position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); z-index: 420; display: none; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity var(--t-base) var(--ease-out); }
+        #performance-mode.show-hud #viewer-toolbar { opacity: 1; pointer-events: auto; }
+        .viewer-tool-group, #mode-toggle-btn { display: flex; align-items: center; background: rgba(20,20,20,.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.12); border-radius: 30px; overflow: hidden; }
+        .viewer-tool-btn { border: none; background: transparent; color: #f0f0f0; height: 40px; min-width: 40px; padding: 0 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .viewer-tool-btn .icon { width: 17px; height: 17px; }
+        .viewer-tool-btn:active { background: rgba(255,255,255,.14); }
+        #zoom-level-label { min-width: 44px; font-variant-numeric: tabular-nums; }
         #note-title-display { font-size: clamp(1.2rem, 4vw, 2.4rem); font-weight: 700; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; text-align: center; max-width: 80ch; }
         #note-ref-display { display: none; font-size: clamp(.85rem, 2vw, 1.15rem); color: #999; font-style: italic; margin-bottom: 1.6rem; text-align: center; }
         #note-ref-display.visible { display: block; }
@@ -658,6 +690,30 @@
         </div>
 
         <div class="settings-section">
+            <div class="settings-section-title">Affichage des partitions</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Mode d'affichage</div>
+                    <div class="settings-row-desc">Partition (PDF) pour les musiciens, ou paroles seules pour les chanteurs. Modifiable à tout moment depuis la visionneuse.</div>
+                </div>
+            </div>
+            <div class="segmented" id="display-mode-segmented" style="margin-bottom: var(--sp-md);">
+                <button data-mode="score" onclick="setDisplayModeSetting('score')">Partition</button>
+                <button data-mode="lyrics" onclick="setDisplayModeSetting('lyrics')">Paroles</button>
+            </div>
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Page double</div>
+                    <div class="settings-row-desc">Affiche deux pages côte à côte sur les grands écrans (tablette large, ordinateur). Sans effet sur téléphone ou petite tablette.</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-double-page" onchange="setDoublePageSetting(this.checked)">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
             <div class="settings-section-title">Navigation en mode partition</div>
             <div class="settings-row">
                 <div>
@@ -772,6 +828,9 @@
         </div>
         <input type="text" id="import-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
         <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <div class="settings-row-label" style="margin-bottom: 4px;">Paroles (optionnel)</div>
+        <div class="settings-row-desc" style="margin-bottom: 6px;">Affichées aux chanteurs qui préfèrent le mode "Paroles" à la partition PDF.</div>
+        <textarea id="import-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 110px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
         <div id="import-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
         <button class="btn btn-primary" style="width:100%;" onclick="submitImportPartition()" id="import-submit-btn">
             <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
@@ -790,6 +849,9 @@
         </div>
         <input type="text" id="edit-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
         <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <div class="settings-row-label" style="margin-bottom: 4px;">Paroles</div>
+        <div class="settings-row-desc" style="margin-bottom: 6px;">Ajoutez-les si elles manquent, corrigez-les, ou videz le champ pour les retirer.</div>
+        <textarea id="edit-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 140px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
         <div id="edit-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
         <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
             <button class="btn btn-primary" style="width:100%;" onclick="submitEditSong()" id="edit-save-btn">Enregistrer</button>
@@ -846,11 +908,29 @@
     <div id="pdf-viewport" style="display: flex;">
         <div class="tap-zone tap-left" onclick="prevPage(event)"></div>
         <div class="tap-zone tap-right" onclick="nextPage(event)"></div>
-        <canvas id="pdf-canvas"></canvas>
+        <div id="score-zoom-wrap">
+            <canvas id="pdf-canvas"></canvas>
+            <canvas id="pdf-canvas-2"></canvas>
+        </div>
+        <div id="lyrics-display"><div id="lyrics-title-display"></div><div id="lyrics-content"></div></div>
+        <div id="lyrics-missing-msg">
+            <svg class="icon"><use href="#ico-note"></use></svg>
+            <p>Il n'y a pas de paroles disponibles pour cette partition. Voulez-vous ouvrir le PDF ?</p>
+            <button class="btn btn-primary" onclick="setViewMode('score')">Ouvrir le PDF</button>
+        </div>
         <div id="text-display">
             <div id="note-title-display"></div>
             <div id="note-ref-display"></div>
             <div id="note-content-display"></div>
+        </div>
+    </div>
+    <!-- Outils de la visionneuse : zoom (molette / pincement / boutons) et bascule partition ⇄ paroles -->
+    <div id="viewer-toolbar">
+        <button class="viewer-tool-btn" id="mode-toggle-btn" onclick="toggleViewMode(event)"></button>
+        <div id="zoom-controls" class="viewer-tool-group">
+            <button class="viewer-tool-btn" onclick="zoomOut(event)" aria-label="Zoom arrière">−</button>
+            <button class="viewer-tool-btn" id="zoom-level-label" onclick="zoomReset(event)" aria-label="Réinitialiser le zoom">100%</button>
+            <button class="viewer-tool-btn" onclick="zoomIn(event)" aria-label="Zoom avant">+</button>
         </div>
     </div>
     <!-- Indicateurs visuels Droite / Gauche (reconnaissance faciale) -->
@@ -978,6 +1058,10 @@
     const GITHUB_USER = 'Cyprdu';
     const GITHUB_REPO = 'cantus';
     const GITHUB_PATH = 'partitions';
+    // Paroles stockées à part (jamais chargées avec la bibliothèque : seulement leur chemin,
+    // lu à la volée quand un chant est ouvert en mode "Paroles" — voir getLyricsForSong).
+    // Chaque fichier reprend exactement le même chemin relatif que sa partition, extension .txt.
+    const LYRICS_PATH = 'paroles';
     const GITHUB_BRANCH = 'main';
 
     const CATEGORIES = [
@@ -1081,7 +1165,7 @@
     /* ══════════════════════════════════════════
        PARAMÈTRES (thème, reconnaissance faciale, boutons de page)
     ══════════════════════════════════════════ */
-    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false, pedalMode: false, pedalKeyNext: '+', pedalKeyPrev: '-' };
+    const DEFAULT_SETTINGS = { theme: 'dark', faceReco: false, navButtons: false, offlineMode: false, pedalMode: false, pedalKeyNext: '+', pedalKeyPrev: '-', displayMode: 'score', doublePage: false };
 
     function loadSettings() {
         try {
@@ -1131,6 +1215,10 @@
         document.querySelectorAll('#theme-segmented button').forEach(b => {
             b.classList.toggle('active', b.dataset.theme === settings.theme);
         });
+        document.querySelectorAll('#display-mode-segmented button').forEach(b => {
+            b.classList.toggle('active', b.dataset.mode === settings.displayMode);
+        });
+        document.getElementById('toggle-double-page').checked = settings.doublePage;
         document.getElementById('toggle-face-reco').checked = settings.faceReco;
         document.getElementById('toggle-nav-buttons').checked = settings.navButtons;
         document.getElementById('toggle-pedal-mode').checked = settings.pedalMode;
@@ -1138,6 +1226,22 @@
         updateOfflineStorageDesc();
         renderAdminSection();
         renderPedalKeysSection();
+    }
+
+    function setDisplayModeSetting(mode) {
+        settings.displayMode = mode;
+        saveSettings();
+        renderSettingsPanel();
+    }
+
+    // Le mode page double n'a d'effet que sur grand écran (voir shouldUseDoublePage) : il reste
+    // néanmoins réglable partout, pour un téléphone qui basculerait ensuite sur un écran externe.
+    function setDoublePageSetting(enabled) {
+        settings.doublePage = enabled;
+        saveSettings();
+        if (state.pdf && document.getElementById('performance-mode').style.display === 'flex' && state.viewMode === 'score') {
+            renderPage();
+        }
     }
 
     function setThemeSetting(t) {
@@ -1563,6 +1667,7 @@
         document.getElementById('import-file-input').value = '';
         document.getElementById('import-url-input').value = '';
         document.getElementById('import-name-input').value = '';
+        document.getElementById('import-lyrics-input').value = '';
         setImportModalError('');
         setImportMode('file');
 
@@ -1675,6 +1780,52 @@
         });
     }
 
+    // Envoie un fichier texte (paroles) sur GitHub, en réutilisant le même mécanisme "lire le sha
+    // existant puis PUT" que submitImportPartition/submitEditSong pour les PDF.
+    async function commitTextToGithub(path, text, message) {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+        let existingSha = null;
+        try {
+            const checkRes = await fetch(apiUrl, {
+                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' }
+            });
+            if (checkRes.ok) existingSha = (await checkRes.json()).sha;
+        } catch (e) { /* on tentera une création simple */ }
+
+        const body = {
+            message,
+            content: btoa(unescape(encodeURIComponent(text))),
+            branch: GITHUB_BRANCH
+        };
+        if (existingSha) body.sha = existingSha;
+
+        const res = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || `Erreur GitHub (${res.status})`);
+        }
+    }
+
+    // Retire un fichier de paroles sur GitHub (déplacement lors d'un renommage, ou suppression
+    // quand l'admin vide le champ) — n'échoue pas si le fichier n'existe déjà plus.
+    async function deleteGithubTextFile(path, message) {
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+        const checkRes = await fetch(apiUrl, {
+            headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' }
+        });
+        if (!checkRes.ok) return; // déjà absent
+        const sha = (await checkRes.json()).sha;
+        await fetch(apiUrl, {
+            method: 'DELETE',
+            headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+            body: JSON.stringify({ message, sha, branch: GITHUB_BRANCH })
+        });
+    }
+
     /* ─── PARTITIONS LOCALES (import sans mode administrateur) ───
 
        Stockées uniquement sur cet appareil : le PDF va dans le Cache Storage du navigateur
@@ -1692,13 +1843,16 @@
         localStorage.setItem('cantus_local_songs', JSON.stringify(list));
     }
 
-    async function importLocalSong(file, displayName, category) {
+    async function importLocalSong(file, displayName, category, lyricsText) {
         const id = 'local-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         const url = `/local-songs/${id}.pdf`;
         const cache = await caches.open(PDF_CACHE_NAME);
         await cache.put(url, new Response(file, { headers: { 'Content-Type': 'application/pdf' } }));
 
         const meta = { id, type: 'song', category, name: displayName.trim().toUpperCase(), url, size: file.size, isLocal: true };
+        // Import local (pas de dépôt GitHub à écrire dedans) : les paroles vont directement dans
+        // les métadonnées localStorage du chant, comme le nom ou la catégorie.
+        if (lyricsText) meta.lyricsText = lyricsText;
         const list = loadLocalSongs();
         list.push(meta);
         saveLocalSongs(list);
@@ -1721,6 +1875,7 @@
         const displayName = document.getElementById('import-name-input').value.trim();
         if (!displayName) { setImportModalError('Donnez un nom au chant.'); return; }
         const category = document.getElementById('import-cat-select').value;
+        const lyricsText = document.getElementById('import-lyrics-input').value.trim();
 
         // Sans les pouvoirs administrateur actifs : import local uniquement (cache du
         // navigateur de cet appareil), avec avertissement explicite avant d'enregistrer.
@@ -1739,7 +1894,7 @@
             setImportModalError('');
 
             try {
-                await importLocalSong(importSelectedFile, displayName, category);
+                await importLocalSong(importSelectedFile, displayName, category, lyricsText);
                 closeImportModal();
                 showToast(`"${displayName}" enregistrée sur cet appareil.`);
                 await refreshLocalSongsIntoState();
@@ -1792,6 +1947,18 @@
                 throw new Error(errData.message || `Erreur GitHub (${res.status})`);
             }
 
+            // Les paroles vont dans un fichier .txt séparé (voir LYRICS_PATH), sous le même
+            // chemin relatif que la partition : c'est ce qui permet de les relier sans toucher au
+            // catalogue. Un échec ici n'annule pas l'envoi de la partition, déjà réussi.
+            if (lyricsText) {
+                try {
+                    const lyricsPath = `${LYRICS_PATH}/${category}/${sanitizePartitionFilename(displayName)}.txt`;
+                    await commitTextToGithub(lyricsPath, lyricsText, `Ajout des paroles pour "${displayName}" via l'application`);
+                } catch (e) {
+                    showToast(`"${displayName}" envoyée, mais échec de l'envoi des paroles.`);
+                }
+            }
+
             closeImportModal();
             showToast(`"${displayName}" envoyée sur GitHub.`);
 
@@ -1806,10 +1973,11 @@
         }
     }
 
-    /* ─── ÉDITION D'UNE PARTITION (renommer, changer de catégorie, supprimer) ─── */
+    /* ─── ÉDITION D'UNE PARTITION (renommer, changer de catégorie, modifier les paroles, supprimer) ─── */
     let editSongId = null;
+    let editSongOriginalLyrics = ''; // paroles au moment de l'ouverture, pour ne réécrire/déplacer que si elles ont changé
 
-    function openEditSongModal(id, event) {
+    async function openEditSongModal(id, event) {
         if (event) event.stopPropagation();
         const song = state.songs.find(s => s.id === id);
         if (!song) return;
@@ -1820,7 +1988,23 @@
         catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.label}</option>`).join('');
         setEditModalError('');
 
+        const lyricsInput = document.getElementById('edit-lyrics-input');
+        lyricsInput.value = '';
+        lyricsInput.disabled = true;
+        lyricsInput.placeholder = 'Chargement des paroles existantes…';
+        editSongOriginalLyrics = '';
+
         document.getElementById('edit-song-modal').classList.add('open');
+
+        // Chargées à l'ouverture (et non tant que le chant est juste affiché) : la modale
+        // d'édition est le seul endroit où on a besoin du texte complet plutôt que de sa seule
+        // disponibilité.
+        const text = await getLyricsForSong(song);
+        if (editSongId !== id) return; // modale refermée ou autre chant ouvert entre-temps
+        editSongOriginalLyrics = text || '';
+        lyricsInput.value = editSongOriginalLyrics;
+        lyricsInput.disabled = false;
+        lyricsInput.placeholder = 'Collez ici les paroles du chant…';
     }
 
     function closeEditSongModal() {
@@ -1841,6 +2025,7 @@
         const newName = document.getElementById('edit-name-input').value.trim();
         if (!newName) { setEditModalError('Donnez un nom au chant.'); return; }
         const newCategory = document.getElementById('edit-cat-select').value;
+        const newLyricsText = document.getElementById('edit-lyrics-input').value.trim();
 
         // Partition locale (importée sans mode administrateur) : simple mise à jour des
         // métadonnées, le fichier reste au même endroit dans le cache.
@@ -1850,6 +2035,8 @@
             if (entry) {
                 entry.name = newName.toUpperCase();
                 entry.category = newCategory;
+                if (newLyricsText) entry.lyricsText = newLyricsText;
+                else delete entry.lyricsText;
                 saveLocalSongs(list);
             }
             closeEditSongModal();
@@ -1864,8 +2051,14 @@
 
         const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
         const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
+        // Même convention qu'à l'import (voir LYRICS_PATH) : le fichier de paroles suit
+        // toujours le même chemin relatif que le PDF, catégorie et nom compris.
+        const oldLyricsPath = LYRICS_PATH + song.path.slice(GITHUB_PATH.length, -4) + '.txt';
+        const newLyricsPath = `${LYRICS_PATH}/${newCategory}/${sanitizePartitionFilename(newName)}.txt`;
+        const pdfRenamed = newPath !== song.path;
+        const lyricsChanged = newLyricsText !== editSongOriginalLyrics;
 
-        if (newPath === song.path) {
+        if (!pdfRenamed && !lyricsChanged) {
             closeEditSongModal();
             return;
         }
@@ -1877,53 +2070,73 @@
         setEditModalError('');
 
         try {
-            // Le renommage/déplacement passe par une création à la nouvelle adresse suivie
-            // d'une suppression de l'ancienne (l'API Contents de GitHub n'a pas d'opération
-            // "rename" ; il faut donc récupérer le contenu existant puis le recopier).
-            const fileRes = await fetch(song.url);
-            if (!fileRes.ok) throw new Error('Impossible de récupérer le fichier existant.');
-            const base64Content = await fileToBase64(await fileRes.blob());
+            if (pdfRenamed) {
+                // Le renommage/déplacement passe par une création à la nouvelle adresse suivie
+                // d'une suppression de l'ancienne (l'API Contents de GitHub n'a pas d'opération
+                // "rename" ; il faut donc récupérer le contenu existant puis le recopier).
+                const fileRes = await fetch(song.url);
+                if (!fileRes.ok) throw new Error('Impossible de récupérer le fichier existant.');
+                const base64Content = await fileToBase64(await fileRes.blob());
 
-            const newApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${newPath.split('/').map(encodeURIComponent).join('/')}`;
-            let existingSha = null;
-            try {
-                const checkRes = await fetch(newApiUrl, { headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' } });
-                if (checkRes.ok) existingSha = (await checkRes.json()).sha;
-            } catch (e) { /* on tentera une création simple */ }
+                const newApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${newPath.split('/').map(encodeURIComponent).join('/')}`;
+                let existingSha = null;
+                try {
+                    const checkRes = await fetch(newApiUrl, { headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' } });
+                    if (checkRes.ok) existingSha = (await checkRes.json()).sha;
+                } catch (e) { /* on tentera une création simple */ }
 
-            const createBody = {
-                message: `Renomme la partition "${song.name}" en "${newName}" via l'application`,
-                content: base64Content,
-                branch: GITHUB_BRANCH
-            };
-            if (existingSha) createBody.sha = existingSha;
-
-            const createRes = await fetch(newApiUrl, {
-                method: 'PUT',
-                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
-                body: JSON.stringify(createBody)
-            });
-            if (!createRes.ok) {
-                const errData = await createRes.json().catch(() => ({}));
-                throw new Error(errData.message || `Erreur GitHub (${createRes.status})`);
-            }
-
-            const oldApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
-            const deleteRes = await fetch(oldApiUrl, {
-                method: 'DELETE',
-                headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
-                body: JSON.stringify({
-                    message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
-                    sha: song.id,
+                const createBody = {
+                    message: `Renomme la partition "${song.name}" en "${newName}" via l'application`,
+                    content: base64Content,
                     branch: GITHUB_BRANCH
-                })
-            });
-            if (!deleteRes.ok) {
-                const errData = await deleteRes.json().catch(() => ({}));
-                console.error("Échec de la suppression de l'ancien fichier :", errData.message);
+                };
+                if (existingSha) createBody.sha = existingSha;
+
+                const createRes = await fetch(newApiUrl, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                    body: JSON.stringify(createBody)
+                });
+                if (!createRes.ok) {
+                    const errData = await createRes.json().catch(() => ({}));
+                    throw new Error(errData.message || `Erreur GitHub (${createRes.status})`);
+                }
+
+                const oldApiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${song.path.split('/').map(encodeURIComponent).join('/')}`;
+                const deleteRes = await fetch(oldApiUrl, {
+                    method: 'DELETE',
+                    headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
+                    body: JSON.stringify({
+                        message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
+                        sha: song.id,
+                        branch: GITHUB_BRANCH
+                    })
+                });
+                if (!deleteRes.ok) {
+                    const errData = await deleteRes.json().catch(() => ({}));
+                    console.error("Échec de la suppression de l'ancien fichier :", errData.message);
+                }
+
+                if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
             }
 
-            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+            // Paroles : écrites à la nouvelle adresse si un texte est présent (texte modifié
+            // et/ou chant renommé/déplacé), puis l'ancien fichier est retiré s'il existait ; si
+            // le champ a simplement été vidé, on retire les paroles existantes sans rien recréer.
+            if (newLyricsText) {
+                if (lyricsChanged || pdfRenamed) {
+                    await commitTextToGithub(newLyricsPath, newLyricsText, `Modifie les paroles de "${newName}" via l'application`);
+                }
+                if (pdfRenamed && editSongOriginalLyrics) {
+                    await deleteGithubTextFile(oldLyricsPath, `Supprime l'ancien fichier de paroles de "${song.name}" (renommé en "${newName}")`).catch(() => {});
+                }
+            } else if (editSongOriginalLyrics) {
+                await deleteGithubTextFile(oldLyricsPath, `Retire les paroles de "${song.name}" via l'application`).catch(() => {});
+            }
+            // Le sha du PDF (donc l'id du chant) ne change pas lors d'un renommage à contenu
+            // identique : sans ça, une consultation ultérieure en mode Paroles resservirait la
+            // valeur mise en cache avant cette modification (texte périmé, ou absence à tort).
+            if (lyricsChanged) delete lyricsCache[song.id];
 
             closeEditSongModal();
             showToast(`"${newName}" mise à jour.`);
@@ -2015,6 +2228,11 @@
         pdf:            null,
         pageNum:        1,
         totalPages:     1,
+        pagesPerView:   1,        // 2 quand le mode "page double" s'applique (voir shouldUseDoublePage)
+        viewMode:       'score',  // 'score' (PDF) ou 'lyrics' (paroles), pour le chant en cours
+        zoomScale:      1,
+        panX:           0,
+        panY:           0,
         exportUrlCache: '',
         exportJsonCache: ''
     };
@@ -2111,6 +2329,22 @@
             if (e.target === this) closeLiveParticipantsModal();
         });
 
+        // Zoom/déplacement de la partition : molette (ordinateur), pincement et glisser (tactile),
+        // double-tap pour un aller-retour rapide vers 2.2x — voir onScoreViewportPointer*.
+        const pdfViewportEl = document.getElementById('pdf-viewport');
+        pdfViewportEl.addEventListener('pointerdown', onScoreViewportPointerDown);
+        pdfViewportEl.addEventListener('pointermove', onScoreViewportPointerMove);
+        pdfViewportEl.addEventListener('pointerup', onScoreViewportPointerUp);
+        pdfViewportEl.addEventListener('pointercancel', onScoreViewportPointerUp);
+        pdfViewportEl.addEventListener('wheel', (e) => {
+            if (state.viewMode !== 'score' || !state.pdf) return;
+            e.preventDefault();
+            setZoomScale(state.zoomScale * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
+        }, { passive: false });
+        document.getElementById('score-zoom-wrap').addEventListener('dblclick', () => {
+            setZoomScale(state.zoomScale > 1.05 ? 1 : 2.2);
+        });
+
         // Initialisation du moteur MediaPipe Face Mesh (chargé mais inactif tant que la caméra n'est pas démarrée)
         initFaceMeshEngine();
 
@@ -2140,6 +2374,18 @@
             if (!r.ok) throw new Error('Réponse GitHub non valide : ' + r.status);
             const d = await r.json();
             if (!Array.isArray(d.tree)) throw new Error('Réponse GitHub inattendue (pas d\'arbre)');
+
+            // Paroles disponibles : indexées par chemin relatif SANS extension (ex. "louange/L1 - Nom"),
+            // identique à celui de la partition correspondante — c'est cette convention de nommage,
+            // et non un champ séparé dans le catalogue, qui relie un fichier de paroles à son PDF.
+            const lyricsByKey = new Map();
+            d.tree.forEach(f => {
+                if (f.type === 'blob' && f.path.startsWith(LYRICS_PATH + '/') && f.path.toLowerCase().endsWith('.txt')) {
+                    const key = f.path.slice(LYRICS_PATH.length + 1, -4);
+                    lyricsByKey.set(key, `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`);
+                }
+            });
+
             state.songs = d.tree
                 .filter(f => f.type === 'blob' && f.path.startsWith(GITHUB_PATH + '/') && f.path.toLowerCase().endsWith('.pdf'))
                 .map(f => {
@@ -2155,7 +2401,8 @@
                         name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
                         path:     f.path,
                         size:     f.size || null,
-                        url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`
+                        url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`,
+                        lyricsUrl: lyricsByKey.get(relative.slice(0, -4)) || null
                     };
                 });
             state.songs = sortSongsList(state.songs);
@@ -2977,17 +3224,21 @@
             state.pdf = null;
         }
 
-        const item   = state.activeSet[state.currentIdx];
-        const canvas = document.getElementById('pdf-canvas');
-        const textEl = document.getElementById('text-display');
-        const pdfVp  = document.getElementById('pdf-viewport');
+        const item      = state.activeSet[state.currentIdx];
+        const scoreWrap = document.getElementById('score-zoom-wrap');
+        const textEl    = document.getElementById('text-display');
+        const lyricsEl  = document.getElementById('lyrics-display');
+        const missingEl = document.getElementById('lyrics-missing-msg');
+        const pdfVp     = document.getElementById('pdf-viewport');
 
-        canvas.style.display = 'block';
+        scoreWrap.classList.remove('visible');
         textEl.classList.remove('visible');
+        lyricsEl.classList.remove('visible');
+        missingEl.classList.remove('visible');
         pdfVp.style.display = 'flex';
 
         if (item.type === 'note') {
-            canvas.style.display = 'none';
+            document.getElementById('viewer-toolbar').style.display = 'none';
             textEl.classList.add('visible');
             document.getElementById('note-title-display').textContent = item.name;
             const refEl = document.getElementById('note-ref-display');
@@ -3003,31 +3254,228 @@
             state.pdf = await pdfjsLib.getDocument(item.url).promise;
             state.pageNum = 1;
             state.totalPages = state.pdf.numPages;
+            // Chaque chant démarre sur le mode d'affichage par défaut choisi dans les Paramètres ;
+            // le bouton de la visionneuse permet ensuite de basculer sans changer ce réglage.
+            state.viewMode = settings.displayMode === 'lyrics' ? 'lyrics' : 'score';
             updateNavButtonsVisibility();
-            await renderPage();
+            await applyViewMode();
             updateHUD();
         }
     }
 
-    async function renderPage() {
-        if (!state.pdf) return;
-        const canvas = document.getElementById('pdf-canvas');
-        const ctx    = canvas.getContext('2d');
+    /* ─── MODE D'AFFICHAGE : PARTITION (PDF) ⇄ PAROLES ─── */
+    const lyricsCache = {}; // id du chant -> texte des paroles, ou null si confirmé absent
 
-        const page = await state.pdf.getPage(state.pageNum);
+    async function getLyricsForSong(song) {
+        if (song.lyricsText) return song.lyricsText; // import local : texte déjà en mémoire
+        if (!song.lyricsUrl) return null;
+        if (Object.prototype.hasOwnProperty.call(lyricsCache, song.id)) return lyricsCache[song.id];
+        try {
+            const res = await fetch(song.lyricsUrl);
+            const text = res.ok ? (await res.text()).trim() : '';
+            lyricsCache[song.id] = text || null;
+        } catch (e) {
+            lyricsCache[song.id] = null;
+        }
+        return lyricsCache[song.id];
+    }
+
+    // Les lignes courtes du type "Refrain" / "Couplet 2" sont mises en évidence comme des
+    // titres de section plutôt que chantées comme le reste du texte.
+    function isLyricsSectionHeading(line) {
+        return /^(refrain|couplet\s*\d*|pont|intro|finale?)\s*:?\s*$/i.test(line.trim());
+    }
+
+    function renderLyricsHtml(text) {
+        return text.split(/\n{2,}/).map(block => {
+            const lines = block.split('\n').map(l => l.trim());
+            const html = lines.map(line =>
+                !line ? '' : isLyricsSectionHeading(line)
+                    ? `<span class="lyrics-heading">${escHtml(line)}</span>`
+                    : escHtml(line)
+            ).join('<br>');
+            return `<p class="lyrics-block">${html}</p>`;
+        }).join('');
+    }
+
+    function updateModeToggleUI() {
+        const btn = document.getElementById('mode-toggle-btn');
+        if (!btn) return;
+        const showingScore = state.viewMode !== 'lyrics';
+        btn.innerHTML = showingScore
+            ? '<svg class="icon"><use href="#ico-note"></use></svg><span>Paroles</span>'
+            : '<svg class="icon"><use href="#ico-music"></use></svg><span>Partition</span>';
+        btn.title = showingScore ? 'Afficher les paroles' : 'Afficher la partition';
+    }
+
+    function setViewMode(mode) {
+        if (state.viewMode === mode) return;
+        state.viewMode = mode;
+        applyViewMode();
+    }
+
+    function toggleViewMode(e) {
+        if (e) e.stopPropagation();
+        setViewMode(state.viewMode === 'lyrics' ? 'score' : 'lyrics');
+    }
+
+    async function applyViewMode() {
+        const item = state.activeSet[state.currentIdx];
+        document.getElementById('viewer-toolbar').style.display = 'flex';
+        updateModeToggleUI();
+
+        const scoreWrap     = document.getElementById('score-zoom-wrap');
+        const zoomControls  = document.getElementById('zoom-controls');
+        const lyricsEl      = document.getElementById('lyrics-display');
+        const missingEl     = document.getElementById('lyrics-missing-msg');
+
+        if (state.viewMode === 'lyrics') {
+            resetZoom(); // efface un éventuel zoom laissé par le mode partition (sinon les zones de tourne-page restent désactivées, voir .zoomed)
+            scoreWrap.classList.remove('visible');
+            zoomControls.style.display = 'none';
+            missingEl.classList.remove('visible');
+            lyricsEl.classList.add('visible');
+            document.getElementById('lyrics-title-display').textContent = item.name;
+            const contentEl = document.getElementById('lyrics-content');
+            contentEl.innerHTML = '<p class="lyrics-block" style="opacity:.55;">Chargement des paroles…</p>';
+
+            const text = await getLyricsForSong(item);
+            // Le chant ou le mode a pu changer pendant le chargement : on ignore le résultat obsolète.
+            if (state.activeSet[state.currentIdx] !== item || state.viewMode !== 'lyrics') return;
+
+            if (text) {
+                contentEl.innerHTML = renderLyricsHtml(text);
+                lyricsEl.scrollTop = 0;
+            } else {
+                lyricsEl.classList.remove('visible');
+                missingEl.classList.add('visible');
+            }
+        } else {
+            lyricsEl.classList.remove('visible');
+            missingEl.classList.remove('visible');
+            zoomControls.style.display = 'flex';
+            scoreWrap.classList.add('visible');
+            resetZoom();
+            await renderPage();
+        }
+    }
+
+    /* ─── ZOOM & DÉPLACEMENT (molette, pincement, boutons) ───
+       La page est rendue une seule fois avec une marge de résolution (RENDER_HEADROOM), puis le
+       zoom interactif s'applique en CSS (transform scale/translate) sur #score-zoom-wrap : pas de
+       nouveau rendu pdf.js à chaque cran de zoom, donc fluide même sur tablette. */
+    const MAX_ZOOM = 3;
+
+    function applyZoomTransform() {
+        const wrap = document.getElementById('score-zoom-wrap');
+        wrap.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoomScale})`;
+    }
+
+    function updateZoomUI() {
+        const label = document.getElementById('zoom-level-label');
+        if (label) label.textContent = Math.round(state.zoomScale * 100) + '%';
+        // Au-delà de 1x, les zones tactiles de tourne-page laissent place au déplacement de la
+        // partition : redézoomer (bouton, pincement ou double-tap) redonne la main au tourne-page.
+        document.getElementById('performance-mode').classList.toggle('zoomed', state.zoomScale > 1.02);
+    }
+
+    function setZoomScale(target) {
+        state.zoomScale = Math.min(MAX_ZOOM, Math.max(1, target));
+        if (state.zoomScale <= 1.001) { state.panX = 0; state.panY = 0; }
+        applyZoomTransform();
+        updateZoomUI();
+    }
+
+    function resetZoom() {
+        state.panX = 0; state.panY = 0;
+        setZoomScale(1);
+    }
+
+    function zoomIn(e)  { if (e) e.stopPropagation(); setZoomScale(state.zoomScale * 1.25); }
+    function zoomOut(e) { if (e) e.stopPropagation(); setZoomScale(state.zoomScale / 1.25); }
+    function zoomReset(e) { if (e) e.stopPropagation(); resetZoom(); }
+
+    // Pincement à deux doigts (zoom) et glisser à un doigt une fois zoomé (déplacement) : attachés
+    // au conteneur du visionneur plutôt qu'au canvas, pour capter les gestes même démarrés sur les
+    // zones tactiles de tourne-page qui le recouvrent.
+    const activeZoomPointers = new Map();
+    let pinchStartDist = 0, pinchStartScale = 1;
+    let isPanningScore = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
+
+    function onScoreViewportPointerDown(e) {
+        if (state.viewMode !== 'score' || !state.pdf) return;
+        activeZoomPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (activeZoomPointers.size === 2) {
+            const pts = [...activeZoomPointers.values()];
+            pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+            pinchStartScale = state.zoomScale;
+            isPanningScore = false;
+        } else if (activeZoomPointers.size === 1 && state.zoomScale > 1.001) {
+            isPanningScore = true;
+            panStartX = e.clientX; panStartY = e.clientY;
+            panOriginX = state.panX; panOriginY = state.panY;
+        }
+    }
+
+    function onScoreViewportPointerMove(e) {
+        if (!activeZoomPointers.has(e.pointerId)) return;
+        activeZoomPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (activeZoomPointers.size === 2) {
+            const pts = [...activeZoomPointers.values()];
+            const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+            setZoomScale(pinchStartScale * (dist / pinchStartDist));
+        } else if (isPanningScore) {
+            state.panX = panOriginX + (e.clientX - panStartX);
+            state.panY = panOriginY + (e.clientY - panStartY);
+            applyZoomTransform();
+        }
+    }
+
+    function onScoreViewportPointerUp(e) {
+        activeZoomPointers.delete(e.pointerId);
+        if (activeZoomPointers.size < 2) pinchStartDist = 0;
+        if (activeZoomPointers.size === 0) isPanningScore = false;
+    }
+
+    function shouldUseDoublePage() {
+        return settings.doublePage && state.totalPages > 1 &&
+            window.innerWidth >= 900 && window.innerWidth > window.innerHeight;
+    }
+
+    async function renderPageInto(canvas, pageNum, pagesPerView, renderHeadroom) {
+        const ctx  = canvas.getContext('2d');
+        const page = await state.pdf.getPage(pageNum);
         const vp0  = page.getViewport({ scale: 1 });
-        const scale = Math.min(
-            (window.innerWidth  * .95) / vp0.width,
-            (window.innerHeight * .95) / vp0.height
-        );
-        const viewport = page.getViewport({ scale: scale * window.devicePixelRatio });
+        const gap  = pagesPerView === 2 ? 8 : 0; // écart visuel entre les deux pages, retranché de la largeur disponible
+        const availWidth  = (window.innerWidth * .95) / pagesPerView - gap;
+        const availHeight = window.innerHeight * .95;
+        const fitScale = Math.min(availWidth / vp0.width, availHeight / vp0.height);
 
+        const viewport = page.getViewport({ scale: fitScale * window.devicePixelRatio * renderHeadroom });
         canvas.width  = viewport.width;
         canvas.height = viewport.height;
-        canvas.style.width  = (viewport.width  / window.devicePixelRatio) + 'px';
-        canvas.style.height = (viewport.height / window.devicePixelRatio) + 'px';
+        // La taille CSS reste celle de l'ajustement "1x" : c'est le zoom interactif (CSS transform,
+        // voir applyZoomTransform) qui agrandit ensuite visuellement, en piochant dans la marge de
+        // résolution ci-dessus pour rester net.
+        canvas.style.width  = (fitScale * vp0.width) + 'px';
+        canvas.style.height = (fitScale * vp0.height) + 'px';
 
         await page.render({ canvasContext: ctx, viewport }).promise;
+    }
+
+    async function renderPage() {
+        if (!state.pdf) return;
+        state.pagesPerView = shouldUseDoublePage() ? 2 : 1;
+        const renderHeadroom = state.pagesPerView === 2 ? 2 : MAX_ZOOM;
+
+        const canvas1 = document.getElementById('pdf-canvas');
+        const canvas2 = document.getElementById('pdf-canvas-2');
+        const showSecond = state.pagesPerView === 2 && state.pageNum + 1 <= state.totalPages;
+        canvas2.style.display = showSecond ? 'block' : 'none';
+
+        await renderPageInto(canvas1, state.pageNum, state.pagesPerView, renderHeadroom);
+        if (showSecond) await renderPageInto(canvas2, state.pageNum + 1, state.pagesPerView, renderHeadroom);
+
         updateHUD();
     }
 
@@ -3047,7 +3495,10 @@
         titleEl.textContent = item.name;
         if (state.pdf) {
             const progress = state.pageNum / state.totalPages;
-            pageEl.textContent = `${state.pageNum} / ${state.totalPages}`;
+            const showSecond = state.pagesPerView === 2 && state.pageNum + 1 <= state.totalPages;
+            pageEl.textContent = showSecond
+                ? `${state.pageNum}-${state.pageNum + 1} / ${state.totalPages}`
+                : `${state.pageNum} / ${state.totalPages}`;
             fill.style.width   = (progress * 100) + '%';
         } else {
             pageEl.textContent = `Élément ${state.currentIdx + 1} / ${state.activeSet.length}`;
@@ -3068,8 +3519,8 @@
 
     function nextPage(e) {
         if (e) e.stopPropagation();
-        if (state.pdf && state.pageNum < state.pdf.numPages) {
-            state.pageNum++;
+        if (state.pdf && state.pageNum < state.totalPages) {
+            state.pageNum = Math.min(state.totalPages, state.pageNum + state.pagesPerView);
             renderPage();
             return;
         }
@@ -3101,7 +3552,7 @@
     function prevPage(e) {
         if (e) e.stopPropagation();
         if (state.pdf && state.pageNum > 1) {
-            state.pageNum--;
+            state.pageNum = Math.max(1, state.pageNum - state.pagesPerView);
             renderPage();
         } else if (state.currentIdx > 0) {
             state.currentIdx--;
@@ -3150,7 +3601,7 @@
         if (!insidePerf) return;
 
         const target = e.target;
-        if (target.closest('#pdf-canvas')) return;
+        if (target.closest('#score-zoom-wrap')) return;
 
         tripleTapCount++;
         clearTimeout(tripleTapTimer);
@@ -3227,7 +3678,10 @@
     });
 
     window.addEventListener('resize', () => {
-        if (state.pdf && document.getElementById('performance-mode').style.display === 'flex') renderPage();
+        if (state.pdf && document.getElementById('performance-mode').style.display === 'flex' && state.viewMode === 'score') {
+            resetZoom(); // évite un zoom/décalage incohérent après un changement d'orientation ou de taille de fenêtre
+            renderPage();
+        }
     });
 
     /* ══════════════════════════════════════════
