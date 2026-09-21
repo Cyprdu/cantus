@@ -1,13 +1,13 @@
-const CACHE_NAME = 'cantus-app-shell-v10';
+const CACHE_NAME = 'cantus-app-shell-v11';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
 // (les anciennes versions v1/v2/v3, déplacées dans autre/, ne sont plus l'application servie :
 // elles n'ont plus à être pré-cachées)
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/favicon.ico',
+    './',
+    'index.html',
+    'favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js',
@@ -81,7 +81,7 @@ self.addEventListener('fetch', (event) => {
                 // SI ON EST HORS-LIGNE et que la ressource n'est pas dans le cache principal :
                 // On redirige intelligemment vers index.html pour éviter le message d'erreur brut
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
+                    return caches.match('index.html');
                 }
                 
                 return new Response("Fichier non disponible hors-ligne", {
