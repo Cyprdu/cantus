@@ -173,7 +173,11 @@
            remontant la barre de la valeur de ce padding puis en le recréant à l'intérieur, son
            fond plein couvre aussi cette zone, et la position visuelle de la barre ne change pas. */
         .search-wrap { position: sticky; top: calc(-1 * var(--sp-md)); z-index: 50; background: var(--bg); margin: calc(-1 * var(--sp-md)) 0 var(--sp-md); padding: var(--sp-md) 0 2px; }
-        .search-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+        /* Conteneur dédié, sans le padding (asymétrique) du search-wrap : l'icône se centre
+           ainsi sur la hauteur réelle du champ, pas sur celle du wrapper (qui inclut le padding
+           du hack sticky ci-dessus et la décalait visuellement). */
+        .search-field { position: relative; }
+        .search-field .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
         .search-input { width: 100%; padding: 12px 14px 12px 42px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t-fast) var(--ease); }
         .search-input::placeholder { color: var(--text-3); }
         .search-input:focus { border-color: var(--accent); }
@@ -786,14 +790,14 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title"><svg class="icon"><use href="#ico-eye"/></svg>Affichage des partitions</div>
-            <div class="settings-row">
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-eye"/></svg>Affichage</div>
+            <div class="settings-row" style="border-bottom:none; padding-bottom: 0;">
                 <div>
                     <div class="settings-row-label">Mode d'affichage</div>
                     <div class="settings-row-desc">Partition (PDF) pour les musiciens, ou paroles seules pour les chanteurs. Modifiable à tout moment depuis la visionneuse.</div>
                 </div>
             </div>
-            <div class="segmented" id="display-mode-segmented" style="margin-bottom: var(--sp-md);">
+            <div class="segmented" id="display-mode-segmented" style="margin: var(--sp-sm) 0 var(--sp-md);">
                 <button data-mode="score" onclick="setDisplayModeSetting('score')">Partition</button>
                 <button data-mode="lyrics" onclick="setDisplayModeSetting('lyrics')">Paroles</button>
             </div>
@@ -2793,9 +2797,11 @@
         if (v === 'library') {
             c.innerHTML = `
                 <div class="search-wrap">
-                    <svg class="icon"><use href="#ico-search"/></svg>
-                    <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
-                           oninput="filterLibrary('library')">
+                    <div class="search-field">
+                        <svg class="icon"><use href="#ico-search"/></svg>
+                        <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
+                               oninput="filterLibrary('library')">
+                    </div>
                 </div>
                 ${renderCategorySelect('lib-cat', 'library')}
                 <div id="lib-list">${renderCategoryAccordion(state.songs)}</div>`;
@@ -2803,9 +2809,11 @@
             const favSongs = state.songs.filter(s => state.favorites.includes(s.id));
             c.innerHTML = `
                 <div class="search-wrap">
-                    <svg class="icon"><use href="#ico-search"/></svg>
-                    <input type="text" class="search-input" id="fav-search" placeholder="Rechercher dans les favoris…"
-                           oninput="filterLibrary('favorites')">
+                    <div class="search-field">
+                        <svg class="icon"><use href="#ico-search"/></svg>
+                        <input type="text" class="search-input" id="fav-search" placeholder="Rechercher dans les favoris…"
+                               oninput="filterLibrary('favorites')">
+                    </div>
                 </div>
                 ${renderCategorySelect('fav-cat', 'favorites')}
                 <div id="fav-list">${renderList(favSongs, 'ico-heart', "Vous n'avez pas encore de favoris.")}</div>`;
@@ -3845,10 +3853,12 @@
                 <div class="editor-col">
                     <div class="col-header">Bibliothèque</div>
                     <div class="search-wrap" style="padding:8px 8px 0">
-                        <svg class="icon"><use href="#ico-search"/></svg>
-                        <input type="text" class="search-input" style="margin:0"
-                               placeholder="Ajouter un PDF…"
-                               oninput="filterEditor(this.value)">
+                        <div class="search-field">
+                            <svg class="icon"><use href="#ico-search"/></svg>
+                            <input type="text" class="search-input" style="margin:0"
+                                   placeholder="Ajouter un PDF…"
+                                   oninput="filterEditor(this.value)">
+                        </div>
                     </div>
                     <div id="editor-lib" class="col-body">${renderEditorList(state.songs)}</div>
                 </div>
@@ -4367,8 +4377,10 @@
                     <div class="editor-col">
                         <div class="col-header">Bibliothèque</div>
                         <div class="search-wrap" style="padding:8px 8px 0">
-                            <svg class="icon"><use href="#ico-search"/></svg>
-                            <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" value="${escHtml(liveLibSearchQuery)}" oninput="filterLiveLibrary(this.value)">
+                            <div class="search-field">
+                                <svg class="icon"><use href="#ico-search"/></svg>
+                                <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" value="${escHtml(liveLibSearchQuery)}" oninput="filterLiveLibrary(this.value)">
+                            </div>
                         </div>
                         <div id="live-lib-list" class="col-body">${renderLiveLibraryList(liveFilteredLibrary())}</div>
                     </div>` : ''}
@@ -5201,10 +5213,12 @@
                 <div class="editor-col">
                     <div class="col-header">Bibliothèque</div>
                     <div class="search-wrap" style="padding:8px 8px 0; margin-bottom:0;">
-                        <svg class="icon"><use href="#ico-search"/></svg>
-                        <input type="text" class="search-input" style="margin:0"
-                               placeholder="Ajouter un chant…"
-                               oninput="filterPlaylistEditor(this.value)">
+                        <div class="search-field">
+                            <svg class="icon"><use href="#ico-search"/></svg>
+                            <input type="text" class="search-input" style="margin:0"
+                                   placeholder="Ajouter un chant…"
+                                   oninput="filterPlaylistEditor(this.value)">
+                        </div>
                     </div>
                     <div id="editor-lib-pl" class="col-body">${renderEditorListForPlaylist(state.songs)}</div>
                 </div>
