@@ -496,20 +496,49 @@
         .cam-modal-card p { font-size: 0.9rem; color: var(--text-2); margin: 0; line-height: 1.45; }
         .cam-modal-actions { display: flex; flex-direction: column; gap: var(--sp-sm); width: 100%; margin-top: var(--sp-sm); }
 
-        /* ─── MODALE PARAMÈTRES ─── */
-        #settings-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 6000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-        #settings-modal.open { display: flex; }
+        /* ─── TIROIRS LATÉRAUX (Paramètres, Menu de navigation) ───
+           Panneau qui glisse depuis le bord gauche de l'écran, par-dessus un fond assombri.
+           `visibility` (plutôt que display:none/flex) permet d'animer aussi bien l'ouverture
+           que la fermeture avec une seule transition CSS. */
+        .drawer-overlay { position: fixed; inset: 0; z-index: 6000; visibility: hidden; transition: visibility 0s linear var(--t-slow); }
+        .drawer-overlay.open { visibility: visible; transition-delay: 0s; }
+        .drawer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity var(--t-slow) var(--ease); cursor: pointer; }
+        .drawer-overlay.open .drawer-backdrop { opacity: 1; }
+        .drawer-panel { position: absolute; top: 0; left: 0; bottom: 0; width: min(380px, 86vw); background: var(--surface); border-right: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateX(-100%); transition: transform var(--t-slow) var(--ease-out); display: flex; flex-direction: column; }
+        .drawer-overlay.open .drawer-panel { transform: translateX(0); }
+        @supports (padding: env(safe-area-inset-top)) { .drawer-panel { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); } }
+        .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-md); padding: var(--sp-lg); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .drawer-head h3 { font-size: 17px; font-weight: 700; color: var(--text); margin: 0; }
+        .drawer-body { flex: 1; overflow-y: auto; padding: var(--sp-lg); }
+        .drawer-body::-webkit-scrollbar { width: 4px; }
+        .drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* ─── PARAMÈTRES ─── */
         .settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); max-height: 85vh; overflow-y: auto; }
         .settings-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-lg); }
         .settings-head h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
-        .settings-section { margin-bottom: var(--sp-lg); text-align: left; }
+        .settings-section { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-md); text-align: left; }
         .settings-section:last-child { margin-bottom: 0; }
-        .settings-section-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin-bottom: var(--sp-sm); }
+        .settings-section-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--sp-sm); }
+        .settings-section-title .icon { width: 14px; height: 14px; }
         .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-md); padding: 12px 0; border-bottom: 1px solid var(--border); }
         .settings-row:last-of-type { border-bottom: none; }
         .settings-row-label { font-size: 14px; font-weight: 500; color: var(--text); }
         .settings-row-desc { font-size: 12px; color: var(--text-2); margin-top: 2px; }
         .settings-note { font-size: 11px; color: var(--text-3); margin: var(--sp-sm) 0 0; line-height: 1.5; }
+
+        /* ─── MENU DE NAVIGATION (tiroir mobile) ───
+           Remplace la barre d'onglets quand elle ne tient pas en entier à l'écran (voir
+           media query plus bas) : un bouton "Menu" ouvre ce tiroir listant toutes les vues. */
+        .mobile-nav-bar { display: none; }
+        .mobile-nav-btn { display: flex; align-items: center; gap: 10px; flex: 1; background: transparent; border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; padding: 8px 4px; text-align: left; }
+        .mobile-nav-btn .icon { color: var(--text-2); flex-shrink: 0; }
+        .mobile-nav-btn .mobile-nav-chevron { margin-left: auto; color: var(--text-3); }
+        .drawer-nav-list { display: flex; flex-direction: column; gap: 2px; }
+        .drawer-nav-item { display: flex; align-items: center; gap: var(--sp-md); width: 100%; padding: 14px var(--sp-md); background: transparent; border: none; border-radius: var(--r-md); color: var(--text-2); font-size: 14px; font-weight: 500; cursor: pointer; text-align: left; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+        .drawer-nav-item:hover { background: var(--surface-2); color: var(--text); }
+        .drawer-nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
+        .drawer-nav-item .icon { width: 19px; height: 19px; flex-shrink: 0; }
 
         .segmented { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 3px; gap: 3px; }
         .segmented button { flex: 1; border: none; background: transparent; color: var(--text-2); font-size: 12px; font-weight: 600; padding: 9px 6px; border-radius: calc(var(--r-md) - 3px); cursor: pointer; }
@@ -575,9 +604,10 @@
             .editor-grid { grid-template-columns: 1fr; height: auto; }
             .editor-col { height: 340px; margin-bottom: var(--sp-sm); }
             .planner-header { flex-direction: column; }
-            nav { padding: var(--sp-sm); gap: 2px; }
-            .tab-btn { flex: 1; justify-content: center; padding: 10px 10px; font-size: 12px; }
-            .tab-btn .icon { width: 16px; height: 16px; }
+            /* Les 6 onglets ne tiennent pas en entier sur un écran étroit : la barre
+               d'onglets cède la place à un bouton "Menu" qui ouvre le tiroir de navigation. */
+            nav { display: none; }
+            .mobile-nav-bar { display: flex; align-items: center; padding: 10px var(--sp-lg); background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
         }
         @media (max-width: 480px) { header { padding: 0 var(--sp-md); } main { padding: var(--sp-sm); } }
         @supports (padding: env(safe-area-inset-top)) { header { padding-top: env(safe-area-inset-top); } main   { padding-bottom: env(safe-area-inset-bottom); } }
@@ -633,6 +663,10 @@
             <path d="M21 2l-9.6 9.6"></path>
             <path d="M15.5 7.5L19 4l3 3-3.5 3.5"></path>
         </symbol>
+        <symbol id="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></symbol>
+        <symbol id="ico-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20c1.4 0 2.4-1 2.4-2.2 0-.6-.24-1.1-.63-1.5-.4-.4-.63-.9-.63-1.5 0-1.2 1-2.2 2.2-2.2H17a4 4 0 0 0 4-4c0-4.4-4-8.6-9-8.6z"></path><circle cx="6.5" cy="11.5" r="1.2"></circle><circle cx="9.5" cy="7" r="1.2"></circle><circle cx="14.5" cy="7" r="1.2"></circle><circle cx="17.5" cy="11.5" r="1.2"></circle></symbol>
+        <symbol id="ico-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></symbol>
+        <symbol id="ico-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></symbol>
     </defs>
 </svg>
 
@@ -653,8 +687,58 @@
 <nav>        <button class="tab-btn active" id="tab-library" onclick="showView('library')" aria-label="Bibliothèque">            <svg class="icon"><use href="#ico-music"></use></svg>            Bibliothèque        </button>        <button class="tab-btn" id="tab-playlist" onclick="showView('playlist')" aria-label="Playlists">            <svg class="icon"><use href="#ico-list"></use></svg>            Playlists        </button>        <button class="tab-btn" id="tab-favorites" onclick="showView('favorites')" aria-label="Favoris">            <svg class="icon"><use href="#ico-heart"></use></svg>            Favoris        </button>        <button class="tab-btn" id="tab-history" onclick="showView('history')" aria-label="Historique">            <svg class="icon"><use href="#ico-clock"></use></svg>            Historique        </button>        <button class="tab-btn" id="tab-planner" onclick="showView('planner')" aria-label="Messes">            <svg class="icon"><use href="#ico-cal"></use></svg>            Messes        </button>        <button class="tab-btn" id="tab-live" onclick="showView('live')" aria-label="Mode Live">            <svg class="icon"><use href="#ico-live"></use></svg>            Mode Live        </button>
     </nav>
 
+    <!-- Barre de remplacement affichée uniquement quand les 6 onglets ne tiennent pas en entier
+         à l'écran (voir media query) : ouvre le tiroir de navigation ci-dessous. -->
+    <div class="mobile-nav-bar" id="mobile-nav-bar">
+        <button class="mobile-nav-btn" onclick="openNavDrawer()" aria-label="Ouvrir le menu de navigation">
+            <svg class="icon"><use href="#ico-menu"></use></svg>
+            <span id="mobile-nav-label">Bibliothèque</span>
+            <svg class="icon mobile-nav-chevron"><use href="#ico-chevron"></use></svg>
+        </button>
+    </div>
+
     <main id="content">
     </main>
+</div>
+
+<div id="nav-drawer" class="drawer-overlay">
+    <div class="drawer-backdrop" onclick="closeNavDrawer()"></div>
+    <div class="drawer-panel">
+        <div class="drawer-head">
+            <h3>Menu</h3>
+            <button class="btn btn-icon" onclick="closeNavDrawer()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-nav-list">
+                <button class="drawer-nav-item active" id="navd-library" onclick="showView('library')">
+                    <svg class="icon"><use href="#ico-music"></use></svg>
+                    <span>Bibliothèque</span>
+                </button>
+                <button class="drawer-nav-item" id="navd-playlist" onclick="showView('playlist')">
+                    <svg class="icon"><use href="#ico-list"></use></svg>
+                    <span>Playlists</span>
+                </button>
+                <button class="drawer-nav-item" id="navd-favorites" onclick="showView('favorites')">
+                    <svg class="icon"><use href="#ico-heart"></use></svg>
+                    <span>Favoris</span>
+                </button>
+                <button class="drawer-nav-item" id="navd-history" onclick="showView('history')">
+                    <svg class="icon"><use href="#ico-clock"></use></svg>
+                    <span>Historique</span>
+                </button>
+                <button class="drawer-nav-item" id="navd-planner" onclick="showView('planner')">
+                    <svg class="icon"><use href="#ico-cal"></use></svg>
+                    <span>Messes</span>
+                </button>
+                <button class="drawer-nav-item" id="navd-live" onclick="showView('live')">
+                    <svg class="icon"><use href="#ico-live"></use></svg>
+                    <span>Mode Live</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <input type="file" id="file-import" class="file-input-hidden" accept=".json" onchange="handleFileImport(event)">
@@ -681,17 +765,19 @@
     </div>
 </div>
 
-<div id="settings-modal">
-    <div class="settings-card">
-        <div class="settings-head">
+<div id="settings-modal" class="drawer-overlay">
+    <div class="drawer-backdrop" onclick="closeSettings()"></div>
+    <div class="drawer-panel">
+        <div class="drawer-head">
             <h3>Paramètres</h3>
             <button class="btn btn-icon" onclick="closeSettings()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
+        <div class="drawer-body">
 
         <div class="settings-section">
-            <div class="settings-section-title">Apparence</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-palette"/></svg>Apparence</div>
             <div class="segmented" id="theme-segmented">
                 <button data-theme="system" onclick="setThemeSetting('system')">Système</button>
                 <button data-theme="light" onclick="setThemeSetting('light')">Clair</button>
@@ -700,7 +786,7 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title">Affichage des partitions</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-eye"/></svg>Affichage des partitions</div>
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Mode d'affichage</div>
@@ -724,7 +810,7 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title">Navigation en mode partition</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-compass"/></svg>Navigation en mode partition</div>
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Reconnaissance faciale</div>
@@ -759,7 +845,7 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title">Stockage</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-download"/></svg>Stockage</div>
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Mode hors-ligne</div>
@@ -785,7 +871,7 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title">Mes partitions</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-music"/></svg>Mes partitions</div>
             <div class="settings-row" style="border-bottom:none;">
                 <div>
                     <div class="settings-row-label">Importer une partition</div>
@@ -799,6 +885,7 @@
         </div>
 
         <div id="admin-section" class="settings-section"></div>
+        </div>
     </div>
 </div>
 
@@ -1222,6 +1309,14 @@
         document.getElementById('settings-modal').classList.remove('open');
     }
 
+    function openNavDrawer() {
+        document.getElementById('nav-drawer').classList.add('open');
+    }
+
+    function closeNavDrawer() {
+        document.getElementById('nav-drawer').classList.remove('open');
+    }
+
     function renderSettingsPanel() {
         document.querySelectorAll('#theme-segmented button').forEach(b => {
             b.classList.toggle('active', b.dataset.theme === settings.theme);
@@ -1580,7 +1675,7 @@
         }
 
         el.innerHTML = `
-            <div class="settings-section-title">Administration</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Administration</div>
             <div class="settings-row" style="border-bottom:none;">
                 <div>
                     <div class="settings-row-label">Pouvoirs administrateur</div>
@@ -2682,9 +2777,16 @@
     /* ══════════════════════════════════════════
        VIEWS
     ══════════════════════════════════════════ */
+    const VIEW_LABELS = { library: 'Bibliothèque', playlist: 'Playlists', favorites: 'Favoris', history: 'Historique', planner: 'Messes', live: 'Mode Live' };
+
     function showView(v) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + v)?.classList.add('active');
+        document.querySelectorAll('.drawer-nav-item').forEach(b => b.classList.remove('active'));
+        document.getElementById('navd-' + v)?.classList.add('active');
+        const mobileLabel = document.getElementById('mobile-nav-label');
+        if (mobileLabel) mobileLabel.textContent = VIEW_LABELS[v] || '';
+        closeNavDrawer();
 
         const c = document.getElementById('content');
 
