@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantus-app-shell-v18';
+const CACHE_NAME = 'cantus-app-shell-v19';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
