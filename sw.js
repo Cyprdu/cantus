@@ -1,12 +1,17 @@
-const CACHE_NAME = 'cantus-app-shell-v13';
+const CACHE_NAME = 'cantus-app-shell-v14';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
 // (les anciennes versions v1/v2/v3, déplacées dans autre/, ne sont plus l'application servie :
 // elles n'ont plus à être pré-cachées)
 const ASSETS = [
+    // 'index.html' n'est volontairement PAS pré-caché ici : sur cet hébergeur (Cloudflare Pages),
+    // cette URL fait l'objet d'une redirection HTTP 308 automatique vers './'. La précacher aurait
+    // stocké une Response marquée "redirected", ce que Safari refuse de servir pour une navigation
+    // (voir stripRedirectFlag plus bas) — c'est précisément ce qui bloquait l'app en relance PWA
+    // depuis l'écran d'accueil (dont le raccourci pointait vers .../index.html). './' suffit et
+    // pointe directement vers l'URL canonique, sans jamais passer par la redirection.
     './',
-    'index.html',
     'favicon.ico',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
@@ -102,9 +107,11 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
         } catch (err) {
             // SI ON EST HORS-LIGNE et que la ressource n'est pas dans le cache principal :
-            // On redirige intelligemment vers index.html pour éviter le message d'erreur brut
+            // On redirige intelligemment vers la page d'accueil pour éviter le message d'erreur
+            // brut. On matche './' (toujours précaché, jamais sujet à la redirection 308 de
+            // l'hébergeur) plutôt que 'index.html'.
             if (event.request.mode === 'navigate') {
-                return caches.match('index.html');
+                return caches.match('./');
             }
 
             return new Response("Fichier non disponible hors-ligne", {
