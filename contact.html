@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    /* Applique le thème sauvegardé AVANT le premier rendu pour éviter le flash blanc/noir
+       (même logique que index.html, pour rester cohérent si on arrive ici depuis l'app). */
+    (function () {
+        try {
+            var s = JSON.parse(localStorage.getItem('cantus_settings')) || {};
+            var theme = s.theme || 'dark';
+            var resolved = theme === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+                : theme;
+            document.documentElement.setAttribute('data-theme', resolved);
+        } catch (e) {}
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Qui sommes-nous ? — Cantus Pro</title>
+    <meta name="description" content="Cantus Pro : l'application de chant liturgique pour préparer, jouer et partager le répertoire de votre chorale ou groupe de louange.">
+    <link rel="icon" type="image/x-icon" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favico.ico">
+
+    <style>
+        /* ─── SYSTÈME DE DESIGN (identique à index.html, pour rester cohérent avec l'app) ─── */
+        :root {
+            --bg:           #090909;
+            --surface:      #141414;
+            --surface-2:    #1c1c1c;
+            --surface-3:    #252525;
+            --border:       #2a2a2a;
+            --accent:       #c8956c;
+            --accent-dim:   rgba(200,149,108,.18);
+            --accent-glow:  rgba(200,149,108,.35);
+            --text:         #e8e8e8;
+            --text-2:       #888;
+            --text-3:       #555;
+            --danger:       #e05050;
+            --danger-dim:   rgba(224,80,80,.15);
+            --success:      #6dab6d;
+
+            --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+            --sp-xs: 4px; --sp-sm: 8px; --sp-md: 14px; --sp-lg: 22px; --sp-xl: 36px;
+
+            --shadow: 0 2px 12px rgba(0,0,0,.45);
+            --shadow-lg: 0 6px 30px rgba(0,0,0,.6);
+
+            --ease: cubic-bezier(.4,0,.2,1);
+            --ease-out: cubic-bezier(0,0,.2,1);
+            --t-fast: 150ms;
+            --t-base: 250ms;
+            --t-slow: 400ms;
+        }
+        :root[data-theme="light"] {
+            --bg:           #f6f3ef;
+            --surface:      #ffffff;
+            --surface-2:    #f1ece5;
+            --surface-3:    #e8e0d4;
+            --border:       #ddd2c2;
+            --accent:       #b9754a;
+            --accent-dim:   rgba(185,117,74,.12);
+            --accent-glow:  rgba(185,117,74,.3);
+            --text:         #1c1917;
+            --text-2:       #756a5c;
+            --text-3:       #a89c8a;
+            --danger:       #c8443a;
+            --danger-dim:   rgba(200,68,58,.1);
+            --success:      #4c9a58;
+            --shadow: 0 2px 12px rgba(0,0,0,.08);
+            --shadow-lg: 0 6px 30px rgba(0,0,0,.14);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { height: 100%; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100%;
+            -webkit-font-smoothing: antialiased;
+            transition: background var(--t-base) var(--ease), color var(--t-base) var(--ease);
+        }
+        input, textarea, button { font-family: inherit; }
+
+        .icon { display: inline-block; width: 18px; height: 18px; vertical-align: middle; flex-shrink: 0; }
+        .icon-sm { width: 14px; height: 14px; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--sp-lg); height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        .brand { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text-2); }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-sm); padding: 10px 18px; border: none; border-radius: var(--r-md); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease); white-space: nowrap; user-select: none; min-height: 44px; }
+        .btn:active { transform: scale(.96); }
+        .btn-ghost { background: var(--surface-2); color: var(--text); }
+        .btn-ghost:hover { background: var(--surface-3); }
+        .btn-primary { background: var(--accent); color: #090909; }
+        .btn-primary:hover { background: #d4a57d; }
+        .btn-icon { width: 44px; height: 44px; padding: 0; background: transparent; color: var(--text-2); }
+        .btn-icon:hover { background: var(--surface-2); color: var(--text); }
+        .btn:disabled { opacity: .55; cursor: default; transform: none; }
+
+        .input-field { width: 100%; padding: 10px 13px; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 13px; outline: none; transition: border-color var(--t-fast) var(--ease); }
+        .input-field:focus { border-color: var(--accent); }
+        textarea.input-field { resize: none; height: 110px; line-height: 1.5; }
+
+        main { max-width: 680px; margin: 0 auto; padding: var(--sp-xl) var(--sp-lg) calc(var(--sp-xl) * 2); }
+
+        .hero { padding: var(--sp-xl) 0 var(--sp-lg); text-align: center; }
+        .hero-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--accent-glow); display: flex; align-items: center; justify-content: center; color: var(--accent); margin: 0 auto var(--sp-md); }
+        .hero h1 { font-size: 26px; font-weight: 800; margin: 0 0 var(--sp-sm); letter-spacing: -.01em; }
+        .hero p { color: var(--text-2); font-size: 15px; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+        section.block { margin-top: var(--sp-xl); }
+        section.block h2 { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 var(--sp-md); display: flex; align-items: center; gap: 8px; }
+        section.block h2 .icon { width: 14px; height: 14px; }
+        section.block p { color: var(--text-2); line-height: 1.7; margin: 0 0 var(--sp-md); }
+        section.block p:last-child { margin-bottom: 0; }
+
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+        @media (max-width: 480px) { .feature-grid { grid-template-columns: 1fr; } }
+        .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-md); display: flex; gap: var(--sp-sm); align-items: flex-start; }
+        .feature-card .icon { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+        .feature-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+        .feature-card-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+        .need-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-sm); }
+        .need-list li { display: flex; gap: var(--sp-sm); align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-sm) var(--sp-md); color: var(--text-2); font-size: 13px; line-height: 1.5; }
+        .need-list li .icon { color: var(--success); flex-shrink: 0; margin-top: 2px; }
+        .need-list li strong { color: var(--text); font-weight: 600; }
+
+        .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-xl); box-shadow: var(--shadow); }
+        .contact-card p.lead { color: var(--text-2); margin: 0 0 var(--sp-lg); line-height: 1.6; }
+        .form-row { margin-bottom: var(--sp-sm); }
+        .form-row:last-of-type { margin-bottom: var(--sp-md); }
+        #contact-feedback { display: none; font-size: 13px; line-height: 1.5; margin-bottom: var(--sp-md); padding: 10px 12px; border-radius: var(--r-md); }
+        #contact-feedback.ok { display: block; background: var(--accent-dim); color: var(--accent); }
+        #contact-feedback.err { display: block; background: var(--danger-dim); color: var(--danger); }
+
+        footer { text-align: center; padding: var(--sp-lg); color: var(--text-3); font-size: 12px; }
+        footer a { color: var(--text-2); }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+    <symbol id="ico-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></symbol>
+    <symbol id="ico-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+    <symbol id="ico-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
+    <symbol id="ico-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9 10h.01M15 10h.01M8.5 15a4 4 0 0 0 7 0"></path></symbol>
+    <symbol id="ico-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></symbol>
+    <symbol id="ico-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></symbol>
+    <symbol id="ico-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></symbol>
+    <symbol id="ico-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+    <symbol id="ico-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
+</svg>
+
+<header>
+    <a class="btn btn-icon" href="index.html" aria-label="Retour à l'application" title="Retour à l'application">
+        <svg class="icon"><use href="#ico-arrow-left"></use></svg>
+    </a>
+    <div class="brand">CANTUS PRO</div>
+    <div style="width:44px;"></div>
+</header>
+
+<main>
+    <div class="hero">
+        <div class="hero-icon"><svg class="icon" style="width:26px;height:26px;"><use href="#ico-users"></use></svg></div>
+        <h1>Qui sommes-nous ?</h1>
+        <p>Cantus Pro est l'application de chant liturgique pensée par et pour les musiciens, choristes et animateurs de louange.</p>
+    </div>
+
+    <section class="block">
+        <h2><svg class="icon"><use href="#ico-music"></use></svg>Le projet</h2>
+        <p>
+            Cantus Pro numérise le classeur de partitions d'une chorale ou d'un groupe de louange : une bibliothèque
+            de chants centralisée, avec la partition (PDF) et les paroles de chaque titre, classée par catégorie et
+            consultable en quelques secondes depuis un téléphone, une tablette ou un ordinateur.
+        </p>
+        <p>
+            Au-delà de la bibliothèque, l'application accompagne toute la préparation d'un temps de louange ou d'une
+            messe : constituer des playlists, planifier le répertoire d'une célébration à l'avance, puis l'utiliser
+            en direct grâce à un mode performance pensé pour être lu pendant qu'on joue ou qu'on chante — jusqu'à
+            tourner les pages sans les mains, la tête légèrement penchée, pour les musiciens qui ont besoin de garder
+            leurs deux mains sur leur instrument.
+        </p>
+    </section>
+
+    <section class="block">
+        <h2><svg class="icon"><use href="#ico-download"></use></svg>Ce qu'elle propose</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-music"></use></svg>
+                <div>
+                    <div class="feature-card-title">Bibliothèque &amp; favoris</div>
+                    <div class="feature-card-desc">Recherche instantanée, catégories, chants favoris.</div>
+                </div>
+            </div>
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-cal"></use></svg>
+                <div>
+                    <div class="feature-card-title">Planification de messes</div>
+                    <div class="feature-card-desc">Préparez et retrouvez le répertoire d'une célébration.</div>
+                </div>
+            </div>
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-face"></use></svg>
+                <div>
+                    <div class="feature-card-title">Mode performance mains-libres</div>
+                    <div class="feature-card-desc">Tournez les pages d'un mouvement de tête pendant que vous jouez.</div>
+                </div>
+            </div>
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-download"></use></svg>
+                <div>
+                    <div class="feature-card-title">Mode hors-ligne</div>
+                    <div class="feature-card-desc">Téléchargez vos chants pour y accéder sans connexion.</div>
+                </div>
+            </div>
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-live"></use></svg>
+                <div>
+                    <div class="feature-card-title">Partage en direct</div>
+                    <div class="feature-card-desc">Diffusez la liste des chants en cours à toute l'équipe.</div>
+                </div>
+            </div>
+            <div class="feature-card">
+                <svg class="icon"><use href="#ico-users"></use></svg>
+                <div>
+                    <div class="feature-card-title">Playlists</div>
+                    <div class="feature-card-desc">Organisez et réordonnez vos chants par glisser-déposer.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="block">
+        <h2><svg class="icon"><use href="#ico-check"></use></svg>À quel besoin ça répond ?</h2>
+        <ul class="need-list">
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Fini le classeur papier</strong> — à trimballer, imprimer et tenir à jour à chaque nouveau chant.</span></li>
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Retrouver un chant en quelques secondes</strong>, même juste avant de commencer à jouer.</span></li>
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Préparer une célébration à l'avance</strong> et la retrouver en un clic le jour J.</span></li>
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Jouer sans lâcher son instrument</strong> grâce à la reconnaissance faciale pour tourner les pages.</span></li>
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Continuer à répéter ou jouer sans connexion</strong>, y compris dans une église sans wifi.</span></li>
+            <li><svg class="icon"><use href="#ico-check"></use></svg><span><strong>Garder toute l'équipe synchronisée</strong> sur les chants en cours, en direct.</span></li>
+        </ul>
+    </section>
+
+    <section class="block">
+        <h2><svg class="icon"><use href="#ico-message"></use></svg>Nous contacter</h2>
+        <div class="contact-card">
+            <p class="lead">Une question, une remarque, une idée d'amélioration ? Écrivez-nous, on vous répond dès que possible.</p>
+            <div id="contact-feedback"></div>
+            <form id="contact-form">
+                <div class="form-row">
+                    <input type="text" id="contact-name" class="input-field" placeholder="Votre nom" required>
+                </div>
+                <div class="form-row">
+                    <input type="email" id="contact-email" class="input-field" placeholder="Votre email" required>
+                </div>
+                <div class="form-row">
+                    <textarea id="contact-message" class="input-field" placeholder="Votre message" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;" id="contact-submit-btn">
+                    <svg class="icon icon-sm"><use href="#ico-message"></use></svg>
+                    Envoyer
+                </button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<footer>
+    Cantus Pro — <a href="index.html">retour à l'application</a>
+</footer>
+
+<script>
+    document.getElementById('contact-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const name = document.getElementById('contact-name').value.trim();
+        const email = document.getElementById('contact-email').value.trim();
+        const message = document.getElementById('contact-message').value.trim();
+        const feedback = document.getElementById('contact-feedback');
+        const btn = document.getElementById('contact-submit-btn');
+
+        feedback.className = '';
+        feedback.style.display = 'none';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('https://formspree.io/f/mrpbqjwj', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new URLSearchParams({
+                    _subject: 'Contact',
+                    name: name,
+                    email: email,
+                    message: message
+                })
+            });
+            if (!res.ok) throw new Error('Réponse non OK');
+            feedback.textContent = 'Message envoyé, merci ! Nous vous répondrons rapidement.';
+            feedback.className = 'ok';
+            feedback.style.display = 'block';
+            this.reset();
+        } catch (err) {
+            feedback.textContent = "Échec de l'envoi. Vérifiez votre connexion et réessayez.";
+            feedback.className = 'err';
+            feedback.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -154,6 +154,10 @@
         main::-webkit-scrollbar { width: 4px; }
         main::-webkit-scrollbar-track { background: transparent; }
         main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        /* Petite transition d'entrée rejouée à chaque changement d'onglet (voir showView), pour
+           donner une sensation d'app dynamique plutôt qu'un contenu qui apparaît brutalement. */
+        @keyframes viewFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #content.view-enter { animation: viewFadeIn var(--t-slow) var(--ease-out); }
 
         /* ─── BUTTONS ─── */
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-sm); padding: 10px 18px; border: none; border-radius: var(--r-md); font-size: 13px; font-weight: 600; cursor: pointer; transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease); white-space: nowrap; user-select: none; -webkit-user-select: none; min-height: 44px; min-width: 44px; }
@@ -203,7 +207,12 @@
         .cat-group-count { font-size: 11px; font-weight: 700; color: var(--text-3); background: var(--surface-3); border-radius: 20px; padding: 2px 9px; flex-shrink: 0; }
         .cat-group-chevron { transition: transform var(--t-fast) var(--ease); color: var(--text-3); flex-shrink: 0; }
         .cat-group-chevron.open { transform: rotate(180deg); }
-        .cat-group-body { padding: var(--sp-sm); background: var(--surface-2); }
+        /* Astuce grid-template-rows 0fr→1fr : anime un « height: auto » sans avoir à mesurer la
+           hauteur en JS. Le contenu reste dans le DOM (pas de re-render), c'est ce qui permet à la
+           transition de réellement se jouer à chaque clic (voir toggleLibCategory). */
+        .cat-group-body-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-slow) var(--ease-out); }
+        .cat-group-body-wrap.open { grid-template-rows: 1fr; }
+        .cat-group-body-wrap > .cat-group-body { overflow: hidden; min-height: 0; padding: var(--sp-sm); background: var(--surface-2); }
         .cat-group-body .card:last-child { margin-bottom: 0; }
         /* ─── LECTURES AELF (éditeur de messe) ─── */
         .aelf-panel { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; }
@@ -517,6 +526,9 @@
         .drawer-overlay.open .drawer-backdrop { opacity: 1; }
         .drawer-panel { position: absolute; top: 0; left: 0; bottom: 0; width: min(380px, 86vw); background: var(--surface); border-right: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateX(-100%); transition: transform var(--t-slow) var(--ease-out); display: flex; flex-direction: column; }
         .drawer-overlay.open .drawer-panel { transform: translateX(0); }
+        /* Variante « Paramètres » : glisse depuis la droite plutôt que la gauche. */
+        .drawer-panel.drawer-panel-right { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); transform: translateX(100%); }
+        .drawer-overlay.open .drawer-panel.drawer-panel-right { transform: translateX(0); }
         @supports (padding: env(safe-area-inset-top)) { .drawer-panel { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); } }
         .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-md); padding: var(--sp-lg); border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .drawer-head h3 { font-size: 17px; font-weight: 700; color: var(--text); margin: 0; }
@@ -577,6 +589,10 @@
         #edit-song-modal.open { display: flex; }
         .card-edit-btn { color: var(--text-3); }
         .card-edit-btn:hover { color: var(--accent); background: var(--accent-dim); }
+
+        /* ─── DEMANDE D'AJOUT DE CHANT ─── */
+        #song-request-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #song-request-modal.open { display: flex; }
 
         /* ─── ONBOARDING (première visite) ─── */
         #onboarding-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 8000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
@@ -795,7 +811,7 @@
 
 <div id="settings-modal" class="drawer-overlay">
     <div class="drawer-backdrop" onclick="closeSettings()"></div>
-    <div class="drawer-panel">
+    <div class="drawer-panel drawer-panel-right">
         <div class="drawer-head">
             <h3>Paramètres</h3>
             <button class="btn btn-icon" onclick="closeSettings()" aria-label="Fermer">
@@ -912,6 +928,30 @@
             </div>
         </div>
 
+        <div class="settings-section">
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-users"/></svg>À propos</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Qui sommes-nous ?</div>
+                    <div class="settings-row-desc">Découvrez le projet Cantus Pro et contactez-nous.</div>
+                </div>
+                <a class="btn btn-ghost" href="contact.html">
+                    <svg class="icon icon-sm"><use href="#ico-users"/></svg>
+                    Découvrir
+                </a>
+            </div>
+            <div class="settings-row" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Un chant manque ?</div>
+                    <div class="settings-row-desc">Suggérez-nous l'ajout d'un chant à la bibliothèque.</div>
+                </div>
+                <button class="btn btn-ghost" onclick="openSongRequestModal()">
+                    <svg class="icon icon-sm"><use href="#ico-message"/></svg>
+                    Demander l'ajout d'un chant
+                </button>
+            </div>
+        </div>
+
         <div id="admin-section" class="settings-section"></div>
         </div>
     </div>
@@ -960,6 +1000,28 @@
         <button class="btn btn-primary" style="width:100%;" onclick="submitImportPartition()" id="import-submit-btn">
             <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
             Envoyer sur GitHub
+        </button>
+    </div>
+</div>
+
+<div id="song-request-modal">
+    <div class="settings-card" style="max-width: 420px;">
+        <div class="settings-head">
+            <h3>Demander l'ajout d'un chant</h3>
+            <button class="btn btn-icon" onclick="closeSongRequestModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <p class="settings-note" style="margin-bottom: var(--sp-md);">
+            Un chant vous manque dans la bibliothèque ? Indiquez-nous son nom et son interprète, on regarde ça dès que possible.
+        </p>
+        <input type="text" id="song-request-name" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
+        <input type="text" id="song-request-artist" class="input-field" placeholder="Artiste / interprète" style="margin-bottom: var(--sp-sm);">
+        <input type="email" id="song-request-email" class="input-field" placeholder="Votre email (facultatif, pour vous répondre)" style="margin-bottom: var(--sp-md);">
+        <div id="song-request-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitSongRequest()" id="song-request-submit-btn">
+            <svg class="icon icon-sm"><use href="#ico-message"></use></svg>
+            Envoyer la demande
         </button>
     </div>
 </div>
@@ -1853,6 +1915,56 @@
         const el = document.getElementById('import-modal-error');
         el.textContent = msg || '';
         el.style.display = msg ? 'block' : 'none';
+    }
+
+    /* ─── DEMANDE D'AJOUT DE CHANT (formulaire Formspree) ─── */
+    function openSongRequestModal() {
+        document.getElementById('song-request-name').value = '';
+        document.getElementById('song-request-artist').value = '';
+        document.getElementById('song-request-email').value = '';
+        setSongRequestError('');
+        document.getElementById('song-request-modal').classList.add('open');
+    }
+
+    function closeSongRequestModal() {
+        document.getElementById('song-request-modal').classList.remove('open');
+    }
+
+    function setSongRequestError(msg) {
+        const el = document.getElementById('song-request-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    async function submitSongRequest() {
+        const name = document.getElementById('song-request-name').value.trim();
+        const artist = document.getElementById('song-request-artist').value.trim();
+        const email = document.getElementById('song-request-email').value.trim();
+        if (!name) { setSongRequestError('Indiquez au moins le nom du chant.'); return; }
+
+        const btn = document.getElementById('song-request-submit-btn');
+        btn.disabled = true;
+        setSongRequestError('');
+
+        try {
+            const res = await fetch('https://formspree.io/f/mrpbqjwj', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new URLSearchParams({
+                    _subject: "Demande d'ajout de chant — Cantus Pro",
+                    'Nom du chant': name,
+                    'Artiste': artist || '(non précisé)',
+                    'Email de réponse': email || '(non précisé)'
+                })
+            });
+            if (!res.ok) throw new Error('Réponse non OK');
+            closeSongRequestModal();
+            showToast('Demande envoyée, merci !');
+        } catch (err) {
+            setSongRequestError("Échec de l'envoi. Vérifiez votre connexion et réessayez.");
+        } finally {
+            btn.disabled = false;
+        }
     }
 
     function setImportMode(mode) {
@@ -3187,6 +3299,15 @@
         } else if (v === 'live') {
             renderLiveView();
         }
+
+        // Rejoue l'animation d'entrée à chaque changement d'onglet : on retire la classe, on force
+        // un reflow (lecture de offsetWidth), puis on la remet, sinon le navigateur ne redéclenche
+        // pas la keyframe sur un élément qui la porte déjà.
+        if (c) {
+            c.classList.remove('view-enter');
+            void c.offsetWidth;
+            c.classList.add('view-enter');
+        }
     }
 
     function renderCategorySelect(id, target) {
@@ -3449,18 +3570,30 @@
                 <button class="cat-group-header" onclick="toggleLibCategory('${g.key}')">
                     <span>${escHtml(g.label)}</span>
                     <span class="cat-group-count">${g.items.length}</span>
-                    <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}"><use href="#ico-chevron"/></svg>
+                    <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}" id="cat-chevron-${g.key}"><use href="#ico-chevron"/></svg>
                 </button>
-                ${isOpen ? `<div class="cat-group-body">${renderList(g.items, 'ico-music', '')}</div>` : ''}
+                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="cat-wrap-${g.key}"><div class="cat-group-body">${renderList(g.items, 'ico-music', '')}</div></div>
             </div>`;
         }).join('');
     }
 
     function toggleLibCategory(key) {
-        if (expandedLibCategories.has(key)) expandedLibCategories.delete(key);
+        const wasOpen = expandedLibCategories.has(key);
+        if (wasOpen) expandedLibCategories.delete(key);
         else expandedLibCategories.add(key);
-        const el = document.getElementById('lib-list');
-        if (el) el.innerHTML = renderLibraryList();
+
+        // On bascule juste les classes sur les éléments déjà présents dans le DOM (au lieu de
+        // ré-injecter tout le HTML de la liste) : c'est ce qui permet à l'animation de déroulé
+        // CSS de jouer réellement, un ré-render complet la ferait apparaître d'un coup.
+        const wrap = document.getElementById('cat-wrap-' + key);
+        const chevron = document.getElementById('cat-chevron-' + key);
+        if (wrap && chevron) {
+            wrap.classList.toggle('open', !wasOpen);
+            chevron.classList.toggle('open', !wasOpen);
+        } else {
+            const el = document.getElementById('lib-list');
+            if (el) el.innerHTML = renderLibraryList();
+        }
     }
 
     // Conservé pour compatibilité si appelé ailleurs
