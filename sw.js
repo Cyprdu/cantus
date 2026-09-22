@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantus-app-shell-v14';
+const CACHE_NAME = 'cantus-app-shell-v15';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
@@ -13,15 +13,20 @@ const ASSETS = [
     // pointe directement vers l'URL canonique, sans jamais passer par la redirection.
     './',
     'favicon.ico',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
-    // Les scripts MediaPipe (camera_utils, face_mesh) ne sont plus pré-cachés ici : ils sont
-    // chargés à la demande par ensureFaceMeshEngine() uniquement si la reconnaissance faciale
-    // est activée, puis mis en cache à la volée par le fetch handler ci-dessous comme le reste.
+    // Librairies tierces : servies localement depuis bibliotheque/ (téléchargées une fois pour
+    // toutes dans le dépôt) plutôt que depuis un CDN externe, pour que l'app reste fonctionnelle
+    // même si ce CDN venait à disparaître ou à être injoignable.
+    'bibliotheque/pdfjs/pdf.min.js',
+    'bibliotheque/pdfjs/pdf.worker.min.js',
+    'bibliotheque/sortable/Sortable.min.js',
+    'bibliotheque/lz-string/lz-string.min.js',
+    'bibliotheque/qrious/qrious.min.js',
+    'bibliotheque/jsqr/jsQR.js'
+    // Les scripts MediaPipe (camera_utils, face_mesh) ne sont pas pré-cachés ici (gros fichiers
+    // .wasm/.data inutiles à la quasi-totalité des utilisateurs) : ils sont chargés à la demande
+    // par ensureFaceMeshEngine() uniquement si la reconnaissance faciale est activée, puis mis en
+    // cache à la volée par le fetch handler ci-dessous comme le reste. Ils sont servis depuis
+    // bibliotheque/mediapipe/ au lieu d'un CDN externe.
 ];
 
 // 1. Installation : Télécharge et met en cache l'application de base

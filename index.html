@@ -26,19 +26,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cantus Pro">
 
-    <!-- Connexions anticipées vers les origines critiques : le handshake TLS se fait en parallèle
-         du parsing HTML au lieu d'attendre le premier fetch, ce qui accélère le premier chargement
-         des librairies CDN et de la bibliothèque/partitions GitHub. -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <!-- Connexions anticipées vers les origines critiques utilisées pour la bibliothèque/partitions
+         GitHub (les librairies JS, elles, sont servies localement depuis bibliotheque/, voir plus bas). -->
     <link rel="preconnect" href="https://api.github.com">
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Librairies tierces servies localement depuis bibliotheque/ (et non plus depuis un CDN externe)
+         afin que l'application reste fonctionnelle même si le CDN d'origine est indisponible. -->
+    <script src="bibliotheque/pdfjs/pdf.min.js"></script>
+    <script src="bibliotheque/sortable/Sortable.min.js"></script>
+    <script src="bibliotheque/lz-string/lz-string.min.js"></script>
+    <script src="bibliotheque/qrious/qrious.min.js"></script>
     <!-- Lecture de QR code (Mode Live) : décodage local dans le navigateur, aucun envoi réseau -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="bibliotheque/jsqr/jsQR.js"></script>
     <!-- Scripts MediaPipe Face Mesh & Camera : chargés à la demande uniquement (voir ensureFaceMeshEngine),
          car ce sont de grosses librairies dont la quasi-totalité des utilisateurs n'a jamais besoin
          (reconnaissance faciale désactivée par défaut) — inutile de ralentir le premier chargement pour ça. -->
@@ -1262,7 +1262,7 @@
     }
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'bibliotheque/pdfjs/pdf.worker.min.js';
 
     /* ══════════════════════════════════════════
        MISE À JOUR DE L'APPLICATION (sans re-télécharger les partitions)
@@ -3497,14 +3497,14 @@
         if (!faceMeshEnginePromise) {
             faceMeshEnginePromise = (async () => {
                 await Promise.all([
-                    loadScriptOnce('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
-                    loadScriptOnce('https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js')
+                    loadScriptOnce('bibliotheque/mediapipe/camera_utils/camera_utils.js'),
+                    loadScriptOnce('bibliotheque/mediapipe/face_mesh/face_mesh.js')
                 ]);
 
                 const videoElement = document.getElementById('webcam');
 
                 faceMeshInstance = new FaceMesh({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+                    locateFile: (file) => `bibliotheque/mediapipe/face_mesh/${file}`
                 });
 
                 faceMeshInstance.setOptions({
