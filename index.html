@@ -606,8 +606,24 @@
         .dl-bar { width: 100%; height: 8px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: var(--sp-sm); }
         .dl-fill { height: 100%; background: var(--accent); border-radius: 20px; transition: width var(--t-base) var(--ease); width: 0%; }
         .dl-count { font-size: 0.78rem; color: var(--text-3); }
-        .dl-dismiss { margin-top: var(--sp-lg); background: none; border: none; color: var(--text-3); font-size: 11px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 6px; }
-        .dl-dismiss:hover { color: var(--text-2); }
+
+        /* ─── PASTILLE DE TÉLÉCHARGEMENT PERSISTANTE ───
+           Reste visible sur tous les écrans (sauf mode performance, couvert par un fond opaque de
+           z-index supérieur) tant qu'un téléchargement est actif ou en pause — voir dlNotify(). */
+        #dl-pill { position: fixed; right: var(--sp-lg); bottom: var(--sp-lg); z-index: 8000; display: none; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 8px; box-shadow: var(--shadow-lg); cursor: pointer; max-width: calc(100vw - 2 * var(--sp-lg)); }
+        #dl-pill.open { display: flex; }
+        .dl-pill-ring { --pct: 0; position: relative; width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--accent) calc(var(--pct) * 1%), var(--surface-3) 0); transition: background var(--t-fast) var(--ease); }
+        .dl-pill-ring::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--surface); }
+        .dl-pill-ring svg { position: relative; width: 15px; height: 15px; color: var(--accent); animation: dl-pulse 1.4s ease-in-out infinite; }
+        #dl-pill.paused .dl-pill-ring { background: var(--surface-3); }
+        #dl-pill.paused .dl-pill-ring svg { color: var(--text-3); animation: none; }
+        .dl-pill-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .dl-pill-title { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dl-pill-sub { font-size: 10.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dl-pill-toggle { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+        .dl-pill-toggle svg { width: 14px; height: 14px; }
+        .dl-pill-toggle:hover { background: var(--accent-dim); color: var(--accent); }
+        @supports (padding: env(safe-area-inset-bottom)) { #dl-pill { bottom: calc(var(--sp-lg) + env(safe-area-inset-bottom)); } }
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
@@ -643,6 +659,7 @@
         <symbol id="ico-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
         <symbol id="ico-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
         <symbol id="ico-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+        <symbol id="ico-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></symbol>
         <symbol id="ico-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
         <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="ico-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></symbol>
@@ -993,10 +1010,13 @@
     <div class="dl-card">
         <div class="dl-icon-wrap"><svg class="icon"><use href="#ico-download"></use></svg></div>
         <h3>Téléchargement des partitions…</h3>
-        <p>Ne quittez pas l'application et ne touchez pas votre appareil pendant le téléchargement, pour ne pas le ralentir.</p>
+        <p>Le téléchargement continue même en arrière-plan. Ouvrir une partition pas encore téléchargée la fait passer en priorité, sans attendre le reste.</p>
         <div class="dl-bar"><div class="dl-fill" id="dl-fill"></div></div>
         <div class="dl-count" id="dl-count">0 / 0 partitions</div>
-        <button class="dl-dismiss" onclick="dismissDownloadOverlay()">Continuer en arrière-plan</button>
+        <div style="display:flex; gap:8px; margin-top: var(--sp-lg);">
+            <button class="btn btn-ghost" style="flex:1;" id="dl-overlay-pause-btn" onclick="toggleDownloadPause()">Mettre en pause</button>
+            <button class="btn btn-ghost" style="flex:1;" onclick="dismissDownloadOverlay()">Arrière-plan</button>
+        </div>
     </div>
 </div>
 
@@ -1010,6 +1030,17 @@
         </div>
         <div id="offline-download-body"></div>
     </div>
+</div>
+
+<div id="dl-pill" onclick="openOfflineDownloadModal()" role="button" aria-label="Voir la progression du téléchargement">
+    <div class="dl-pill-ring" id="dl-pill-ring"><svg class="icon"><use href="#ico-download"></use></svg></div>
+    <div class="dl-pill-text">
+        <div class="dl-pill-title" id="dl-pill-title">Téléchargement…</div>
+        <div class="dl-pill-sub" id="dl-pill-sub">0%</div>
+    </div>
+    <button class="dl-pill-toggle" id="dl-pill-toggle" onclick="toggleDownloadPause(event)" aria-label="Mettre en pause">
+        <svg class="icon"><use href="#ico-pause" id="dl-pill-toggle-icon"></use></svg>
+    </button>
 </div>
 
 <div id="performance-mode" style="display: none;">
@@ -2589,14 +2620,25 @@
        refreshCachedUrlSet, un seul appel à cache.keys() plutôt qu'un cache.match()
        par chant) pour pouvoir afficher l'état téléchargé/non téléchargé de chaque
        chant instantanément dans les listes, sans requête asynchrone à chaque rendu.
+
+       Le gestionnaire ci-dessous (objet `dl`) remplace l'ancien téléchargement "tout ou
+       rien" par une file d'attente persistante et pilotable :
+       - pause/reprise réelles (AbortController, pas un simple booléen ignoré) ;
+       - vitesse glissante sur 10s + estimation du temps restant ;
+       - une pastille (#dl-pill) visible sur tous les écrans tant qu'un téléchargement est
+         actif ou en pause, même après avoir fermé la modale ou l'overlay initial ;
+       - surtout : dlFetchPriority() interrompt immédiatement la file de fond dès qu'on
+         veut LIRE une partition pas encore en cache, pour ne jamais laisser la lecture
+         attendre derrière un téléchargement de masse (le bug historique où ouvrir une
+         partition pouvait rester bloqué de longues minutes sur une connexion limitée).
     ══════════════════════════════════════════ */
-    // 8 requêtes en parallèle : raw.githubusercontent.com est servi par un CDN (Fastly) qui encaisse
-    // largement ce niveau de parallélisme, et les PDF de partitions sont petits (quelques centaines
-    // de Ko) — davantage de parallélisme raccourcit surtout le temps total sur un gros lot au premier
-    // lancement, sans risque de saturer la mémoire vu la taille des fichiers.
-    const DOWNLOAD_CONCURRENCY = 8;
+    // raw.githubusercontent.com encaisse largement plus de parallélisme côté serveur (CDN Fastly),
+    // mais la limite réelle est la bande passante du visiteur (wifi d'église, 4G en intérieur) :
+    // 4 requêtes de front laissent de la marge pour qu'une lecture prioritaire (dlFetchPriority)
+    // démarre vite dès l'abandon des requêtes de fond, sans pour autant ralentir un gros lot.
+    const DOWNLOAD_CONCURRENCY = 4;
     const BULK_DOWNLOAD_THRESHOLD = 6; // au-delà, on affiche l'overlay de progression
-    let downloadOverlayDismissed = false;
+    const DOWNLOAD_MAX_RETRIES = 3;
     let cachedUrlSet = new Set();
 
     function resolveUrl(u) { return new URL(u, location.href).href; }
@@ -2621,66 +2663,265 @@
         return (bytes / 1024 / 1024).toFixed(1) + ' Mo';
     }
 
+    function formatETA(sec) {
+        if (sec == null || !isFinite(sec)) return null;
+        if (sec < 60) return 'moins d\'1 min';
+        const min = Math.round(sec / 60);
+        if (min < 60) return `~${min} min`;
+        const h = Math.floor(min / 60), m = min % 60;
+        return `~${h} h${m ? ' ' + m + ' min' : ''}`;
+    }
+
     async function getMissingSongs(songs) {
         await refreshCachedUrlSet();
         return songs.filter(s => !isSongDownloaded(s));
     }
 
-    async function downloadPDFs(songs, onProgress) {
-        if (!('caches' in window) || songs.length === 0) {
-            if (onProgress) onProgress(songs.length, songs.length, 0, 0);
-            return;
-        }
-        const cache = await caches.open(PDF_CACHE_NAME);
-        const total = songs.length;
-        const totalBytes = songs.reduce((sum, s) => sum + (s.size || 0), 0);
-        let done = 0, doneBytes = 0;
-        let cursor = 0;
+    /* ─── ÉTAT DU GESTIONNAIRE DE TÉLÉCHARGEMENTS ─── */
+    const dl = {
+        queue: [],                      // chants en attente
+        activeControllers: new Map(),   // songId -> AbortController des requêtes en cours
+        paused: localStorage.getItem('cantus_dl_paused') === 'true',
+        yielding: false,                // pause technique et temporaire (lecture prioritaire), distincte d'une pause utilisateur
+        total: 0, done: 0, totalBytes: 0, doneBytes: 0,
+        failed: [],                     // chants ayant épuisé leurs essais
+        overlayDismissed: false,
+        speedSamples: [],               // {t, bytes} glissant sur 10s, pour l'ETA
+    };
+    let dlActiveCount = 0; // nombre de fetch effectivement en vol (workers occupés)
 
-        async function worker() {
-            while (cursor < songs.length) {
-                const song = songs[cursor++];
-                try {
-                    const res = await fetch(song.url);
-                    if (res.ok) await cache.put(song.url, res);
-                } catch (err) {
-                    console.warn(`Échec du téléchargement pour : ${song.name}`);
+    function dlIsActive() { return dl.queue.length > 0 || dlActiveCount > 0; }
+
+    function dlSetPaused(paused) {
+        dl.paused = paused;
+        localStorage.setItem('cantus_dl_paused', paused ? 'true' : 'false');
+    }
+
+    function dlRecordSpeedSample(bytes) {
+        const now = Date.now();
+        dl.speedSamples.push({ t: now, bytes });
+        const cutoff = now - 10000;
+        dl.speedSamples = dl.speedSamples.filter(s => s.t >= cutoff);
+    }
+
+    function dlEstimate() {
+        if (dl.speedSamples.length < 2) return { etaSec: null };
+        const first = dl.speedSamples[0], last = dl.speedSamples[dl.speedSamples.length - 1];
+        const dt = (last.t - first.t) / 1000;
+        const dBytes = dl.speedSamples.slice(1).reduce((s, x) => s + x.bytes, 0);
+        const bytesPerSec = dt > 0 ? dBytes / dt : 0;
+        const remaining = Math.max(0, dl.totalBytes - dl.doneBytes);
+        return { etaSec: bytesPerSec > 0 ? remaining / bytesPerSec : null };
+    }
+
+    // Télécharge UN chant avec reprise sur erreur (backoff), et remise en tête de file —
+    // sans consommer d'essai ni compter comme un échec — si l'arrêt vient d'un abort()
+    // volontaire (pause utilisateur ou cession de priorité à une lecture).
+    async function dlFetchOne(song) {
+        const cache = await caches.open(PDF_CACHE_NAME);
+        for (let attempt = 1; attempt <= DOWNLOAD_MAX_RETRIES; attempt++) {
+            const controller = new AbortController();
+            dl.activeControllers.set(song.id, controller);
+            try {
+                const res = await fetch(song.url, { signal: controller.signal, priority: 'low' });
+                dl.activeControllers.delete(song.id);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                await cache.put(song.url, res);
+                return true;
+            } catch (err) {
+                dl.activeControllers.delete(song.id);
+                if (err.name === 'AbortError') {
+                    dl.queue.unshift(song);
+                    return null;
                 }
-                done++;
-                doneBytes += song.size || 0;
-                if (onProgress) onProgress(done, total, doneBytes, totalBytes);
+                if (attempt >= DOWNLOAD_MAX_RETRIES) {
+                    console.warn(`Échec du téléchargement (${attempt} essais) pour : ${song.name}`, err);
+                    return false;
+                }
+                await new Promise(r => setTimeout(r, 500 * attempt));
+            }
+        }
+        return false;
+    }
+
+    async function dlRunOne(song) {
+        if (isSongDownloaded(song)) { dlNotify(); return; }
+        dlActiveCount++;
+        const ok = await dlFetchOne(song);
+        dlActiveCount--;
+        if (ok === null) { dlNotify(); dlPump(); return; } // requeued par dlFetchOne
+        dl.done++;
+        dl.doneBytes += song.size || 0;
+        if (ok === false) dl.failed.push(song);
+        else dlRecordSpeedSample(song.size || 0);
+        dlNotify();
+        dlPump();
+    }
+
+    // Planificateur : relance des workers tant qu'il y a de la place (DOWNLOAD_CONCURRENCY) et
+    // que la file n'est ni en pause ni cédée à une lecture prioritaire. Rappelé après chaque
+    // téléchargement individuel terminé (voir dlRunOne) plutôt que d'utiliser un pool figé, pour
+    // absorber naturellement les pause/reprise et ajouts en cours de route.
+    function dlPump() {
+        if (dl.paused || dl.yielding) return;
+        while (dlActiveCount < DOWNLOAD_CONCURRENCY && dl.queue.length > 0) {
+            dlRunOne(dl.queue.shift());
+        }
+        if (dl.queue.length === 0 && dlActiveCount === 0) dlOnQueueDrained();
+    }
+
+    function dlOnQueueDrained() {
+        if (dl.total === 0) return; // rien n'a jamais démarré, rien à annoncer
+        const hadFailed = dl.failed.length > 0;
+        const suffix = hadFailed ? ` (${dl.failed.length} échec${dl.failed.length > 1 ? 's' : ''})` : '';
+        if (!dl.overlayDismissed) {
+            document.getElementById('download-overlay').classList.remove('open');
+            showToast('Téléchargement des partitions terminé' + suffix + '.');
+        } else {
+            showToast('Téléchargement terminé en arrière-plan' + suffix + '.');
+        }
+        dl.total = 0; dl.done = 0; dl.totalBytes = 0; dl.doneBytes = 0;
+        dl.overlayDismissed = false;
+        dlSetPaused(false);
+        refreshCachedUrlSet().then(() => {
+            refreshActiveList();
+            updateOfflineStorageDesc();
+            dlNotify();
+        });
+    }
+
+    // Ajoute des chants à la file de fond, en fusionnant avec un téléchargement déjà en cours
+    // plutôt que d'en écraser la progression (ex. : lancer une messe pendant que la bibliothèque
+    // entière télécharge déjà). Ne démarre rien de nouveau si l'utilisateur a mis en pause.
+    function dlEnqueue(songs) {
+        const already = new Set(dl.queue.map(s => s.id));
+        const alreadyFailed = new Set(dl.failed.map(s => s.id));
+        const toAdd = songs.filter(s => !isSongDownloaded(s) && !already.has(s.id) && !alreadyFailed.has(s.id) && !dl.activeControllers.has(s.id));
+        if (toAdd.length === 0) return;
+        dl.queue.push(...toAdd);
+        dl.total += toAdd.length;
+        dl.totalBytes += toAdd.reduce((s, x) => s + (x.size || 0), 0);
+        dlNotify();
+        dlPump();
+    }
+
+    function dlPause() {
+        dlSetPaused(true);
+        for (const c of dl.activeControllers.values()) c.abort();
+        dlNotify();
+    }
+
+    function dlResume() {
+        dlSetPaused(false);
+        dlNotify();
+        dlPump();
+    }
+
+    function toggleDownloadPause(event) {
+        if (event) event.stopPropagation();
+        if (dl.paused) dlResume(); else dlPause();
+    }
+
+    function cancelDownload() {
+        for (const c of dl.activeControllers.values()) c.abort();
+        dl.queue = []; dl.failed = [];
+        dl.total = 0; dl.done = 0; dl.totalBytes = 0; dl.doneBytes = 0;
+        dlSetPaused(false);
+        document.getElementById('download-overlay').classList.remove('open');
+        dlNotify();
+    }
+
+    function retryFailedDownloads() {
+        const retry = dl.failed;
+        dl.failed = [];
+        dlEnqueue(retry);
+        renderOfflineModalBody();
+    }
+
+    // Dès que la connexion revient, retente silencieusement ce qui avait échoué (utile après une
+    // coupure wifi d'église ou un passage en zone blanche) plutôt que de laisser l'utilisateur
+    // devoir rouvrir les Paramètres pour relancer manuellement.
+    window.addEventListener('online', () => {
+        if (dl.failed.length > 0) {
+            const retry = dl.failed;
+            dl.failed = [];
+            dlEnqueue(retry);
+            showToast('Connexion retrouvée — nouvel essai des téléchargements en échec.');
+        }
+    });
+
+    // Cœur du correctif "attente de plusieurs minutes avant d'afficher une partition" : dès que
+    // l'utilisateur veut LIRE un chant pas encore en cache, on coupe net les requêtes de fond en
+    // vol (elles libèrent la bande passante et se remettent en file automatiquement via
+    // dlFetchOne), on télécharge ce seul fichier en priorité, puis on relance la file de fond.
+    // Utilisée à la fois par loadItem() (lecture) et toggleSongDownload() (téléchargement manuel
+    // d'un chant précis), pour ne jamais laisser une action explicite de l'utilisateur poireauter
+    // derrière un téléchargement de masse en cours.
+    async function dlFetchPriority(song) {
+        if (!song || !('caches' in window)) return false;
+        await refreshCachedUrlSet();
+        if (isSongDownloaded(song)) return true;
+
+        dl.queue = dl.queue.filter(s => s.id !== song.id);
+        const wasYielding = dl.yielding;
+        dl.yielding = true;
+        for (const c of dl.activeControllers.values()) c.abort();
+        dlNotify();
+
+        let ok = false;
+        try {
+            const cache = await caches.open(PDF_CACHE_NAME);
+            const res = await fetch(song.url, { priority: 'high' });
+            if (res.ok) {
+                await cache.put(song.url, res);
+                ok = true;
+                dl.failed = dl.failed.filter(s => s.id !== song.id);
+            }
+        } catch (e) {
+            // Pas grave pour la lecture : pdfjsLib.getDocument retentera lui-même la requête.
+        }
+
+        if (!wasYielding) {
+            dl.yielding = false;
+            dlPump();
+        }
+        await refreshCachedUrlSet();
+        dlNotify();
+        return ok;
+    }
+
+    /* ─── UI : PASTILLE PERSISTANTE + OVERLAY PLEIN ÉCRAN ─── */
+    function dlNotify() {
+        const pill = document.getElementById('dl-pill');
+        const active = dlIsActive();
+        if (pill) {
+            pill.classList.toggle('open', active);
+            pill.classList.toggle('paused', dl.paused);
+            if (active) {
+                const pct = dl.total > 0 ? Math.round((dl.done / dl.total) * 100) : 0;
+                document.getElementById('dl-pill-ring').style.setProperty('--pct', pct);
+                const remaining = dl.total - dl.done;
+                document.getElementById('dl-pill-title').textContent = dl.paused
+                    ? `En pause — ${dl.done}/${dl.total}`
+                    : `Téléchargement — ${pct}%`;
+                let sub;
+                if (dl.paused) {
+                    sub = `${remaining} partition${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}`;
+                } else {
+                    const eta = formatETA(dlEstimate().etaSec);
+                    sub = `${dl.done}/${dl.total} · ${formatBytes(dl.doneBytes)}/${formatBytes(dl.totalBytes)}${eta ? ' · ' + eta : ''}`;
+                }
+                document.getElementById('dl-pill-sub').textContent = sub;
+                document.getElementById('dl-pill-toggle-icon').setAttribute('href', dl.paused ? '#ico-play' : '#ico-pause');
+                document.getElementById('dl-pill-toggle').setAttribute('aria-label', dl.paused ? 'Reprendre le téléchargement' : 'Mettre en pause');
             }
         }
 
-        await Promise.all(Array.from({ length: Math.min(DOWNLOAD_CONCURRENCY, songs.length) }, worker));
-        await refreshCachedUrlSet();
-    }
+        updateDownloadProgress(dl.done, dl.total, dl.doneBytes, dl.totalBytes);
+        const overlayPauseBtn = document.getElementById('dl-overlay-pause-btn');
+        if (overlayPauseBtn) overlayPauseBtn.textContent = dl.paused ? 'Reprendre' : 'Mettre en pause';
 
-    // Point d'entrée appelé après chaque synchronisation de bibliothèque : ne fait rien tant que
-    // le mode hors-ligne n'est pas activé par l'utilisateur, télécharge silencieusement les
-    // nouveautés en arrière-plan si elles sont peu nombreuses (un ajout ponctuel), ou affiche la
-    // barre de progression bloquante pour un gros volume (beaucoup d'ajouts d'un coup). Le tout
-    // premier téléchargement massif passe par openOfflineDownloadModal(), pas ici.
-    async function syncOfflineCache(songs) {
-        if (!settings.offlineMode || !('caches' in window)) return;
-        const missing = await getMissingSongs(songs);
-        if (missing.length === 0 || missing.length > BULK_DOWNLOAD_THRESHOLD) return;
-        await downloadPDFs(missing);
-        refreshActiveList();
-    }
-
-    async function runBulkDownload(songs) {
-        downloadOverlayDismissed = false;
-        const overlay = document.getElementById('download-overlay');
-        updateDownloadProgress(0, songs.length, 0, songs.reduce((s, x) => s + (x.size || 0), 0));
-        overlay.classList.add('open');
-
-        await downloadPDFs(songs, updateDownloadProgress);
-
-        overlay.classList.remove('open');
-        if (!downloadOverlayDismissed) showToast('Téléchargement des partitions terminé.');
-        refreshActiveList();
-        updateOfflineStorageDesc();
+        if (document.getElementById('offline-download-modal').classList.contains('open')) renderOfflineModalBody();
     }
 
     function updateDownloadProgress(done, total, doneBytes, totalBytes) {
@@ -2694,30 +2935,49 @@
     }
 
     function dismissDownloadOverlay() {
-        downloadOverlayDismissed = true;
+        dl.overlayDismissed = true;
         document.getElementById('download-overlay').classList.remove('open');
-        showToast('Téléchargement poursuivi en arrière-plan.');
+        showToast('Téléchargement poursuivi en arrière-plan — suivez sa progression via la pastille en bas de l\'écran.');
+    }
+
+    // Point d'entrée appelé après chaque synchronisation de bibliothèque : ne fait rien tant que
+    // le mode hors-ligne n'est pas activé par l'utilisateur, télécharge silencieusement les
+    // nouveautés en arrière-plan si elles sont peu nombreuses (un ajout ponctuel), ou affiche la
+    // barre de progression bloquante pour un gros volume (beaucoup d'ajouts d'un coup). Le tout
+    // premier téléchargement massif passe par openOfflineDownloadModal(), pas ici.
+    async function syncOfflineCache(songs) {
+        if (!settings.offlineMode || !('caches' in window)) return;
+        const missing = await getMissingSongs(songs);
+        if (missing.length === 0 || missing.length > BULK_DOWNLOAD_THRESHOLD) return;
+        dlEnqueue(missing);
+    }
+
+    function runBulkDownload(songs) {
+        if (!songs || songs.length === 0) return;
+        dl.overlayDismissed = false;
+        // Une action explicite de lancement (bouton "Tout télécharger", téléchargement d'une messe
+        // ou playlist) doit démarrer tout de suite, même si une pause était restée active depuis
+        // une session précédente (voir cantus_dl_paused) — l'utilisateur vient de redemander le
+        // téléchargement, ça n'aurait aucun sens de le laisser silencieusement en pause.
+        dlSetPaused(false);
+        document.getElementById('download-overlay').classList.add('open');
+        dlEnqueue(songs);
     }
 
     // Bascule le téléchargement hors-ligne d'UN chant précis, depuis son bouton dans une liste
-    // (bibliothèque, playlist, messe…). Indépendant du téléchargement en masse ci-dessus.
+    // (bibliothèque, playlist, messe…). Passe par dlFetchPriority pour ne jamais rester coincé
+    // derrière un téléchargement de masse en cours.
     async function toggleSongDownload(songId, event) {
         if (event) event.stopPropagation();
         const song = state.songs.find(s => s.id === songId);
         if (!song || !('caches' in window)) return;
-        const cache = await caches.open(PDF_CACHE_NAME);
         if (isSongDownloaded(song)) {
+            const cache = await caches.open(PDF_CACHE_NAME);
             await cache.delete(song.url);
             showToast(`"${song.name}" retirée du hors-ligne.`);
         } else {
-            try {
-                const res = await fetch(song.url);
-                if (!res.ok) throw new Error('Réponse réseau invalide');
-                await cache.put(song.url, res);
-                showToast(`"${song.name}" téléchargée.`);
-            } catch (e) {
-                showToast('Échec du téléchargement.');
-            }
+            const ok = await dlFetchPriority(song);
+            showToast(ok ? `"${song.name}" téléchargée.` : 'Échec du téléchargement.');
         }
         await refreshCachedUrlSet();
         refreshActiveList();
@@ -2730,6 +2990,8 @@
        restant à télécharger avant de lancer quoi que ce soit, plutôt que de
        tout télécharger silencieusement comme avant. Le téléchargement au cas
        par cas reste possible directement depuis les listes (toggleSongDownload).
+       Affiche aussi, en direct, la progression/pause/échecs d'un téléchargement
+       en cours (voir dlNotify qui la rafraîchit à chaque avancement).
     ── */
     async function updateOfflineStorageDesc() {
         const el = document.getElementById('offline-storage-desc');
@@ -2742,14 +3004,35 @@
     }
 
     async function openOfflineDownloadModal() {
-        const modal = document.getElementById('offline-download-modal');
-        const body = document.getElementById('offline-download-body');
-        modal.classList.add('open');
-        body.innerHTML = `<p class="settings-note">Calcul de la taille…</p>`;
+        document.getElementById('offline-download-modal').classList.add('open');
+        await renderOfflineModalBody();
+    }
 
+    async function renderOfflineModalBody() {
+        const body = document.getElementById('offline-download-body');
+        if (!body) return;
+
+        if (dlIsActive()) {
+            const pct = dl.total > 0 ? Math.round((dl.done / dl.total) * 100) : 0;
+            const eta = !dl.paused ? formatETA(dlEstimate().etaSec) : null;
+            body.innerHTML = `
+                <div class="dl-bar" style="margin-bottom: var(--sp-sm);"><div class="dl-fill" style="width:${pct}%;"></div></div>
+                <p class="settings-note">${dl.paused ? 'En pause — ' : ''}${dl.done} / ${dl.total} partitions (${formatBytes(dl.doneBytes)} / ${formatBytes(dl.totalBytes)})${eta ? ' · ' + eta + ' restant' : ''}</p>
+                ${dl.failed.length > 0 ? `<p class="settings-note" style="color:var(--danger);">${dl.failed.length} échec${dl.failed.length > 1 ? 's' : ''} — nouvel essai automatique dès la reprise ou le retour du réseau.</p>` : ''}
+                <div style="display:flex; gap:8px; margin-top: var(--sp-md);">
+                    <button class="btn btn-primary" style="flex:1;" onclick="toggleDownloadPause()">${dl.paused ? 'Reprendre' : 'Mettre en pause'}</button>
+                    <button class="btn btn-ghost" style="flex:1;" onclick="closeOfflineDownloadModal()">Continuer en arrière-plan</button>
+                </div>`;
+            return;
+        }
+
+        body.innerHTML = `<p class="settings-note">Calcul de la taille…</p>`;
         const missing = await getMissingSongs(state.songs);
         if (missing.length === 0) {
-            body.innerHTML = `<p class="settings-note">Toutes les partitions sont déjà sur cet appareil.</p>`;
+            body.innerHTML = dl.failed.length > 0
+                ? `<p class="settings-note">Toutes les partitions sont sur cet appareil, sauf ${dl.failed.length} en échec.</p>
+                   <button class="btn btn-primary" style="width:100%; margin-top: var(--sp-md);" onclick="retryFailedDownloads()">Réessayer (${dl.failed.length})</button>`
+                : `<p class="settings-note">Toutes les partitions sont déjà sur cet appareil.</p>`;
             return;
         }
         const missingBytes = missing.reduce((sum, s) => sum + (s.size || 0), 0);
@@ -2768,14 +3051,16 @@
     async function startOfflineBulkDownloadFromModal() {
         closeOfflineDownloadModal();
         const missing = await getMissingSongs(state.songs);
-        await runBulkDownload(missing);
+        runBulkDownload(missing);
     }
 
     // Supprime en un coup tout ce qui a été téléchargé pour le hors-ligne (bibliothèque, messes,
-    // playlists confondues) : vide entièrement le cache dédié aux PDF.
+    // playlists confondues) : vide entièrement le cache dédié aux PDF, et annule tout téléchargement
+    // en cours (le conserver n'aurait plus de sens, tout serait aussitôt supprimé).
     async function clearAllDownloads() {
         if (!('caches' in window)) return;
         if (!confirm('Supprimer toutes les partitions téléchargées sur cet appareil ? Vous pourrez les retélécharger à tout moment.')) return;
+        cancelDownload();
         await caches.delete(PDF_CACHE_NAME);
         await refreshCachedUrlSet();
         refreshActiveList();
@@ -2815,7 +3100,7 @@
             updateOfflineStorageDesc();
             showToast(`"${item.name}" retirée du hors-ligne.`);
         } else {
-            await runBulkDownload(songs.filter(s => !isSongDownloaded(s)));
+            runBulkDownload(songs.filter(s => !isSongDownloaded(s)));
         }
     }
 
@@ -3441,7 +3726,19 @@
             updateNavButtonsVisibility();
         } else {
             recordHistory(item);
-            state.pdf = await pdfjsLib.getDocument(item.url).promise;
+            // Si ce chant n'est pas encore en cache, fait céder tout téléchargement de masse en
+            // cours pour le récupérer en priorité (voir dlFetchPriority) : sans ça, lire une
+            // partition pouvait rester bloqué de longues minutes derrière un téléchargement en
+            // arrière-plan sur une connexion limitée (wifi d'église, 4G en intérieur).
+            await dlFetchPriority(item);
+            try {
+                state.pdf = await pdfjsLib.getDocument(item.url).promise;
+            } catch (err) {
+                console.error('Échec du chargement de la partition :', err);
+                showToast(`Impossible de charger "${item.name}" — vérifiez la connexion.`);
+                exitPerformanceToHome();
+                return;
+            }
             state.pageNum = 1;
             state.totalPages = state.pdf.numPages;
             // Chaque chant démarre sur le mode d'affichage par défaut choisi dans les Paramètres ;
