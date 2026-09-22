@@ -212,8 +212,14 @@
            transition de réellement se jouer à chaque clic (voir toggleLibCategory). */
         .cat-group-body-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-slow) var(--ease-out); }
         .cat-group-body-wrap.open { grid-template-rows: 1fr; }
-        .cat-group-body-wrap > .cat-group-body { overflow: hidden; min-height: 0; padding: var(--sp-sm); background: var(--surface-2); }
-        .cat-group-body .card:last-child { margin-bottom: 0; }
+        /* La padding ne doit PAS être sur .cat-group-body (l'item de grille dont la hauteur est
+           animée) : avec box-sizing: border-box, une padding non nulle empêche la piste de grille
+           de vraiment atteindre 0px (elle plafonne à la hauteur de la padding) — c'est ce qui
+           laissait dépasser le haut du premier chant quand la catégorie était repliée. La padding
+           est donc reportée sur .cat-group-body-inner, un enfant normal du bloc replié/clippé. */
+        .cat-group-body-wrap > .cat-group-body { overflow: hidden; min-height: 0; }
+        .cat-group-body-inner { padding: var(--sp-sm); background: var(--surface-2); }
+        .cat-group-body-inner .card:last-child { margin-bottom: 0; }
         /* ─── LECTURES AELF (éditeur de messe) ─── */
         .aelf-panel { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; }
         .aelf-panel-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: var(--sp-xs); }
@@ -3577,7 +3583,7 @@
                     <span class="cat-group-count">${g.items.length}</span>
                     <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}" id="cat-chevron-${g.key}"><use href="#ico-chevron"/></svg>
                 </button>
-                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="cat-wrap-${g.key}"><div class="cat-group-body">${renderList(g.items, 'ico-music', '')}</div></div>
+                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="cat-wrap-${g.key}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderList(g.items, 'ico-music', '')}</div></div></div>
             </div>`;
         }).join('');
     }
