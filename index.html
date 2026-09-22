@@ -524,7 +524,7 @@
         .drawer-overlay.open { visibility: visible; transition-delay: 0s; }
         .drawer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity var(--t-slow) var(--ease); cursor: pointer; }
         .drawer-overlay.open .drawer-backdrop { opacity: 1; }
-        .drawer-panel { position: absolute; top: 0; left: 0; bottom: 0; width: min(380px, 86vw); background: var(--surface); border-right: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateX(-100%); transition: transform var(--t-slow) var(--ease-out); display: flex; flex-direction: column; }
+        .drawer-panel { position: absolute; top: 0; left: 0; bottom: 0; width: min(420px, 90vw); background: var(--surface); border-right: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateX(-100%); transition: transform var(--t-slow) var(--ease-out); display: flex; flex-direction: column; }
         .drawer-overlay.open .drawer-panel { transform: translateX(0); }
         /* Variante « Paramètres » : glisse depuis la droite plutôt que la gauche. */
         .drawer-panel.drawer-panel-right { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); transform: translateX(100%); }
@@ -546,6 +546,11 @@
         .settings-section-title .icon { width: 14px; height: 14px; }
         .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-md); padding: 12px 0; border-bottom: 1px solid var(--border); }
         .settings-row:last-of-type { border-bottom: none; }
+        /* Variante pour les lignes dont le contrôle est un bouton texte (pas un simple toggle) :
+           empile label/description puis bouton pleine largeur, pour ne jamais forcer la description
+           à se replier en colonne étroite au point de chevaucher visuellement le bouton. */
+        .settings-row.settings-row-stack { flex-direction: column; align-items: stretch; }
+        .settings-row-stack .btn { width: 100%; margin-top: var(--sp-xs); }
         .settings-row-label { font-size: 14px; font-weight: 500; color: var(--text); }
         .settings-row-desc { font-size: 12px; color: var(--text-2); margin-top: 2px; }
         .settings-note { font-size: 11px; color: var(--text-3); margin: var(--sp-sm) 0 0; line-height: 1.5; }
@@ -916,7 +921,7 @@
 
         <div class="settings-section">
             <div class="settings-section-title"><svg class="icon"><use href="#ico-music"/></svg>Mes partitions</div>
-            <div class="settings-row" style="border-bottom:none;">
+            <div class="settings-row settings-row-stack" style="border-bottom:none;">
                 <div>
                     <div class="settings-row-label">Importer une partition</div>
                     <div class="settings-row-desc">Ajoutée uniquement sur cet appareil (pas partagée), sauf en mode administrateur où elle devient visible par tout le monde.</div>
@@ -930,7 +935,7 @@
 
         <div class="settings-section">
             <div class="settings-section-title"><svg class="icon"><use href="#ico-users"/></svg>À propos</div>
-            <div class="settings-row">
+            <div class="settings-row settings-row-stack">
                 <div>
                     <div class="settings-row-label">Qui sommes-nous ?</div>
                     <div class="settings-row-desc">Découvrez le projet Cantus Pro et contactez-nous.</div>
@@ -940,7 +945,7 @@
                     Découvrir
                 </a>
             </div>
-            <div class="settings-row" style="border-bottom:none;">
+            <div class="settings-row settings-row-stack" style="border-bottom:none;">
                 <div>
                     <div class="settings-row-label">Un chant manque ?</div>
                     <div class="settings-row-desc">Suggérez-nous l'ajout d'un chant à la bibliothèque.</div>
