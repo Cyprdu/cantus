@@ -26,15 +26,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cantus Pro">
 
+    <!-- Connexions anticipées vers les origines critiques : le handshake TLS se fait en parallèle
+         du parsing HTML au lieu d'attendre le premier fetch, ce qui accélère le premier chargement
+         des librairies CDN et de la bibliothèque/partitions GitHub. -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://api.github.com">
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- Lecture de QR code (Mode Live) : décodage local dans le navigateur, aucun envoi réseau -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-    <!-- Scripts MediaPipe Face Mesh & Camera : chargés une fois, activés uniquement si la reconnaissance faciale est ON dans les paramètres -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <!-- Scripts MediaPipe Face Mesh & Camera : chargés à la demande uniquement (voir ensureFaceMeshEngine),
+         car ce sont de grosses librairies dont la quasi-totalité des utilisateurs n'a jamais besoin
+         (reconnaissance faciale désactivée par défaut) — inutile de ralentir le premier chargement pour ça. -->
 
     <style>
         /* ─── SYSTÈME DE DESIGN (THÈME SOMBRE PAR DÉFAUT) ─── */
@@ -1154,6 +1161,23 @@
         return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
+    // Charge un script externe à la demande (une seule fois même si appelé plusieurs fois en parallèle) —
+    // utilisé pour différer les grosses librairies optionnelles (MediaPipe) hors du chargement initial.
+    const loadedScriptPromises = new Map();
+    function loadScriptOnce(src) {
+        if (!loadedScriptPromises.has(src)) {
+            loadedScriptPromises.set(src, new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.crossOrigin = 'anonymous';
+                s.onload = resolve;
+                s.onerror = () => { loadedScriptPromises.delete(src); reject(new Error('Échec du chargement de ' + src)); };
+                document.head.appendChild(s);
+            }));
+        }
+        return loadedScriptPromises.get(src);
+    }
+
     /* ══════════════════════════════════════════
        CONFIGURATION
     ══════════════════════════════════════════ */
@@ -1361,14 +1385,17 @@
         renderSettingsPanel();
     }
 
-    function setFaceRecoSetting(enabled) {
+    async function setFaceRecoSetting(enabled) {
         settings.faceReco = enabled;
         saveSettings();
         const perfActive = document.getElementById('performance-mode').style.display === 'flex';
         if (perfActive) {
-            if (enabled && cameraInstance) {
-                cameraInstance.start().catch(err => console.warn('Erreur caméra :', err));
-            } else if (!enabled && cameraInstance) {
+            if (enabled) {
+                try {
+                    await ensureFaceMeshEngine();
+                    cameraInstance.start().catch(err => console.warn('Erreur caméra :', err));
+                } catch (e) {}
+            } else if (cameraInstance) {
                 try { cameraInstance.stop(); } catch (e) {}
                 document.getElementById('ind-left').classList.remove('active');
                 document.getElementById('ind-right').classList.remove('active');
@@ -2401,7 +2428,12 @@
             }
         }
 
-        await loadLibrary();
+        // Peint la bibliothèque instantanément avec le cache local (aucune attente réseau) : la
+        // synchronisation fraîche avec GitHub se fait ensuite en arrière-plan, plus bas, et met à
+        // jour l'affichage si besoin une fois arrivée — le démarrage n'est plus jamais bloqué par
+        // la latence de l'API GitHub.
+        loadLibraryFromCache();
+        await refreshCachedUrlSet();
 
         if (importData) {
             showView('planner');
@@ -2455,19 +2487,35 @@
             setZoomScale(state.zoomScale > 1.05 ? 1 : 2.2);
         });
 
-        // Initialisation du moteur MediaPipe Face Mesh (chargé mais inactif tant que la caméra n'est pas démarrée)
-        initFaceMeshEngine();
+        // Moteur MediaPipe Face Mesh : chargé à la demande seulement si l'utilisateur a déjà activé
+        // la reconnaissance faciale (sinon la plupart des utilisateurs n'en ont jamais besoin).
+        if (settings.faceReco) ensureFaceMeshEngine().catch(() => {});
 
         // Assistant de première connexion : explication de l'appli, installation sur l'écran
         // d'accueil et consentement pour le téléchargement hors-ligne (jamais déclenché sans accord).
         if (shouldShowOnboarding()) {
             startOnboarding();
         }
+
+        // Synchronisation réseau avec GitHub en arrière-plan (voir loadLibraryFromCache ci-dessus
+        // pour l'affichage immédiat) : met à jour la liste affichée une fois la réponse arrivée,
+        // sans avoir bloqué le démarrage de l'appli pour l'obtenir.
+        loadLibrary().then(refreshActiveList).catch(() => {});
     }
 
     /* ══════════════════════════════════════════
        LIBRARY SYNC & PRE-CACHING ALL PDFS
     ══════════════════════════════════════════ */
+    // Recharge state.songs depuis le cache localStorage (aucun accès réseau) : sert à peindre la
+    // bibliothèque instantanément au démarrage (voir init()) et de repli si GitHub est injoignable.
+    function loadLibraryFromCache() {
+        const cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
+        state.songs = sortSongsList([
+            ...cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' })),
+            ...loadLocalSongs()
+        ]);
+    }
+
     async function loadLibrary() {
         try {
             // Un seul appel récursif : renvoie tout l'arbre du dépôt (fichiers + dossiers),
@@ -2528,11 +2576,7 @@
             syncOfflineCache(state.songs);
         } catch(e) {
             console.error('Échec de synchronisation avec GitHub :', e);
-            let cached = JSON.parse(localStorage.getItem('cantus_cache')) || [];
-            state.songs = sortSongsList([
-                ...cached.map(s => ({ ...s, name: s.name.toUpperCase(), type: 'song', category: s.category || 'autre' })),
-                ...loadLocalSongs()
-            ]);
+            loadLibraryFromCache();
             setSyncStatus(false);
             await refreshCachedUrlSet();
         }
@@ -2546,7 +2590,11 @@
        par chant) pour pouvoir afficher l'état téléchargé/non téléchargé de chaque
        chant instantanément dans les listes, sans requête asynchrone à chaque rendu.
     ══════════════════════════════════════════ */
-    const DOWNLOAD_CONCURRENCY = 4;
+    // 8 requêtes en parallèle : raw.githubusercontent.com est servi par un CDN (Fastly) qui encaisse
+    // largement ce niveau de parallélisme, et les PDF de partitions sont petits (quelques centaines
+    // de Ko) — davantage de parallélisme raccourcit surtout le temps total sur un gros lot au premier
+    // lancement, sans risque de saturer la mémoire vu la taille des fichiers.
+    const DOWNLOAD_CONCURRENCY = 8;
     const BULK_DOWNLOAD_THRESHOLD = 6; // au-delà, on affiche l'overlay de progression
     let downloadOverlayDismissed = false;
     let cachedUrlSet = new Set();
@@ -3156,31 +3204,49 @@
     /* ══════════════════════════════════════════
        FACE TRACKING RECOGNITION (MEDIAPIPE)
     ══════════════════════════════════════════ */
-    function initFaceMeshEngine() {
-        const videoElement = document.getElementById('webcam');
+    // Charge les librairies MediaPipe et construit les instances Face Mesh / Camera à la demande —
+    // appelé uniquement quand la reconnaissance faciale est réellement activée (voir setFaceRecoSetting
+    // et launchPerformanceConfirmed). Un cache de promesse évite de le refaire si déjà en cours/fait.
+    let faceMeshEnginePromise = null;
+    function ensureFaceMeshEngine() {
+        if (!faceMeshEnginePromise) {
+            faceMeshEnginePromise = (async () => {
+                await Promise.all([
+                    loadScriptOnce('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
+                    loadScriptOnce('https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js')
+                ]);
 
-        faceMeshInstance = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
+                const videoElement = document.getElementById('webcam');
 
-        faceMeshInstance.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6
-        });
+                faceMeshInstance = new FaceMesh({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+                });
 
-        faceMeshInstance.onResults(onFaceResults);
+                faceMeshInstance.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
 
-        cameraInstance = new Camera(videoElement, {
-            onFrame: async () => {
-                if (settings.faceReco && document.getElementById('performance-mode').style.display === 'flex') {
-                    await faceMeshInstance.send({ image: videoElement });
-                }
-            },
-            width: 640,
-            height: 480
-        });
+                faceMeshInstance.onResults(onFaceResults);
+
+                cameraInstance = new Camera(videoElement, {
+                    onFrame: async () => {
+                        if (settings.faceReco && document.getElementById('performance-mode').style.display === 'flex') {
+                            await faceMeshInstance.send({ image: videoElement });
+                        }
+                    },
+                    width: 640,
+                    height: 480
+                });
+            })().catch(err => {
+                faceMeshEnginePromise = null; // permet de réessayer si le chargement a échoué (ex. hors-ligne)
+                console.warn('Échec du chargement du moteur de reconnaissance faciale :', err);
+                throw err;
+            });
+        }
+        return faceMeshEnginePromise;
     }
 
     function triggerIndicator(side) {
@@ -3332,8 +3398,11 @@
         perfEl.classList.remove('show-hud');
         document.getElementById('live-chat-fab').style.display = liveRole !== null ? 'flex' : 'none';
 
-        if (settings.faceReco && cameraInstance) {
-            cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
+        if (settings.faceReco) {
+            try {
+                await ensureFaceMeshEngine();
+                cameraInstance.start().catch(err => console.warn("Erreur caméra :", err));
+            } catch (e) {}
         }
 
         await loadItem();
@@ -3572,7 +3641,11 @@
         const availHeight = window.innerHeight * .95;
         const fitScale = Math.min(availWidth / vp0.width, availHeight / vp0.height);
 
-        const viewport = page.getViewport({ scale: fitScale * window.devicePixelRatio * renderHeadroom });
+        // On plafonne le devicePixelRatio à 2 : au-delà (iPhone Pro en dpr 3, etc.), le gain de
+        // netteté est imperceptible sur une partition mais le coût de rendu explose (proportionnel
+        // au carré du ratio) — ça ralentissait nettement le tournage de page sans bénéfice visible.
+        const effectiveDPR = Math.min(window.devicePixelRatio || 1, 2);
+        const viewport = page.getViewport({ scale: fitScale * effectiveDPR * renderHeadroom });
         canvas.width  = viewport.width;
         canvas.height = viewport.height;
         // La taille CSS reste celle de l'ajustement "1x" : c'est le zoom interactif (CSS transform,
@@ -3587,7 +3660,11 @@
     async function renderPage() {
         if (!state.pdf) return;
         state.pagesPerView = shouldUseDoublePage() ? 2 : 1;
-        const renderHeadroom = state.pagesPerView === 2 ? 2 : MAX_ZOOM;
+        // La marge de résolution pré-rendue permet un zoom interactif (CSS transform) net jusqu'à ce
+        // facteur sans re-rendu. On la garde nettement sous MAX_ZOOM (zoom interactif max) : au-delà,
+        // un léger lissage CSS lors d'un zoom extrême est un compromis largement préférable à rendre
+        // chaque page 2 à 4x plus de pixels que nécessaire (page suivante/précédente qui traîne).
+        const renderHeadroom = state.pagesPerView === 2 ? 2 : Math.min(MAX_ZOOM, 2);
 
         const canvas1 = document.getElementById('pdf-canvas');
         const canvas2 = document.getElementById('pdf-canvas-2');
