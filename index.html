@@ -605,18 +605,29 @@
         #song-request-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
         #song-request-modal.open { display: flex; }
 
-        /* ─── CATÉGORIES PRIVÉES (code de déblocage + gestion admin) ─── */
-        #category-code-modal, #category-manager-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-        #category-code-modal.open, #category-manager-modal.open { display: flex; }
+        /* ─── CODE DE PLAYLIST PUBLIQUE (déblocage) ─── */
+        #playlist-code-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #playlist-code-modal.open { display: flex; }
         .cat-code-input { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: .3em; }
+
+        /* ─── TABLEAU DE BORD ADMIN (catégories + playlists publiques) ───
+           Panneau plein, pas une popup : réutilise exactement le mécanisme du tiroir Paramètres
+           (.drawer-overlay / .drawer-panel.drawer-panel-right / .drawer-head / .drawer-body). */
+        .admin-dash-tabs { margin-bottom: var(--sp-md); }
+        .admin-dash-section { display: none; }
+        .admin-dash-section.active { display: block; }
         .cat-mgr-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); padding: 10px 0; border-bottom: 1px solid var(--border); }
         .cat-mgr-row:last-child { border-bottom: none; }
         .cat-mgr-name { font-size: 13px; font-weight: 600; color: var(--text); }
+        .cat-mgr-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
         .cat-mgr-badge { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 20px; padding: 2px 8px; flex-shrink: 0; }
         .cat-mgr-badge.pub { background: var(--accent-dim); color: var(--accent); }
         .cat-mgr-badge.priv { background: var(--danger-dim); color: var(--danger); }
         .cat-mgr-code { font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
         .cat-mgr-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .pl-editor-song-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .pl-editor-song-row:last-child { border-bottom: none; }
+        .pl-editor-song-row .input-field { flex: 1; }
 
         /* ─── ONBOARDING (première visite) ─── */
         #onboarding-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 8000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
@@ -953,15 +964,15 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Catégories</div>
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Playlists</div>
             <div class="settings-row settings-row-stack" style="border-bottom:none;">
                 <div>
-                    <div class="settings-row-label">Catégorie privée ?</div>
-                    <div class="settings-row-desc">Débloquez une catégorie réservée avec le code à 8 chiffres qu'on vous a communiqué.</div>
+                    <div class="settings-row-label">Playlist réservée ?</div>
+                    <div class="settings-row-desc">Importez une playlist publique avec le code à 8 chiffres qu'on vous a communiqué.</div>
                 </div>
-                <button class="btn btn-ghost" onclick="openCategoryCodeModal()">
+                <button class="btn btn-ghost" onclick="openPlaylistCodeModal()">
                     <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                    Importer un code de catégorie
+                    Importer un code de playlist
                 </button>
             </div>
         </div>
@@ -1067,48 +1078,54 @@
     </div>
 </div>
 
-<div id="category-code-modal">
+<div id="playlist-code-modal">
     <div class="settings-card" style="max-width: 380px;">
         <div class="settings-head">
-            <h3>Importer un code de catégorie</h3>
-            <button class="btn btn-icon" onclick="closeCategoryCodeModal()" aria-label="Fermer">
+            <h3>Importer une playlist</h3>
+            <button class="btn btn-icon" onclick="closePlaylistCodeModal()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
         <p class="settings-note" style="margin-bottom: var(--sp-md);">
-            Saisissez le code à 8 chiffres qu'on vous a communiqué : la catégorie correspondante apparaîtra dans la bibliothèque sur cet appareil.
+            Saisissez le code à 8 chiffres qu'on vous a communiqué : la playlist correspondante sera ajoutée à vos playlists sur cet appareil.
         </p>
-        <input type="text" id="category-code-input" class="input-field cat-code-input" placeholder="········" inputmode="numeric" maxlength="8" style="margin-bottom: var(--sp-sm);">
-        <div id="category-code-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="submitCategoryCode()" id="category-code-submit-btn">Débloquer</button>
+        <input type="text" id="playlist-code-input" class="input-field cat-code-input" placeholder="········" inputmode="numeric" maxlength="8" style="margin-bottom: var(--sp-sm);">
+        <div id="playlist-code-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitPlaylistCode()" id="playlist-code-submit-btn">Importer</button>
     </div>
 </div>
 
-<div id="category-manager-modal">
-    <div class="settings-card" style="max-width: 460px;">
-        <div class="settings-head">
-            <h3>Gérer les catégories</h3>
-            <button class="btn btn-icon" onclick="closeCategoryManagerModal()" aria-label="Fermer">
+<div id="admin-dashboard-modal" class="drawer-overlay">
+    <div class="drawer-backdrop" onclick="closeAdminDashboard()"></div>
+    <div class="drawer-panel drawer-panel-right">
+        <div class="drawer-head">
+            <h3>Administration</h3>
+            <button class="btn btn-icon" onclick="closeAdminDashboard()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
-        <div id="category-manager-list" style="margin-bottom: var(--sp-md); max-height: 260px; overflow-y: auto;"></div>
-        <div id="category-manager-form">
-            <div class="settings-row-label" style="margin-bottom: 6px;">Ajouter une catégorie</div>
-            <input type="text" id="cat-mgr-new-name" class="input-field" placeholder="Nom de la catégorie" style="margin-bottom: var(--sp-sm);">
-            <select id="cat-mgr-new-parent" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
-            <div class="settings-row" style="border-bottom:none; padding: 4px 0 var(--sp-sm);">
-                <div class="settings-row-label">Catégorie privée</div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="cat-mgr-new-private">
-                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                </label>
+        <div class="drawer-body">
+            <div class="segmented admin-dash-tabs" id="admin-dash-tabs">
+                <button type="button" class="active" onclick="switchAdminDashTab('categories')">Catégories</button>
+                <button type="button" onclick="switchAdminDashTab('playlists')">Playlists publiques</button>
             </div>
-            <div id="category-manager-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-            <button class="btn btn-primary" style="width:100%;" onclick="submitNewCategory()" id="cat-mgr-add-btn">
-                <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
-                Ajouter la catégorie
-            </button>
+
+            <div id="admin-dash-categories" class="admin-dash-section active">
+                <div id="category-manager-list" style="margin-bottom: var(--sp-md);"></div>
+                <div class="settings-section" style="margin:0;">
+                    <div class="settings-row-label" style="margin-bottom: 6px;">Ajouter une catégorie</div>
+                    <input type="text" id="cat-mgr-new-name" class="input-field" placeholder="Nom de la catégorie" style="margin-bottom: var(--sp-sm);">
+                    <div id="category-manager-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="submitNewCategory()" id="cat-mgr-add-btn">
+                        <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
+                        Ajouter la catégorie
+                    </button>
+                </div>
+            </div>
+
+            <div id="admin-dash-playlists" class="admin-dash-section">
+                <div id="public-playlist-manager-root"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -1374,7 +1391,8 @@
     const GITHUB_BRANCH = 'main';
 
     // Liste de repli tant que categories.json n'existe pas encore sur le dépôt (ou n'a pas pu être
-    // lu) : comportement strictement identique à avant cette fonctionnalité, toutes publiques.
+    // lu) : catégories simples, plates, toujours publiques — aucune notion de vie privée ici, ça
+    // vit désormais du côté des playlists publiques (voir PUBLIC_PLAYLISTS plus bas).
     const DEFAULT_CATEGORIES = [
         { key: 'louange',       label: 'Louange' },
         { key: 'louange_calme', label: 'Louange Calme' },
@@ -1383,19 +1401,15 @@
         { key: 'communion',     label: 'Communion' },
         { key: 'marie',         label: 'Marie' },
         { key: 'polyphonique',  label: 'Polyphonique' },
-        { key: 'emmanuel',      label: "Chants de l'Emmanuel" },
-        { key: 'chorale_scoute_lyon_2026', label: 'Chorale Scoute de Lyon 2026' },
         { key: 'autre',         label: 'Autre' }
-    ].map(c => ({ public: true, code: null, parent: null, ...c }));
+    ];
 
-    /* ─── CATÉGORIES PUBLIQUES / PRIVÉES ───
-       Le registre (categories.json, écrit sur GitHub par le gestionnaire de catégories admin)
-       peut marquer une catégorie "privée" : masquée par défaut, débloquée sur cet appareil par un
-       code à 8 chiffres (voir redeemCategoryCode) saisi dans les Paramètres ou passé en lien
-       (?code=…, voir init()). CATEGORIES/CATEGORY_LABELS/CATEGORY_ORDER sont des `let` (et non
-       plus `const`) recalculés par rebuildCategoryIndexes() une fois categories.json chargé —
-       tout le reste du fichier continue de les lire par leur nom, la mise à jour se propage donc
-       sans rien changer ailleurs. */
+    /* ─── CATÉGORIES ───
+       Le registre (categories.json, écrit sur GitHub par le tableau de bord admin) est une liste
+       plate, toujours publique — juste { key, label }. CATEGORIES/CATEGORY_LABELS/CATEGORY_ORDER
+       sont des `let` (et non plus `const`) recalculés par rebuildCategoryIndexes() une fois
+       categories.json chargé — tout le reste du fichier continue de les lire par leur nom, la
+       mise à jour se propage donc sans rien changer ailleurs. */
     let CATEGORIES = DEFAULT_CATEGORIES;
     let CATEGORY_LABELS = {};
     // Ordre d'affichage de la bibliothèque : suit l'ordre de CATEGORIES (donc "Autre" en tout
@@ -1414,34 +1428,21 @@
     }
     rebuildCategoryIndexes();
 
-    let unlockedCategoryKeys = new Set();
-    function loadUnlockedCategoriesFromStorage() {
-        try { unlockedCategoryKeys = new Set(JSON.parse(localStorage.getItem('cantus_unlocked_categories')) || []); }
-        catch (e) { unlockedCategoryKeys = new Set(); }
-    }
-    function saveUnlockedCategories() {
-        localStorage.setItem('cantus_unlocked_categories', JSON.stringify([...unlockedCategoryKeys]));
-    }
-
-    function isCategoryUnlocked(catOrKey) {
-        const cat = typeof catOrKey === 'string' ? CATEGORY_BY_KEY[catOrKey] : catOrKey;
-        // "autre" ne doit jamais pouvoir être verrouillée : c'est le repli de tous les chants
-        // dont la seule catégorie est une catégorie privée non débloquée (voir
-        // effectiveCategoriesForSong) — la masquer la rendrait, elle aussi, invisible.
-        if (!cat || cat.key === 'autre') return true;
-        return cat.public !== false || unlockedCategoryKeys.has(cat.key);
-    }
-
     // Catégories "effectives" d'un chant pour l'affichage (regroupement de la bibliothèque, menu
-    // de filtre, badges de carte) : sa catégorie principale + ses catégories supplémentaires,
-    // mais seulement celles débloquées sur cet appareil — sinon le chant tombe dans "Autre" au
-    // lieu de disparaître purement et simplement (voir la demande d'origine : une catégorie privée
-    // non débloquée ne doit jamais masquer un chant pour tout le monde).
+    // de filtre, badges de carte) : sa catégorie principale + ses catégories supplémentaires. Un
+    // chant peut donc apparaître dans plusieurs groupes à la fois.
     function effectiveCategoriesForSong(song) {
         const all = [song.category, ...(song.extraCategories || extraCategoriesMap[song.id] || [])];
-        const visible = [...new Set(all.filter(Boolean))].filter(isCategoryUnlocked);
+        const visible = [...new Set(all.filter(Boolean))];
         return visible.length ? visible : ['autre'];
     }
+
+    // Registre des playlists publiques (public_playlists.json, écrit sur GitHub par le tableau de
+    // bord admin) : { key, label, code: string|null, songIds: [...], itemOverrides: {songId:{displayName}} }.
+    // `code` à 8 chiffres pour une playlist réservée, ou null pour une playlist ouvertement publique
+    // (importable en un clic, sans code). C'est ici — et non plus sur les catégories — que vit le
+    // mécanisme "réservé, débloqué par un code".
+    let PUBLIC_PLAYLISTS = [];
 
     async function loadCategoriesRegistry() {
         try {
@@ -1449,7 +1450,7 @@
             if (r.ok) {
                 const data = await r.json();
                 if (Array.isArray(data) && data.length) {
-                    CATEGORIES = data.map(c => ({ public: true, code: null, parent: null, ...c }));
+                    CATEGORIES = data.map(c => ({ key: c.key, label: c.label }));
                 }
             }
         } catch (e) { /* categories.json absent ou inaccessible : on garde DEFAULT_CATEGORIES */ }
@@ -1462,21 +1463,45 @@
                 if (data2 && typeof data2 === 'object') extraCategoriesMap = data2;
             }
         } catch (e) { /* extra_categories.json absent : aucune catégorie supplémentaire */ }
+
+        try {
+            const r3 = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/public_playlists.json`, { cache: 'no-store' });
+            if (r3.ok) {
+                const data3 = await r3.json();
+                if (Array.isArray(data3)) PUBLIC_PLAYLISTS = data3;
+            }
+        } catch (e) { /* public_playlists.json absent : aucune playlist publique */ }
     }
 
-    // Valide un code à 8 chiffres contre le registre courant et, si valide, débloque la catégorie
-    // correspondante sur cet appareil. Utilisé à la fois par la modale (saisie manuelle) et par
-    // le lien ?code=… géré dans init().
-    function redeemCategoryCode(rawCode) {
+    // Valide un code à 8 chiffres contre le registre des playlists publiques et, si valide,
+    // importe une copie de cette playlist dans les playlists de cet appareil (même mécanisme que
+    // l'import via lien ?importPl=, voir init()). Utilisé par la modale (saisie manuelle) et par
+    // le lien ?code=… géré dans init(). Nécessite que state.songs soit déjà peuplé (résolution des
+    // chants par id) — voir l'ordonnancement dans init().
+    function redeemPlaylistCode(rawCode) {
         const code = (rawCode || '').replace(/\D/g, '');
         if (code.length !== 8) return { ok: false, error: 'Le code doit contenir 8 chiffres.' };
-        const cat = CATEGORIES.find(c => c.public === false && c.code === code);
-        if (!cat) return { ok: false, error: 'Code invalide.' };
-        if (!unlockedCategoryKeys.has(cat.key)) {
-            unlockedCategoryKeys.add(cat.key);
-            saveUnlockedCategories();
-        }
-        return { ok: true, category: cat };
+        const pl = PUBLIC_PLAYLISTS.find(p => p.code === code);
+        if (!pl) return { ok: false, error: 'Code invalide.' };
+        return importPublicPlaylist(pl);
+    }
+
+    // Construit une playlist locale à partir d'une entrée du registre public (résout chaque
+    // songId contre state.songs, applique le nom de substitution scopé à cette playlist s'il y en
+    // a un) et l'ajoute aux playlists de cet appareil. Utilisé par redeemPlaylistCode() et par
+    // l'import direct (playlist publique sans code).
+    function importPublicPlaylist(pl) {
+        const overrides = pl.itemOverrides || {};
+        const songs = (pl.songIds || []).map(id => {
+            const src = state.songs.find(s => s.id === id);
+            if (!src) return null;
+            const override = overrides[id];
+            return override && override.displayName ? { ...src, name: override.displayName } : { ...src };
+        }).filter(Boolean);
+        if (songs.length === 0) return { ok: false, error: 'Aucun chant disponible pour cette playlist pour le moment.' };
+        state.playlists.push({ name: pl.label, description: '', cover: null, songs, isPlaylist: true });
+        savePlaylists();
+        return { ok: true, playlist: pl };
     }
 
     function naturalCompare(a, b) {
@@ -1992,18 +2017,19 @@
                 </label>
             </div>
             <div class="admin-actions">
-                <button class="btn btn-ghost" style="width:100%;" onclick="openCategoryManagerModal()">
+                <button class="btn btn-ghost" style="width:100%;" onclick="openAdminDashboard()">
                     <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                    Gérer les catégories
+                    Administration (catégories, playlists)
                 </button>
                 <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
             </div>`;
     }
 
     /* ══════════════════════════════════════════
-       GESTION DES CATÉGORIES (admin) — création, renommage, public/privé (+ code à 8
-       chiffres), sous-catégories (champ "parent"), suppression. Tout est écrit dans
-       categories.json sur GitHub via commitTextToGithub, comme le reste des contenus admin.
+       TABLEAU DE BORD ADMIN — CATÉGORIES (liste plate, création/renommage/suppression) et
+       PLAYLISTS PUBLIQUES (création/édition/code à 8 chiffres/suppression). Panneau plein
+       (voir #admin-dashboard-modal), pas une popup. Tout est écrit sur GitHub via
+       commitTextToGithub, comme le reste des contenus admin.
     ══════════════════════════════════════════ */
     function slugifyCategoryKey(name, existingKeys) {
         const base = name.trim().toLowerCase()
@@ -2025,24 +2051,48 @@
         return code;
     }
 
-    async function persistCategoriesChange(newList, message) {
-        await commitTextToGithub('categories.json', JSON.stringify(newList, null, 2), message);
-        CATEGORIES = newList;
-        rebuildCategoryIndexes();
+    function copyCode(code) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => showToast('Code copié.')).catch(() => showToast('Code : ' + code));
+        } else {
+            showToast('Code : ' + code);
+        }
     }
 
-    function openCategoryManagerModal() {
+    // Lien direct d'import (ouvre l'app et importe la playlist automatiquement, voir le
+    // traitement de ?code=… dans init()) — pratique à coller dans un message plutôt que de faire
+    // recopier le code à la main.
+    function copyPlaylistLink(code) {
+        const url = window.location.origin + window.location.pathname + '?code=' + code;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => showToast('Lien copié.')).catch(() => showToast(url));
+        } else {
+            showToast(url);
+        }
+    }
+
+    function openAdminDashboard() {
         if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
         document.getElementById('cat-mgr-new-name').value = '';
-        document.getElementById('cat-mgr-new-private').checked = false;
         setCategoryManagerError('');
-        renderCategoryManagerParentSelect();
         renderCategoryManagerList();
-        document.getElementById('category-manager-modal').classList.add('open');
+        adminDashPlaylistEditKey = null;
+        plDraft = null;
+        renderPublicPlaylistManagerRoot();
+        switchAdminDashTab('categories');
+        document.getElementById('admin-dashboard-modal').classList.add('open');
     }
 
-    function closeCategoryManagerModal() {
-        document.getElementById('category-manager-modal').classList.remove('open');
+    function closeAdminDashboard() {
+        document.getElementById('admin-dashboard-modal').classList.remove('open');
+    }
+
+    function switchAdminDashTab(tab) {
+        const tabs = document.querySelectorAll('#admin-dash-tabs button');
+        if (tabs[0]) tabs[0].classList.toggle('active', tab === 'categories');
+        if (tabs[1]) tabs[1].classList.toggle('active', tab === 'playlists');
+        document.getElementById('admin-dash-categories').classList.toggle('active', tab === 'categories');
+        document.getElementById('admin-dash-playlists').classList.toggle('active', tab === 'playlists');
     }
 
     function setCategoryManagerError(msg) {
@@ -2051,13 +2101,10 @@
         el.style.display = msg ? 'block' : 'none';
     }
 
-    function renderCategoryManagerParentSelect() {
-        const el = document.getElementById('cat-mgr-new-parent');
-        if (!el) return;
-        // Seules les catégories principales (sans parent elles-mêmes) peuvent être parent, pour
-        // rester à une seule profondeur de sous-catégories.
-        el.innerHTML = `<option value="">Aucune (catégorie principale)</option>` +
-            CATEGORIES.filter(c => !c.parent).map(c => `<option value="${c.key}">${escHtml(c.label)}</option>`).join('');
+    async function persistCategoriesChange(newList, message) {
+        await commitTextToGithub('categories.json', JSON.stringify(newList, null, 2), message);
+        CATEGORIES = newList;
+        rebuildCategoryIndexes();
     }
 
     function categoryUsageCount(key) {
@@ -2069,27 +2116,16 @@
         const el = document.getElementById('category-manager-list');
         if (!el) return;
         el.innerHTML = CATEGORIES.map(c => {
-            const isPriv = c.public === false;
             const usageCount = categoryUsageCount(c.key);
             const canDelete = c.key !== 'autre' && usageCount === 0;
             return `
             <div class="cat-mgr-row">
                 <div style="min-width:0;">
-                    <div class="cat-mgr-name">${c.parent ? '↳ ' : ''}${escHtml(c.label)}</div>
-                    <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
-                        <span class="cat-mgr-badge ${isPriv ? 'priv' : 'pub'}">${isPriv ? 'Privée' : 'Publique'}</span>
-                        ${isPriv && c.code ? `<span class="cat-mgr-code">${escHtml(c.code)}</span>
-                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyCategoryCode('${escHtml(c.code)}')" title="Copier le code" aria-label="Copier le code">
-                                <svg class="icon icon-sm"><use href="#ico-link"/></svg>
-                            </button>` : ''}
-                    </div>
+                    <div class="cat-mgr-name">${escHtml(c.label)}</div>
                 </div>
                 <div class="cat-mgr-actions">
                     <button class="btn btn-icon" onclick="renameCategoryPrompt('${c.key}')" title="Renommer" aria-label="Renommer">
                         <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
-                    </button>
-                    <button class="btn btn-icon" onclick="toggleCategoryPrivacy('${c.key}')" title="${isPriv ? 'Rendre publique' : 'Rendre privée'}" aria-label="Changer la visibilité" ${c.key === 'autre' ? 'disabled' : ''}>
-                        <svg class="icon icon-sm"><use href="#ico-key"/></svg>
                     </button>
                     <button class="btn btn-icon danger" onclick="deleteCategoryConfirm('${c.key}')" title="${canDelete ? 'Supprimer' : 'Utilisée par ' + usageCount + ' chant(s)'}" aria-label="Supprimer" ${canDelete ? '' : 'disabled'}>
                         <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
@@ -2099,27 +2135,13 @@
         }).join('');
     }
 
-    function copyCategoryCode(code) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code).then(() => showToast('Code copié.')).catch(() => showToast('Code : ' + code));
-        } else {
-            showToast('Code : ' + code);
-        }
-    }
-
     async function submitNewCategory() {
         if (!isAdminActive()) { setCategoryManagerError('Pouvoirs administrateur inactifs.'); return; }
         const name = document.getElementById('cat-mgr-new-name').value.trim();
         if (!name) { setCategoryManagerError('Donnez un nom à la catégorie.'); return; }
-        const parent = document.getElementById('cat-mgr-new-parent').value || null;
-        const isPrivate = document.getElementById('cat-mgr-new-private').checked;
 
         const key = slugifyCategoryKey(name, CATEGORIES.map(c => c.key));
-        const newCat = {
-            key, label: name, public: !isPrivate,
-            code: isPrivate ? generateCategoryCode(CATEGORIES.filter(c => c.code).map(c => c.code)) : null,
-            parent
-        };
+        const newCat = { key, label: name };
 
         const btn = document.getElementById('cat-mgr-add-btn');
         btn.disabled = true;
@@ -2127,47 +2149,13 @@
         try {
             await persistCategoriesChange([...CATEGORIES, newCat], `Ajoute la catégorie "${name}" via l'application`);
             document.getElementById('cat-mgr-new-name').value = '';
-            document.getElementById('cat-mgr-new-private').checked = false;
-            renderCategoryManagerParentSelect();
             renderCategoryManagerList();
             refreshActiveList();
-            if (isPrivate) {
-                alert(`Catégorie « ${name} » créée en privé.\n\nCode à partager : ${newCat.code}\n\nVous pourrez le retrouver à tout moment dans cette liste (bouton copier).`);
-            } else {
-                showToast(`Catégorie « ${name} » créée.`);
-            }
+            showToast(`Catégorie « ${name} » créée.`);
         } catch (e) {
             setCategoryManagerError(e.message || "Échec de l'enregistrement.");
         } finally {
             btn.disabled = false;
-        }
-    }
-
-    async function toggleCategoryPrivacy(key) {
-        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
-        if (key === 'autre') return;
-        const cat = CATEGORY_BY_KEY[key];
-        if (!cat) return;
-        const goingPublic = cat.public === false;
-        if (goingPublic && !confirm(`Rendre « ${cat.label} » publique ? Elle deviendra visible par tout le monde.`)) return;
-
-        const updated = CATEGORIES.map(c => {
-            if (c.key !== key) return c;
-            if (goingPublic) return { ...c, public: true };
-            return { ...c, public: false, code: c.code || generateCategoryCode(CATEGORIES.filter(x => x.code).map(x => x.code)) };
-        });
-        try {
-            await persistCategoriesChange(updated, `Change la visibilité de la catégorie "${cat.label}" via l'application`);
-            renderCategoryManagerList();
-            refreshActiveList();
-            const newCat = CATEGORY_BY_KEY[key];
-            if (!goingPublic) {
-                alert(`Catégorie « ${cat.label} » rendue privée.\n\nCode à partager : ${newCat.code}`);
-            } else {
-                showToast(`Catégorie « ${cat.label} » rendue publique.`);
-            }
-        } catch (e) {
-            showToast('Échec : ' + (e.message || 'erreur inconnue'));
         }
     }
 
@@ -2180,7 +2168,6 @@
         const updated = CATEGORIES.map(c => c.key === key ? { ...c, label: newLabel.trim() } : c);
         try {
             await persistCategoriesChange(updated, `Renomme la catégorie "${cat.label}" en "${newLabel.trim()}" via l'application`);
-            renderCategoryManagerParentSelect();
             renderCategoryManagerList();
             refreshActiveList();
             showToast('Catégorie renommée.');
@@ -2200,12 +2187,9 @@
             return;
         }
         if (!confirm(`Supprimer définitivement la catégorie « ${cat.label} » ?`)) return;
-        // Une sous-catégorie de celle-ci redevient catégorie principale plutôt que de pointer vers
-        // une catégorie qui n'existe plus.
-        const updated = CATEGORIES.filter(c => c.key !== key).map(c => c.parent === key ? { ...c, parent: null } : c);
+        const updated = CATEGORIES.filter(c => c.key !== key);
         try {
             await persistCategoriesChange(updated, `Supprime la catégorie "${cat.label}" via l'application`);
-            renderCategoryManagerParentSelect();
             renderCategoryManagerList();
             refreshActiveList();
             showToast('Catégorie supprimée.');
@@ -2214,30 +2198,265 @@
         }
     }
 
-    /* ─── CODE DE CATÉGORIE (modale de déblocage, Paramètres) ─── */
-    function openCategoryCodeModal() {
-        document.getElementById('category-code-input').value = '';
-        setCategoryCodeError('');
-        document.getElementById('category-code-modal').classList.add('open');
+    /* ─── PLAYLISTS PUBLIQUES (admin) ───
+       plDraft est une copie de travail de la playlist en cours de création/édition dans le
+       tableau de bord ; rien n'est écrit sur GitHub tant que savePublicPlaylistDraft() n'a pas
+       été appelé. adminDashPlaylistEditKey vaut null (liste), '__new__' (création) ou la clé
+       d'une playlist existante (édition). */
+    let adminDashPlaylistEditKey = null;
+    let plDraft = null;
+
+    async function persistPublicPlaylistsChange(newList, message) {
+        await commitTextToGithub('public_playlists.json', JSON.stringify(newList, null, 2), message);
+        PUBLIC_PLAYLISTS = newList;
     }
 
-    function closeCategoryCodeModal() {
-        document.getElementById('category-code-modal').classList.remove('open');
+    function renderPublicPlaylistManagerRoot() {
+        const el = document.getElementById('public-playlist-manager-root');
+        if (!el) return;
+        el.innerHTML = adminDashPlaylistEditKey === null
+            ? renderPublicPlaylistList()
+            : renderPublicPlaylistEditor();
     }
 
-    function setCategoryCodeError(msg) {
-        const el = document.getElementById('category-code-error');
+    function renderPublicPlaylistList() {
+        const rows = PUBLIC_PLAYLISTS.map(p => `
+            <div class="cat-mgr-row">
+                <div style="min-width:0;">
+                    <div class="cat-mgr-name">${escHtml(p.label)}</div>
+                    <div class="cat-mgr-sub">${(p.songIds || []).length} chant(s)</div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+                        <span class="cat-mgr-badge ${p.code ? 'priv' : 'pub'}">${p.code ? 'Avec code' : 'Sans code'}</span>
+                        ${p.code ? `<span class="cat-mgr-code">${escHtml(p.code)}</span>
+                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyCode('${escHtml(p.code)}')" title="Copier le code" aria-label="Copier le code">
+                                <svg class="icon icon-sm"><use href="#ico-key"/></svg>
+                            </button>
+                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyPlaylistLink('${escHtml(p.code)}')" title="Copier le lien d'import" aria-label="Copier le lien d'import">
+                                <svg class="icon icon-sm"><use href="#ico-link"/></svg>
+                            </button>` : ''}
+                    </div>
+                </div>
+                <div class="cat-mgr-actions">
+                    <button class="btn btn-icon" onclick="openPublicPlaylistEditor('${p.key}')" title="Modifier" aria-label="Modifier">
+                        <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
+                    </button>
+                    <button class="btn btn-icon danger" onclick="deletePublicPlaylistConfirm('${p.key}')" title="Supprimer" aria-label="Supprimer">
+                        <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
+                    </button>
+                </div>
+            </div>`).join('');
+        return `
+            <div style="margin-bottom: var(--sp-md);">${rows || '<div class="settings-row-desc">Aucune playlist publique.</div>'}</div>
+            <button class="btn btn-primary" style="width:100%;" onclick="openPublicPlaylistEditor('__new__')">
+                <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
+                Créer une playlist publique
+            </button>`;
+    }
+
+    function openPublicPlaylistEditor(key) {
+        if (key === '__new__') {
+            plDraft = { key: null, label: '', code: null, songIds: [], itemOverrides: {} };
+        } else {
+            const found = PUBLIC_PLAYLISTS.find(p => p.key === key);
+            if (!found) return;
+            plDraft = JSON.parse(JSON.stringify(found));
+        }
+        adminDashPlaylistEditKey = key;
+        renderPublicPlaylistManagerRoot();
+    }
+
+    function closePublicPlaylistEditor() {
+        plDraft = null;
+        adminDashPlaylistEditKey = null;
+        renderPublicPlaylistManagerRoot();
+    }
+
+    function setPlMgrError(msg) {
+        const el = document.getElementById('pl-mgr-error');
+        if (!el) return;
         el.textContent = msg || '';
         el.style.display = msg ? 'block' : 'none';
     }
 
-    function submitCategoryCode() {
-        const raw = document.getElementById('category-code-input').value;
-        const result = redeemCategoryCode(raw);
-        if (!result.ok) { setCategoryCodeError(result.error); return; }
-        closeCategoryCodeModal();
-        showToast(`Catégorie « ${result.category.label} » débloquée !`);
-        refreshActiveList();
+    function renderPublicPlaylistEditor() {
+        const isNew = adminDashPlaylistEditKey === '__new__';
+        return `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom: var(--sp-md);">
+                <button class="btn btn-icon" onclick="closePublicPlaylistEditor()" aria-label="Retour">
+                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                </button>
+                <div class="settings-row-label" style="margin:0;">${isNew ? 'Nouvelle playlist publique' : 'Modifier la playlist'}</div>
+            </div>
+            <input type="text" id="pl-mgr-name" class="input-field" placeholder="Nom de la playlist" value="${escHtml(plDraft.label)}" style="margin-bottom: var(--sp-sm);" oninput="plDraft.label = this.value">
+            <div class="settings-row" style="border-bottom:none; padding: 4px 0 var(--sp-sm);">
+                <div>
+                    <div class="settings-row-label">Réservée par un code</div>
+                    <div class="settings-row-desc">${plDraft.code ? 'Code : ' + escHtml(plDraft.code) : 'Importable directement, sans code.'}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${plDraft.code ? 'checked' : ''} onchange="togglePlDraftCode(this.checked)">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
+            ${plDraft.code ? `
+            <div style="display:flex; gap:8px; margin-bottom: var(--sp-md);">
+                <button class="btn btn-ghost" style="flex:1;" onclick="copyPlaylistLink('${escHtml(plDraft.code)}')">
+                    <svg class="icon icon-sm"><use href="#ico-link"></use></svg>
+                    Copier le lien
+                </button>
+                <button class="btn btn-ghost" style="flex:1;" onclick="regeneratePlDraftCode()">Régénérer le code</button>
+            </div>` : ''}
+
+            <div class="settings-row-label" style="margin: var(--sp-sm) 0 4px;">Chants (<span id="pl-mgr-song-count">${plDraft.songIds.length}</span>)</div>
+            <div id="pl-mgr-added-songs" style="margin-bottom: var(--sp-md);">${renderPlDraftAddedSongs()}</div>
+
+            <div class="settings-row-label" style="margin-bottom: 4px;">Ajouter un chant</div>
+            <input type="text" class="input-field" placeholder="Rechercher…" style="margin-bottom: var(--sp-sm);" oninput="filterPlDraftSongPicker(this.value)">
+            <div id="pl-mgr-song-picker" style="max-height:160px; overflow-y:auto; margin-bottom: var(--sp-md);">${renderPlDraftSongPicker(state.songs)}</div>
+
+            <div id="pl-mgr-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+            <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
+                <button class="btn btn-primary" style="width:100%;" onclick="savePublicPlaylistDraft()" id="pl-mgr-save-btn">Enregistrer</button>
+                ${!isNew ? `<button class="btn btn-danger" style="width:100%;" onclick="deletePublicPlaylistConfirm('${adminDashPlaylistEditKey}')">Supprimer la playlist</button>` : ''}
+            </div>`;
+    }
+
+    function renderPlDraftAddedSongs() {
+        if (!plDraft.songIds.length) return `<div class="settings-row-desc">Aucun chant pour l'instant.</div>`;
+        return plDraft.songIds.map(id => {
+            const src = state.songs.find(s => s.id === id);
+            const label = src ? src.name : '(chant introuvable)';
+            const override = (plDraft.itemOverrides && plDraft.itemOverrides[id] && plDraft.itemOverrides[id].displayName) || '';
+            return `
+            <div class="pl-editor-song-row">
+                <span style="flex:1; min-width:0; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escHtml(label)}">${escHtml(label)}</span>
+                <input type="text" class="input-field" placeholder="Nom dans cette playlist (optionnel)" value="${escHtml(override)}" style="max-width:160px;" oninput="setPlDraftOverride('${id}', this.value)">
+                <button class="btn btn-icon danger" style="width:32px;height:32px;min-width:0;min-height:0;" onclick="removePlDraftSong('${id}')" aria-label="Retirer">
+                    <svg class="icon icon-sm"><use href="#ico-x"/></svg>
+                </button>
+            </div>`;
+        }).join('');
+    }
+
+    function renderPlDraftSongPicker(list) {
+        const available = list.filter(s => !plDraft.songIds.includes(s.id));
+        if (!available.length) return `<div class="settings-row-desc">Aucun chant disponible.</div>`;
+        return available.slice(0, 40).map(s => `
+            <div class="ed-item ed-item--add" onclick="addPlDraftSong('${s.id}')">
+                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
+                <span class="ed-name">${escHtml(s.name)}</span>
+            </div>`).join('');
+    }
+
+    function filterPlDraftSongPicker(query) {
+        const q = normalizeSearch(query);
+        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(
+            state.songs.filter(s => normalizeSearch(s.name).includes(q))
+        );
+    }
+
+    function refreshPlDraftSongCount() {
+        const el = document.getElementById('pl-mgr-song-count');
+        if (el) el.textContent = plDraft.songIds.length;
+    }
+
+    function addPlDraftSong(id) {
+        plDraft.songIds.push(id);
+        document.getElementById('pl-mgr-added-songs').innerHTML = renderPlDraftAddedSongs();
+        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(state.songs);
+        refreshPlDraftSongCount();
+    }
+
+    function removePlDraftSong(id) {
+        plDraft.songIds = plDraft.songIds.filter(x => x !== id);
+        if (plDraft.itemOverrides) delete plDraft.itemOverrides[id];
+        document.getElementById('pl-mgr-added-songs').innerHTML = renderPlDraftAddedSongs();
+        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(state.songs);
+        refreshPlDraftSongCount();
+    }
+
+    function setPlDraftOverride(id, value) {
+        if (!plDraft.itemOverrides) plDraft.itemOverrides = {};
+        if (value.trim()) plDraft.itemOverrides[id] = { displayName: value.trim() };
+        else delete plDraft.itemOverrides[id];
+    }
+
+    function togglePlDraftCode(checked) {
+        plDraft.code = checked
+            ? generateCategoryCode(PUBLIC_PLAYLISTS.filter(p => p.code).map(p => p.code))
+            : null;
+        renderPublicPlaylistManagerRoot();
+    }
+
+    function regeneratePlDraftCode() {
+        plDraft.code = generateCategoryCode(PUBLIC_PLAYLISTS.filter(p => p.code && p.key !== plDraft.key).map(p => p.code));
+        renderPublicPlaylistManagerRoot();
+    }
+
+    async function savePublicPlaylistDraft() {
+        if (!isAdminActive()) { setPlMgrError('Pouvoirs administrateur inactifs.'); return; }
+        const name = plDraft.label.trim();
+        if (!name) { setPlMgrError('Donnez un nom à la playlist.'); return; }
+        if (!plDraft.songIds.length) { setPlMgrError('Ajoutez au moins un chant.'); return; }
+
+        const isNew = !plDraft.key;
+        if (isNew) plDraft.key = slugifyCategoryKey(name, PUBLIC_PLAYLISTS.map(p => p.key));
+        const entry = { key: plDraft.key, label: name, code: plDraft.code || null, songIds: plDraft.songIds, itemOverrides: plDraft.itemOverrides || {} };
+
+        const btn = document.getElementById('pl-mgr-save-btn');
+        if (btn) btn.disabled = true;
+        setPlMgrError('');
+        try {
+            const updated = isNew ? [...PUBLIC_PLAYLISTS, entry] : PUBLIC_PLAYLISTS.map(p => p.key === entry.key ? entry : p);
+            await persistPublicPlaylistsChange(updated, `${isNew ? 'Ajoute' : 'Modifie'} la playlist publique "${name}" via l'application`);
+            showToast(`Playlist « ${name} » enregistrée.`);
+            closePublicPlaylistEditor();
+        } catch (e) {
+            setPlMgrError(e.message || "Échec de l'enregistrement.");
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function deletePublicPlaylistConfirm(key) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        const pl = PUBLIC_PLAYLISTS.find(p => p.key === key);
+        if (!pl) return;
+        if (!confirm(`Supprimer définitivement la playlist publique « ${pl.label} » ? Les chants eux-mêmes ne seront pas supprimés de la bibliothèque.`)) return;
+        try {
+            const updated = PUBLIC_PLAYLISTS.filter(p => p.key !== key);
+            await persistPublicPlaylistsChange(updated, `Supprime la playlist publique "${pl.label}" via l'application`);
+            showToast('Playlist publique supprimée.');
+            closePublicPlaylistEditor();
+        } catch (e) {
+            showToast('Échec : ' + (e.message || 'erreur inconnue'));
+        }
+    }
+
+    /* ─── CODE DE PLAYLIST (modale de déblocage, Paramètres + bibliothèque) ─── */
+    function openPlaylistCodeModal() {
+        document.getElementById('playlist-code-input').value = '';
+        setPlaylistCodeError('');
+        document.getElementById('playlist-code-modal').classList.add('open');
+    }
+
+    function closePlaylistCodeModal() {
+        document.getElementById('playlist-code-modal').classList.remove('open');
+    }
+
+    function setPlaylistCodeError(msg) {
+        const el = document.getElementById('playlist-code-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function submitPlaylistCode() {
+        const raw = document.getElementById('playlist-code-input').value;
+        const result = redeemPlaylistCode(raw);
+        if (!result.ok) { setPlaylistCodeError(result.error); return; }
+        closePlaylistCodeModal();
+        showToast(`Playlist « ${result.playlist.label} » importée !`);
+        showView('playlist');
     }
 
     function logoutAdmin() {
@@ -2325,7 +2544,7 @@
         setImportMode('file');
 
         const catSelect = document.getElementById('import-cat-select');
-        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</option>`).join('');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${escHtml(c.label)}</option>`).join('');
         renderExtraCatCheckboxes('import-extra-cats', 'autre', []);
 
         document.getElementById('import-modal').classList.add('open');
@@ -2718,7 +2937,7 @@
 
         document.getElementById('edit-name-input').value = song.name;
         const catSelect = document.getElementById('edit-cat-select');
-        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</option>`).join('');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${escHtml(c.label)}</option>`).join('');
         renderExtraCatCheckboxes('edit-extra-cats', song.category, song.extraCategories || extraCategoriesMap[song.id] || []);
         setEditModalError('');
 
@@ -3008,7 +3227,6 @@
         // L'écran ne doit jamais s'éteindre tant que l'appli est ouverte (peu importe l'onglet,
         // Mode Live actif ou non) — voir aussi le ré-acquière au retour au premier plan plus bas.
         requestWakeLock();
-        loadUnlockedCategoriesFromStorage();
 
         const urlParams = new URLSearchParams(window.location.search);
         const importData = urlParams.get('import');
@@ -3117,23 +3335,25 @@
         // sans avoir bloqué le démarrage de l'appli pour l'obtenir. Le registre des catégories
         // (categories.json) est chargé avant loadLibrary() : ce dernier valide la catégorie
         // primaire de chaque chant contre CATEGORY_LABELS (voir loadLibrary), qui doit donc déjà
-        // refléter le registre à jour — sinon une catégorie privée nouvellement créée serait
-        // reléguée à tort dans "Autre" lors de ce premier passage.
-        loadCategoriesRegistry().then(() => {
-            // Lien de déblocage (?code=…) : redemption automatique une fois le registre chargé,
-            // puis on retire le paramètre de l'URL visible (comme pour ?import= / ?importPl=
-            // ci-dessus) pour ne pas re-déclencher la redemption à un rechargement de page.
+        // refléter le registre à jour — sinon une catégorie nouvellement créée serait reléguée à
+        // tort dans "Autre" lors de ce premier passage. Le lien de code (?code=…) est en revanche
+        // traité APRÈS loadLibrary() : c'est désormais une playlist publique qu'on importe, ce qui
+        // suppose que state.songs contienne déjà les vrais chants (pas juste le cache local) pour
+        // résoudre chaque songId — voir redeemPlaylistCode()/importPublicPlaylist().
+        loadCategoriesRegistry().then(() => loadLibrary()).then(() => {
             if (codeParam) {
-                const result = redeemCategoryCode(codeParam);
+                const result = redeemPlaylistCode(codeParam);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 if (result.ok) {
                     const standaloneHint = window.matchMedia('(display-mode: standalone)').matches
                         ? ''
                         : ' Astuce : ouvrez ce lien depuis l\'application installée la prochaine fois, pour une expérience plus fluide.';
-                    showToast(`Catégorie « ${result.category.label} » débloquée !${standaloneHint}`);
+                    showToast(`Playlist « ${result.playlist.label} » importée !${standaloneHint}`);
+                    showView('playlist');
+                } else {
+                    alert(result.error || "Échec de l'import de la playlist.");
                 }
             }
-            return loadLibrary();
         }).then(refreshActiveList).catch(() => {});
     }
 
@@ -3733,10 +3953,15 @@
         if (v === 'library') {
             c.innerHTML = `
                 <div class="search-wrap">
-                    <div class="search-field">
-                        <svg class="icon"><use href="#ico-search"/></svg>
-                        <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
-                               oninput="filterLibrary('library')">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div class="search-field" style="flex:1;">
+                            <svg class="icon"><use href="#ico-search"/></svg>
+                            <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
+                                   oninput="filterLibrary('library')">
+                        </div>
+                        <button class="btn btn-icon" onclick="openPlaylistCodeModal()" title="Importer une playlist par code" aria-label="Importer une playlist par code">
+                            <svg class="icon"><use href="#ico-key"/></svg>
+                        </button>
                     </div>
                 </div>
                 ${renderCategorySelect('lib-cat', 'library')}
@@ -3802,10 +4027,7 @@
     }
 
     function renderCategorySelect(id, target) {
-        // Seules les catégories débloquées sur cet appareil apparaissent dans le filtre : une
-        // catégorie privée non débloquée doit rester invisible, pas juste son contenu.
-        const options = CATEGORIES.filter(isCategoryUnlocked)
-            .map(c => `<option value="${c.key}">${c.parent ? '↳ ' : ''}${escHtml(c.label)}</option>`).join('');
+        const options = CATEGORIES.map(c => `<option value="${c.key}">${escHtml(c.label)}</option>`).join('');
         return `
             <select id="${id}" class="search-input" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"
                     onchange="filterLibrary('${target}')">
@@ -3824,7 +4046,7 @@
         el.innerHTML = options.length ? options.map(c => `
             <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
                 <input type="checkbox" value="${escHtml(c.key)}" ${checked.has(c.key) ? 'checked' : ''} style="width:16px; height:16px; accent-color: var(--accent); cursor:pointer; flex-shrink:0;">
-                <span>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</span>
+                <span>${escHtml(c.label)}</span>
             </label>`).join('') : `<div class="settings-row-desc">Aucune autre catégorie.</div>`;
     }
 
@@ -4082,10 +4304,9 @@
     }
 
     function renderCategoryAccordion(songs) {
-        // Seules les catégories débloquées forment un groupe ; un chant dont la seule catégorie
-        // est une catégorie privée non débloquée tombe dans "Autre" (voir effectiveCategoriesForSong)
-        // et un chant à plusieurs catégories débloquées apparaît dans chacun de ses groupes.
-        const groups = CATEGORIES.filter(isCategoryUnlocked)
+        // Un chant à plusieurs catégories (voir effectiveCategoriesForSong) apparaît dans chacun
+        // de ses groupes.
+        const groups = CATEGORIES
             .map(c => ({ key: c.key, label: c.label, items: songs.filter(s => effectiveCategoriesForSong(s).includes(c.key)) }))
             .filter(g => g.items.length > 0);
         if (groups.length === 0) return emptyState('ico-music', 'Aucun chant trouvé.');

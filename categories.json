@@ -1,71 +1,33 @@
 [
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "louange",
     "label": "Louange"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "louange_calme",
     "label": "Louange Calme"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "adoration",
     "label": "Adoration"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "esprit_saint",
     "label": "Esprit Saint"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "communion",
     "label": "Communion"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "marie",
     "label": "Marie"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "polyphonique",
     "label": "Polyphonique"
   },
   {
-    "public": true,
-    "code": null,
-    "parent": null,
-    "key": "emmanuel",
-    "label": "Chants de l'Emmanuel"
-  },
-  {
-    "public": false,
-    "code": "15091793",
-    "parent": null,
-    "key": "chorale_scoute_lyon_2026",
-    "label": "Chorale Scoute de Lyon 2026"
-  },
-  {
-    "public": true,
-    "code": null,
-    "parent": null,
     "key": "autre",
     "label": "Autre"
   }

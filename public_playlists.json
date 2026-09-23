@@ -1,0 +1,26 @@
+[
+  {
+    "key": "emmanuel",
+    "label": "Chants de l'Emmanuel",
+    "code": "09344206",
+    "songIds": [
+      "a9be401e25a4d18440e8dbc782007908130e2e60",
+      "39e85b29c5b227fb6adbd12c0892b3ab153e6f51"
+    ],
+    "itemOverrides": {}
+  },
+  {
+    "key": "chorale_scoute_lyon_2026",
+    "label": "Chorale Scoute de Lyon 2026",
+    "code": "15091793",
+    "songIds": [
+      "61e249eb2442e156f79991f9fbf4a2155fcd3a08",
+      "9bd0a99ba77c151a441ebb4f49dd0f7bb514f16c",
+      "e193ea99fc4b6eab5a37cc1ee37be4bce8826c3d",
+      "f7b9ebe051374c2cda784087845e5a0dda862390",
+      "ebf3ca1af609640749be235660788425fed7ed3b",
+      "f11a916bddd523d9efb103de64b4d7b90db390d8"
+    ],
+    "itemOverrides": {}
+  }
+]
