@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantus-app-shell-v22';
+const CACHE_NAME = 'cantus-app-shell-v23';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
@@ -75,6 +75,13 @@ self.addEventListener('fetch', (event) => {
 
     // Ne pas intercepter l'API GitHub pour le listing brut en ligne
     if (url.includes('api.github.com')) {
+        return;
+    }
+
+    // Ni les registres JSON du dépôt (catégories, playlists et messes publiques…) lus sur
+    // raw.githubusercontent.com : en cache-first, l'app relisait indéfiniment leur première
+    // version — nouvelles photos de playlist invisibles, modifications des admins ignorées.
+    if (url.includes('raw.githubusercontent.com') && url.split('?')[0].endsWith('.json')) {
         return;
     }
 
