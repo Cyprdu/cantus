@@ -605,6 +605,19 @@
         #song-request-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
         #song-request-modal.open { display: flex; }
 
+        /* ─── CATÉGORIES PRIVÉES (code de déblocage + gestion admin) ─── */
+        #category-code-modal, #category-manager-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        #category-code-modal.open, #category-manager-modal.open { display: flex; }
+        .cat-code-input { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: .3em; }
+        .cat-mgr-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .cat-mgr-row:last-child { border-bottom: none; }
+        .cat-mgr-name { font-size: 13px; font-weight: 600; color: var(--text); }
+        .cat-mgr-badge { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 20px; padding: 2px 8px; flex-shrink: 0; }
+        .cat-mgr-badge.pub { background: var(--accent-dim); color: var(--accent); }
+        .cat-mgr-badge.priv { background: var(--danger-dim); color: var(--danger); }
+        .cat-mgr-code { font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+        .cat-mgr-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
         /* ─── ONBOARDING (première visite) ─── */
         #onboarding-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 8000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
         #onboarding-modal.open { display: flex; }
@@ -940,6 +953,20 @@
         </div>
 
         <div class="settings-section">
+            <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Catégories</div>
+            <div class="settings-row settings-row-stack" style="border-bottom:none;">
+                <div>
+                    <div class="settings-row-label">Catégorie privée ?</div>
+                    <div class="settings-row-desc">Débloquez une catégorie réservée avec le code à 8 chiffres qu'on vous a communiqué.</div>
+                </div>
+                <button class="btn btn-ghost" onclick="openCategoryCodeModal()">
+                    <svg class="icon icon-sm"><use href="#ico-key"/></svg>
+                    Importer un code de catégorie
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-section">
             <div class="settings-section-title"><svg class="icon"><use href="#ico-users"/></svg>À propos</div>
             <div class="settings-row settings-row-stack">
                 <div>
@@ -1003,7 +1030,10 @@
             <button type="button" class="btn btn-ghost" onclick="fetchImportUrl()" id="import-url-fetch-btn">Récupérer</button>
         </div>
         <input type="text" id="import-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
-        <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('import-extra-cats', this.value, [])"></select>
+        <div class="settings-row-label" style="margin-bottom: 4px;">Catégories supplémentaires (optionnel)</div>
+        <div class="settings-row-desc" style="margin-bottom: 6px;">Un chant peut aussi apparaître dans d'autres catégories que la principale.</div>
+        <div id="import-extra-cats" style="margin-bottom: var(--sp-md); display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
         <div class="settings-row-label" style="margin-bottom: 4px;">Paroles (optionnel)</div>
         <div class="settings-row-desc" style="margin-bottom: 6px;">Affichées aux chanteurs qui préfèrent le mode "Paroles" à la partition PDF.</div>
         <textarea id="import-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 110px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
@@ -1037,6 +1067,52 @@
     </div>
 </div>
 
+<div id="category-code-modal">
+    <div class="settings-card" style="max-width: 380px;">
+        <div class="settings-head">
+            <h3>Importer un code de catégorie</h3>
+            <button class="btn btn-icon" onclick="closeCategoryCodeModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <p class="settings-note" style="margin-bottom: var(--sp-md);">
+            Saisissez le code à 8 chiffres qu'on vous a communiqué : la catégorie correspondante apparaîtra dans la bibliothèque sur cet appareil.
+        </p>
+        <input type="text" id="category-code-input" class="input-field cat-code-input" placeholder="········" inputmode="numeric" maxlength="8" style="margin-bottom: var(--sp-sm);">
+        <div id="category-code-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitCategoryCode()" id="category-code-submit-btn">Débloquer</button>
+    </div>
+</div>
+
+<div id="category-manager-modal">
+    <div class="settings-card" style="max-width: 460px;">
+        <div class="settings-head">
+            <h3>Gérer les catégories</h3>
+            <button class="btn btn-icon" onclick="closeCategoryManagerModal()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div id="category-manager-list" style="margin-bottom: var(--sp-md); max-height: 260px; overflow-y: auto;"></div>
+        <div id="category-manager-form">
+            <div class="settings-row-label" style="margin-bottom: 6px;">Ajouter une catégorie</div>
+            <input type="text" id="cat-mgr-new-name" class="input-field" placeholder="Nom de la catégorie" style="margin-bottom: var(--sp-sm);">
+            <select id="cat-mgr-new-parent" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+            <div class="settings-row" style="border-bottom:none; padding: 4px 0 var(--sp-sm);">
+                <div class="settings-row-label">Catégorie privée</div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cat-mgr-new-private">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
+            <div id="category-manager-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
+            <button class="btn btn-primary" style="width:100%;" onclick="submitNewCategory()" id="cat-mgr-add-btn">
+                <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
+                Ajouter la catégorie
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="edit-song-modal">
     <div class="settings-card" style="max-width: 420px;">
         <div class="settings-head">
@@ -1046,7 +1122,10 @@
             </button>
         </div>
         <input type="text" id="edit-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
-        <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"></select>
+        <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('edit-extra-cats', this.value, currentEditExtraCats())"></select>
+        <div class="settings-row-label" style="margin-bottom: 4px;">Catégories supplémentaires (optionnel)</div>
+        <div class="settings-row-desc" style="margin-bottom: 6px;">Un chant peut aussi apparaître dans d'autres catégories que la principale.</div>
+        <div id="edit-extra-cats" style="margin-bottom: var(--sp-md); display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
         <div class="settings-row-label" style="margin-bottom: 4px;">Paroles</div>
         <div class="settings-row-desc" style="margin-bottom: 6px;">Ajoutez-les si elles manquent, corrigez-les, ou videz le champ pour les retirer.</div>
         <textarea id="edit-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 140px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
@@ -1294,7 +1373,9 @@
     const LYRICS_PATH = 'paroles';
     const GITHUB_BRANCH = 'main';
 
-    const CATEGORIES = [
+    // Liste de repli tant que categories.json n'existe pas encore sur le dépôt (ou n'a pas pu être
+    // lu) : comportement strictement identique à avant cette fonctionnalité, toutes publiques.
+    const DEFAULT_CATEGORIES = [
         { key: 'louange',       label: 'Louange' },
         { key: 'louange_calme', label: 'Louange Calme' },
         { key: 'adoration',     label: 'Adoration' },
@@ -1305,12 +1386,98 @@
         { key: 'emmanuel',      label: "Chants de l'Emmanuel" },
         { key: 'chorale_scoute_lyon_2026', label: 'Chorale Scoute de Lyon 2026' },
         { key: 'autre',         label: 'Autre' }
-    ];
-    const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
+    ].map(c => ({ public: true, code: null, parent: null, ...c }));
+
+    /* ─── CATÉGORIES PUBLIQUES / PRIVÉES ───
+       Le registre (categories.json, écrit sur GitHub par le gestionnaire de catégories admin)
+       peut marquer une catégorie "privée" : masquée par défaut, débloquée sur cet appareil par un
+       code à 8 chiffres (voir redeemCategoryCode) saisi dans les Paramètres ou passé en lien
+       (?code=…, voir init()). CATEGORIES/CATEGORY_LABELS/CATEGORY_ORDER sont des `let` (et non
+       plus `const`) recalculés par rebuildCategoryIndexes() une fois categories.json chargé —
+       tout le reste du fichier continue de les lire par leur nom, la mise à jour se propage donc
+       sans rien changer ailleurs. */
+    let CATEGORIES = DEFAULT_CATEGORIES;
+    let CATEGORY_LABELS = {};
     // Ordre d'affichage de la bibliothèque : suit l'ordre de CATEGORIES (donc "Autre" en tout
-    // dernier, puisqu'il termine ce tableau), puis tri naturel du nom dans chaque catégorie pour
+    // dernier tant qu'il termine ce tableau), puis tri naturel du nom dans chaque catégorie pour
     // que A1, A2 … A10 s'enchaînent au lieu de A1, A10, A11, A2 … (tri alphabétique classique).
-    const CATEGORY_ORDER = Object.fromEntries(CATEGORIES.map((c, i) => [c.key, i]));
+    let CATEGORY_ORDER = {};
+    let CATEGORY_BY_KEY = {};
+    // { songId: [catKey, …] } — catégories supplémentaires d'un chant GitHub, au-delà de sa
+    // catégorie principale (déduite de son dossier) ; chargé depuis extra_categories.json.
+    let extraCategoriesMap = {};
+
+    function rebuildCategoryIndexes() {
+        CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
+        CATEGORY_ORDER = Object.fromEntries(CATEGORIES.map((c, i) => [c.key, i]));
+        CATEGORY_BY_KEY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
+    }
+    rebuildCategoryIndexes();
+
+    let unlockedCategoryKeys = new Set();
+    function loadUnlockedCategoriesFromStorage() {
+        try { unlockedCategoryKeys = new Set(JSON.parse(localStorage.getItem('cantus_unlocked_categories')) || []); }
+        catch (e) { unlockedCategoryKeys = new Set(); }
+    }
+    function saveUnlockedCategories() {
+        localStorage.setItem('cantus_unlocked_categories', JSON.stringify([...unlockedCategoryKeys]));
+    }
+
+    function isCategoryUnlocked(catOrKey) {
+        const cat = typeof catOrKey === 'string' ? CATEGORY_BY_KEY[catOrKey] : catOrKey;
+        // "autre" ne doit jamais pouvoir être verrouillée : c'est le repli de tous les chants
+        // dont la seule catégorie est une catégorie privée non débloquée (voir
+        // effectiveCategoriesForSong) — la masquer la rendrait, elle aussi, invisible.
+        if (!cat || cat.key === 'autre') return true;
+        return cat.public !== false || unlockedCategoryKeys.has(cat.key);
+    }
+
+    // Catégories "effectives" d'un chant pour l'affichage (regroupement de la bibliothèque, menu
+    // de filtre, badges de carte) : sa catégorie principale + ses catégories supplémentaires,
+    // mais seulement celles débloquées sur cet appareil — sinon le chant tombe dans "Autre" au
+    // lieu de disparaître purement et simplement (voir la demande d'origine : une catégorie privée
+    // non débloquée ne doit jamais masquer un chant pour tout le monde).
+    function effectiveCategoriesForSong(song) {
+        const all = [song.category, ...(song.extraCategories || extraCategoriesMap[song.id] || [])];
+        const visible = [...new Set(all.filter(Boolean))].filter(isCategoryUnlocked);
+        return visible.length ? visible : ['autre'];
+    }
+
+    async function loadCategoriesRegistry() {
+        try {
+            const r = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/categories.json`, { cache: 'no-store' });
+            if (r.ok) {
+                const data = await r.json();
+                if (Array.isArray(data) && data.length) {
+                    CATEGORIES = data.map(c => ({ public: true, code: null, parent: null, ...c }));
+                }
+            }
+        } catch (e) { /* categories.json absent ou inaccessible : on garde DEFAULT_CATEGORIES */ }
+        rebuildCategoryIndexes();
+
+        try {
+            const r2 = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/extra_categories.json`, { cache: 'no-store' });
+            if (r2.ok) {
+                const data2 = await r2.json();
+                if (data2 && typeof data2 === 'object') extraCategoriesMap = data2;
+            }
+        } catch (e) { /* extra_categories.json absent : aucune catégorie supplémentaire */ }
+    }
+
+    // Valide un code à 8 chiffres contre le registre courant et, si valide, débloque la catégorie
+    // correspondante sur cet appareil. Utilisé à la fois par la modale (saisie manuelle) et par
+    // le lien ?code=… géré dans init().
+    function redeemCategoryCode(rawCode) {
+        const code = (rawCode || '').replace(/\D/g, '');
+        if (code.length !== 8) return { ok: false, error: 'Le code doit contenir 8 chiffres.' };
+        const cat = CATEGORIES.find(c => c.public === false && c.code === code);
+        if (!cat) return { ok: false, error: 'Code invalide.' };
+        if (!unlockedCategoryKeys.has(cat.key)) {
+            unlockedCategoryKeys.add(cat.key);
+            saveUnlockedCategories();
+        }
+        return { ok: true, category: cat };
+    }
 
     function naturalCompare(a, b) {
         const chunk = s => s.match(/\d+|\D+/g) || [];
@@ -1825,8 +1992,252 @@
                 </label>
             </div>
             <div class="admin-actions">
+                <button class="btn btn-ghost" style="width:100%;" onclick="openCategoryManagerModal()">
+                    <svg class="icon icon-sm"><use href="#ico-key"/></svg>
+                    Gérer les catégories
+                </button>
                 <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
             </div>`;
+    }
+
+    /* ══════════════════════════════════════════
+       GESTION DES CATÉGORIES (admin) — création, renommage, public/privé (+ code à 8
+       chiffres), sous-catégories (champ "parent"), suppression. Tout est écrit dans
+       categories.json sur GitHub via commitTextToGithub, comme le reste des contenus admin.
+    ══════════════════════════════════════════ */
+    function slugifyCategoryKey(name, existingKeys) {
+        const base = name.trim().toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '') // enlève les accents
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '') || 'categorie';
+        let key = base, i = 2;
+        while (existingKeys.includes(key)) { key = `${base}_${i}`; i++; }
+        return key;
+    }
+
+    function generateCategoryCode(existingCodes) {
+        let code;
+        do {
+            const arr = new Uint32Array(1);
+            crypto.getRandomValues(arr);
+            code = String(arr[0] % 100000000).padStart(8, '0');
+        } while (existingCodes.includes(code));
+        return code;
+    }
+
+    async function persistCategoriesChange(newList, message) {
+        await commitTextToGithub('categories.json', JSON.stringify(newList, null, 2), message);
+        CATEGORIES = newList;
+        rebuildCategoryIndexes();
+    }
+
+    function openCategoryManagerModal() {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        document.getElementById('cat-mgr-new-name').value = '';
+        document.getElementById('cat-mgr-new-private').checked = false;
+        setCategoryManagerError('');
+        renderCategoryManagerParentSelect();
+        renderCategoryManagerList();
+        document.getElementById('category-manager-modal').classList.add('open');
+    }
+
+    function closeCategoryManagerModal() {
+        document.getElementById('category-manager-modal').classList.remove('open');
+    }
+
+    function setCategoryManagerError(msg) {
+        const el = document.getElementById('category-manager-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function renderCategoryManagerParentSelect() {
+        const el = document.getElementById('cat-mgr-new-parent');
+        if (!el) return;
+        // Seules les catégories principales (sans parent elles-mêmes) peuvent être parent, pour
+        // rester à une seule profondeur de sous-catégories.
+        el.innerHTML = `<option value="">Aucune (catégorie principale)</option>` +
+            CATEGORIES.filter(c => !c.parent).map(c => `<option value="${c.key}">${escHtml(c.label)}</option>`).join('');
+    }
+
+    function categoryUsageCount(key) {
+        return state.songs.filter(s => s.category === key).length
+            + Object.values(extraCategoriesMap).filter(arr => Array.isArray(arr) && arr.includes(key)).length;
+    }
+
+    function renderCategoryManagerList() {
+        const el = document.getElementById('category-manager-list');
+        if (!el) return;
+        el.innerHTML = CATEGORIES.map(c => {
+            const isPriv = c.public === false;
+            const usageCount = categoryUsageCount(c.key);
+            const canDelete = c.key !== 'autre' && usageCount === 0;
+            return `
+            <div class="cat-mgr-row">
+                <div style="min-width:0;">
+                    <div class="cat-mgr-name">${c.parent ? '↳ ' : ''}${escHtml(c.label)}</div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                        <span class="cat-mgr-badge ${isPriv ? 'priv' : 'pub'}">${isPriv ? 'Privée' : 'Publique'}</span>
+                        ${isPriv && c.code ? `<span class="cat-mgr-code">${escHtml(c.code)}</span>
+                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyCategoryCode('${escHtml(c.code)}')" title="Copier le code" aria-label="Copier le code">
+                                <svg class="icon icon-sm"><use href="#ico-link"/></svg>
+                            </button>` : ''}
+                    </div>
+                </div>
+                <div class="cat-mgr-actions">
+                    <button class="btn btn-icon" onclick="renameCategoryPrompt('${c.key}')" title="Renommer" aria-label="Renommer">
+                        <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
+                    </button>
+                    <button class="btn btn-icon" onclick="toggleCategoryPrivacy('${c.key}')" title="${isPriv ? 'Rendre publique' : 'Rendre privée'}" aria-label="Changer la visibilité" ${c.key === 'autre' ? 'disabled' : ''}>
+                        <svg class="icon icon-sm"><use href="#ico-key"/></svg>
+                    </button>
+                    <button class="btn btn-icon danger" onclick="deleteCategoryConfirm('${c.key}')" title="${canDelete ? 'Supprimer' : 'Utilisée par ' + usageCount + ' chant(s)'}" aria-label="Supprimer" ${canDelete ? '' : 'disabled'}>
+                        <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function copyCategoryCode(code) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => showToast('Code copié.')).catch(() => showToast('Code : ' + code));
+        } else {
+            showToast('Code : ' + code);
+        }
+    }
+
+    async function submitNewCategory() {
+        if (!isAdminActive()) { setCategoryManagerError('Pouvoirs administrateur inactifs.'); return; }
+        const name = document.getElementById('cat-mgr-new-name').value.trim();
+        if (!name) { setCategoryManagerError('Donnez un nom à la catégorie.'); return; }
+        const parent = document.getElementById('cat-mgr-new-parent').value || null;
+        const isPrivate = document.getElementById('cat-mgr-new-private').checked;
+
+        const key = slugifyCategoryKey(name, CATEGORIES.map(c => c.key));
+        const newCat = {
+            key, label: name, public: !isPrivate,
+            code: isPrivate ? generateCategoryCode(CATEGORIES.filter(c => c.code).map(c => c.code)) : null,
+            parent
+        };
+
+        const btn = document.getElementById('cat-mgr-add-btn');
+        btn.disabled = true;
+        setCategoryManagerError('');
+        try {
+            await persistCategoriesChange([...CATEGORIES, newCat], `Ajoute la catégorie "${name}" via l'application`);
+            document.getElementById('cat-mgr-new-name').value = '';
+            document.getElementById('cat-mgr-new-private').checked = false;
+            renderCategoryManagerParentSelect();
+            renderCategoryManagerList();
+            refreshActiveList();
+            if (isPrivate) {
+                alert(`Catégorie « ${name} » créée en privé.\n\nCode à partager : ${newCat.code}\n\nVous pourrez le retrouver à tout moment dans cette liste (bouton copier).`);
+            } else {
+                showToast(`Catégorie « ${name} » créée.`);
+            }
+        } catch (e) {
+            setCategoryManagerError(e.message || "Échec de l'enregistrement.");
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function toggleCategoryPrivacy(key) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        if (key === 'autre') return;
+        const cat = CATEGORY_BY_KEY[key];
+        if (!cat) return;
+        const goingPublic = cat.public === false;
+        if (goingPublic && !confirm(`Rendre « ${cat.label} » publique ? Elle deviendra visible par tout le monde.`)) return;
+
+        const updated = CATEGORIES.map(c => {
+            if (c.key !== key) return c;
+            if (goingPublic) return { ...c, public: true };
+            return { ...c, public: false, code: c.code || generateCategoryCode(CATEGORIES.filter(x => x.code).map(x => x.code)) };
+        });
+        try {
+            await persistCategoriesChange(updated, `Change la visibilité de la catégorie "${cat.label}" via l'application`);
+            renderCategoryManagerList();
+            refreshActiveList();
+            const newCat = CATEGORY_BY_KEY[key];
+            if (!goingPublic) {
+                alert(`Catégorie « ${cat.label} » rendue privée.\n\nCode à partager : ${newCat.code}`);
+            } else {
+                showToast(`Catégorie « ${cat.label} » rendue publique.`);
+            }
+        } catch (e) {
+            showToast('Échec : ' + (e.message || 'erreur inconnue'));
+        }
+    }
+
+    async function renameCategoryPrompt(key) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        const cat = CATEGORY_BY_KEY[key];
+        if (!cat) return;
+        const newLabel = prompt('Nouveau nom de la catégorie :', cat.label);
+        if (!newLabel || !newLabel.trim() || newLabel.trim() === cat.label) return;
+        const updated = CATEGORIES.map(c => c.key === key ? { ...c, label: newLabel.trim() } : c);
+        try {
+            await persistCategoriesChange(updated, `Renomme la catégorie "${cat.label}" en "${newLabel.trim()}" via l'application`);
+            renderCategoryManagerParentSelect();
+            renderCategoryManagerList();
+            refreshActiveList();
+            showToast('Catégorie renommée.');
+        } catch (e) {
+            showToast('Échec : ' + (e.message || 'erreur inconnue'));
+        }
+    }
+
+    async function deleteCategoryConfirm(key) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        if (key === 'autre') return;
+        const cat = CATEGORY_BY_KEY[key];
+        if (!cat) return;
+        const usageCount = categoryUsageCount(key);
+        if (usageCount > 0) {
+            alert(`Cette catégorie est encore utilisée par ${usageCount} chant(s). Réassignez-les avant de la supprimer.`);
+            return;
+        }
+        if (!confirm(`Supprimer définitivement la catégorie « ${cat.label} » ?`)) return;
+        // Une sous-catégorie de celle-ci redevient catégorie principale plutôt que de pointer vers
+        // une catégorie qui n'existe plus.
+        const updated = CATEGORIES.filter(c => c.key !== key).map(c => c.parent === key ? { ...c, parent: null } : c);
+        try {
+            await persistCategoriesChange(updated, `Supprime la catégorie "${cat.label}" via l'application`);
+            renderCategoryManagerParentSelect();
+            renderCategoryManagerList();
+            refreshActiveList();
+            showToast('Catégorie supprimée.');
+        } catch (e) {
+            showToast('Échec : ' + (e.message || 'erreur inconnue'));
+        }
+    }
+
+    /* ─── CODE DE CATÉGORIE (modale de déblocage, Paramètres) ─── */
+    function openCategoryCodeModal() {
+        document.getElementById('category-code-input').value = '';
+        setCategoryCodeError('');
+        document.getElementById('category-code-modal').classList.add('open');
+    }
+
+    function closeCategoryCodeModal() {
+        document.getElementById('category-code-modal').classList.remove('open');
+    }
+
+    function setCategoryCodeError(msg) {
+        const el = document.getElementById('category-code-error');
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function submitCategoryCode() {
+        const raw = document.getElementById('category-code-input').value;
+        const result = redeemCategoryCode(raw);
+        if (!result.ok) { setCategoryCodeError(result.error); return; }
+        closeCategoryCodeModal();
+        showToast(`Catégorie « ${result.category.label} » débloquée !`);
+        refreshActiveList();
     }
 
     function logoutAdmin() {
@@ -1914,7 +2325,8 @@
         setImportMode('file');
 
         const catSelect = document.getElementById('import-cat-select');
-        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${c.label}</option>`).join('');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</option>`).join('');
+        renderExtraCatCheckboxes('import-extra-cats', 'autre', []);
 
         document.getElementById('import-modal').classList.add('open');
     }
@@ -2135,20 +2547,36 @@
         localStorage.setItem('cantus_local_songs', JSON.stringify(list));
     }
 
-    async function importLocalSong(file, displayName, category, lyricsText) {
+    async function importLocalSong(file, displayName, category, lyricsText, extraCategories) {
         const id = 'local-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         const url = `/local-songs/${id}.pdf`;
         const cache = await caches.open(PDF_CACHE_NAME);
         await cache.put(url, new Response(file, { headers: { 'Content-Type': 'application/pdf' } }));
 
         const meta = { id, type: 'song', category, name: displayName.trim().toUpperCase(), url, size: file.size, isLocal: true };
-        // Import local (pas de dépôt GitHub à écrire dedans) : les paroles vont directement dans
-        // les métadonnées localStorage du chant, comme le nom ou la catégorie.
+        // Import local (pas de dépôt GitHub à écrire dedans) : les paroles et catégories
+        // supplémentaires vont directement dans les métadonnées localStorage du chant, comme le
+        // nom ou la catégorie principale.
         if (lyricsText) meta.lyricsText = lyricsText;
+        if (extraCategories && extraCategories.length) meta.extraCategories = extraCategories;
         const list = loadLocalSongs();
         list.push(meta);
         saveLocalSongs(list);
         return meta;
+    }
+
+    // Fusionne les catégories supplémentaires d'un chant GitHub dans extra_categories.json (clé
+    // retirée si la liste est vide, pour garder le fichier propre) et met à jour le cache mémoire.
+    async function updateExtraCategoriesForSong(songId, extraKeys) {
+        let current = {};
+        try {
+            const r = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/extra_categories.json`, { cache: 'no-store' });
+            if (r.ok) current = await r.json();
+        } catch (e) { /* fichier absent : on repart d'une table vide */ }
+        if (extraKeys && extraKeys.length) current[songId] = extraKeys;
+        else delete current[songId];
+        await commitTextToGithub('extra_categories.json', JSON.stringify(current, null, 2), 'Met à jour les catégories supplémentaires via l\'application');
+        extraCategoriesMap = current;
     }
 
     // Recharge state.songs avec les partitions locales à jour, sans refaire d'appel réseau à
@@ -2168,6 +2596,7 @@
         if (!displayName) { setImportModalError('Donnez un nom au chant.'); return; }
         const category = document.getElementById('import-cat-select').value;
         const lyricsText = document.getElementById('import-lyrics-input').value.trim();
+        const extraCats = readExtraCatCheckboxes('import-extra-cats');
 
         // Sans les pouvoirs administrateur actifs : import local uniquement (cache du
         // navigateur de cet appareil), avec avertissement explicite avant d'enregistrer.
@@ -2186,7 +2615,7 @@
             setImportModalError('');
 
             try {
-                await importLocalSong(importSelectedFile, displayName, category, lyricsText);
+                await importLocalSong(importSelectedFile, displayName, category, lyricsText, extraCats);
                 closeImportModal();
                 showToast(`"${displayName}" enregistrée sur cet appareil.`);
                 await refreshLocalSongsIntoState();
@@ -2238,6 +2667,8 @@
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.message || `Erreur GitHub (${res.status})`);
             }
+            const resData = await res.json().catch(() => ({}));
+            const newSongId = resData.content && resData.content.sha;
 
             // Les paroles vont dans un fichier .txt séparé (voir LYRICS_PATH), sous le même
             // chemin relatif que la partition : c'est ce qui permet de les relier sans toucher au
@@ -2248,6 +2679,16 @@
                     await commitTextToGithub(lyricsPath, lyricsText, `Ajout des paroles pour "${displayName}" via l'application`);
                 } catch (e) {
                     showToast(`"${displayName}" envoyée, mais échec de l'envoi des paroles.`);
+                }
+            }
+
+            // Catégories supplémentaires : même logique de tolérance qu'aux paroles, un échec
+            // n'annule pas l'envoi de la partition elle-même.
+            if (extraCats.length && newSongId) {
+                try {
+                    await updateExtraCategoriesForSong(newSongId, extraCats);
+                } catch (e) {
+                    showToast(`"${displayName}" envoyée, mais échec de l'enregistrement des catégories supplémentaires.`);
                 }
             }
 
@@ -2277,7 +2718,8 @@
 
         document.getElementById('edit-name-input').value = song.name;
         const catSelect = document.getElementById('edit-cat-select');
-        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.label}</option>`).join('');
+        catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</option>`).join('');
+        renderExtraCatCheckboxes('edit-extra-cats', song.category, song.extraCategories || extraCategoriesMap[song.id] || []);
         setEditModalError('');
 
         const lyricsInput = document.getElementById('edit-lyrics-input');
@@ -2318,6 +2760,7 @@
         if (!newName) { setEditModalError('Donnez un nom au chant.'); return; }
         const newCategory = document.getElementById('edit-cat-select').value;
         const newLyricsText = document.getElementById('edit-lyrics-input').value.trim();
+        const newExtraCats = readExtraCatCheckboxes('edit-extra-cats');
 
         // Partition locale (importée sans mode administrateur) : simple mise à jour des
         // métadonnées, le fichier reste au même endroit dans le cache.
@@ -2329,6 +2772,8 @@
                 entry.category = newCategory;
                 if (newLyricsText) entry.lyricsText = newLyricsText;
                 else delete entry.lyricsText;
+                if (newExtraCats.length) entry.extraCategories = newExtraCats;
+                else delete entry.extraCategories;
                 saveLocalSongs(list);
             }
             closeEditSongModal();
@@ -2349,8 +2794,10 @@
         const newLyricsPath = `${LYRICS_PATH}/${newCategory}/${sanitizePartitionFilename(newName)}.txt`;
         const pdfRenamed = newPath !== song.path;
         const lyricsChanged = newLyricsText !== editSongOriginalLyrics;
+        const currentExtraCats = song.extraCategories || extraCategoriesMap[song.id] || [];
+        const extraCatsChanged = JSON.stringify([...newExtraCats].sort()) !== JSON.stringify([...currentExtraCats].sort());
 
-        if (!pdfRenamed && !lyricsChanged) {
+        if (!pdfRenamed && !lyricsChanged && !extraCatsChanged) {
             closeEditSongModal();
             return;
         }
@@ -2429,6 +2876,17 @@
             // identique : sans ça, une consultation ultérieure en mode Paroles resservirait la
             // valeur mise en cache avant cette modification (texte périmé, ou absence à tort).
             if (lyricsChanged) delete lyricsCache[song.id];
+
+            // Catégories supplémentaires : le sha du PDF (donc song.id) ne change pas lors d'un
+            // renommage à contenu identique (voir commentaire ci-dessus), la clé reste donc valide
+            // même quand pdfRenamed est vrai.
+            if (extraCatsChanged) {
+                try {
+                    await updateExtraCategoriesForSong(song.id, newExtraCats);
+                } catch (e) {
+                    showToast(`"${newName}" mise à jour, mais échec de l'enregistrement des catégories supplémentaires.`);
+                }
+            }
 
             closeEditSongModal();
             showToast(`"${newName}" mise à jour.`);
@@ -2550,10 +3008,12 @@
         // L'écran ne doit jamais s'éteindre tant que l'appli est ouverte (peu importe l'onglet,
         // Mode Live actif ou non) — voir aussi le ré-acquière au retour au premier plan plus bas.
         requestWakeLock();
+        loadUnlockedCategoriesFromStorage();
 
         const urlParams = new URLSearchParams(window.location.search);
         const importData = urlParams.get('import');
         const importPlData = urlParams.get('importPl');
+        const codeParam = urlParams.get('code');
 
         if (importData) {
             try {
@@ -2654,8 +3114,27 @@
 
         // Synchronisation réseau avec GitHub en arrière-plan (voir loadLibraryFromCache ci-dessus
         // pour l'affichage immédiat) : met à jour la liste affichée une fois la réponse arrivée,
-        // sans avoir bloqué le démarrage de l'appli pour l'obtenir.
-        loadLibrary().then(refreshActiveList).catch(() => {});
+        // sans avoir bloqué le démarrage de l'appli pour l'obtenir. Le registre des catégories
+        // (categories.json) est chargé avant loadLibrary() : ce dernier valide la catégorie
+        // primaire de chaque chant contre CATEGORY_LABELS (voir loadLibrary), qui doit donc déjà
+        // refléter le registre à jour — sinon une catégorie privée nouvellement créée serait
+        // reléguée à tort dans "Autre" lors de ce premier passage.
+        loadCategoriesRegistry().then(() => {
+            // Lien de déblocage (?code=…) : redemption automatique une fois le registre chargé,
+            // puis on retire le paramètre de l'URL visible (comme pour ?import= / ?importPl=
+            // ci-dessus) pour ne pas re-déclencher la redemption à un rechargement de page.
+            if (codeParam) {
+                const result = redeemCategoryCode(codeParam);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                if (result.ok) {
+                    const standaloneHint = window.matchMedia('(display-mode: standalone)').matches
+                        ? ''
+                        : ' Astuce : ouvrez ce lien depuis l\'application installée la prochaine fois, pour une expérience plus fluide.';
+                    showToast(`Catégorie « ${result.category.label} » débloquée !${standaloneHint}`);
+                }
+            }
+            return loadLibrary();
+        }).then(refreshActiveList).catch(() => {});
     }
 
     /* ══════════════════════════════════════════
@@ -3323,7 +3802,10 @@
     }
 
     function renderCategorySelect(id, target) {
-        const options = CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+        // Seules les catégories débloquées sur cet appareil apparaissent dans le filtre : une
+        // catégorie privée non débloquée doit rester invisible, pas juste son contenu.
+        const options = CATEGORIES.filter(isCategoryUnlocked)
+            .map(c => `<option value="${c.key}">${c.parent ? '↳ ' : ''}${escHtml(c.label)}</option>`).join('');
         return `
             <select id="${id}" class="search-input" style="margin-bottom: var(--sp-md); -webkit-appearance:none; appearance:none; cursor:pointer;"
                     onchange="filterLibrary('${target}')">
@@ -3332,13 +3814,43 @@
             </select>`;
     }
 
+    // Construit les cases à cocher "catégories supplémentaires" (toutes sauf la catégorie
+    // principale actuellement sélectionnée) pour les modales d'import et d'édition d'un chant.
+    function renderExtraCatCheckboxes(containerId, primaryKey, checkedKeys) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const checked = new Set(checkedKeys || []);
+        const options = CATEGORIES.filter(c => c.key !== primaryKey);
+        el.innerHTML = options.length ? options.map(c => `
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
+                <input type="checkbox" value="${escHtml(c.key)}" ${checked.has(c.key) ? 'checked' : ''} style="width:16px; height:16px; accent-color: var(--accent); cursor:pointer; flex-shrink:0;">
+                <span>${c.parent ? '↳ ' : ''}${escHtml(c.label)}${c.public === false ? ' (privée)' : ''}</span>
+            </label>`).join('') : `<div class="settings-row-desc">Aucune autre catégorie.</div>`;
+    }
+
+    function readExtraCatCheckboxes(containerId) {
+        const el = document.getElementById(containerId);
+        if (!el) return [];
+        return [...el.querySelectorAll('input[type=checkbox]:checked')].map(cb => cb.value);
+    }
+
+    function currentEditExtraCats() {
+        // Sélection actuelle des cases à cocher (avant qu'elles ne soient reconstruites suite au
+        // changement de catégorie principale), pour ne pas la perdre au passage.
+        return readExtraCatCheckboxes('edit-extra-cats');
+    }
+
     function renderList(list, emptyIcon, emptyText) {
         if (list.length === 0) return emptyState(emptyIcon, emptyText);
         return list.map(s => {
             const isFav = state.favorites.includes(s.id);
             const favIco = isFav ? '#ico-heart-filled' : '#ico-heart';
             const favColor = isFav ? 'color: var(--danger);' : '';
-            const catLabel = CATEGORY_LABELS[s.category] || 'Autre';
+            // Un chant peut appartenir à plusieurs catégories (voir effectiveCategoriesForSong) :
+            // une pastille par catégorie visible, au lieu d'une seule.
+            const catBadges = effectiveCategoriesForSong(s).map(k =>
+                `<div class="cat-badge" style="margin-top:4px;">${escHtml(CATEGORY_LABELS[k] || 'Autre')}</div>`
+            ).join('');
             const showEdit = s.type === 'song' && (isAdminActive() || s.isLocal);
             const downloaded = s.type === 'song' && isSongDownloaded(s);
             return `
@@ -3346,8 +3858,8 @@
                 <div class="card-content">
                     <div class="card-title">${escHtml(s.name)}</div>
                     ${s.type === 'song' ? `
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <div class="cat-badge" style="margin-top:4px;">${escHtml(catLabel)}</div>
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        ${catBadges}
                         ${s.isLocal ? `<div class="cat-badge local-badge" style="margin-top:4px;">Local</div>` : ''}
                     </div>` : ''}
                 </div>
@@ -3547,7 +4059,7 @@
 
         const sourceList = state.songs.filter(s => state.favorites.includes(s.id));
         const filtered = sourceList.filter(s =>
-            (!cat || s.category === cat) && normalizeSearch(s.name).includes(q)
+            (!cat || effectiveCategoriesForSong(s).includes(cat)) && normalizeSearch(s.name).includes(q)
         );
         document.getElementById('fav-list').innerHTML = renderList(filtered, 'ico-heart', "Aucun favori ne correspond à votre recherche.");
     }
@@ -3565,13 +4077,16 @@
 
         if (!cat && !q) return renderCategoryAccordion(state.songs);
 
-        const filtered = state.songs.filter(s => (!cat || s.category === cat) && normalizeSearch(s.name).includes(q));
+        const filtered = state.songs.filter(s => (!cat || effectiveCategoriesForSong(s).includes(cat)) && normalizeSearch(s.name).includes(q));
         return renderList(filtered, 'ico-music', 'Aucun chant trouvé.');
     }
 
     function renderCategoryAccordion(songs) {
-        const groups = CATEGORIES
-            .map(c => ({ key: c.key, label: c.label, items: songs.filter(s => s.category === c.key) }))
+        // Seules les catégories débloquées forment un groupe ; un chant dont la seule catégorie
+        // est une catégorie privée non débloquée tombe dans "Autre" (voir effectiveCategoriesForSong)
+        // et un chant à plusieurs catégories débloquées apparaît dans chacun de ses groupes.
+        const groups = CATEGORIES.filter(isCategoryUnlocked)
+            .map(c => ({ key: c.key, label: c.label, items: songs.filter(s => effectiveCategoriesForSong(s).includes(c.key)) }))
             .filter(g => g.items.length > 0);
         if (groups.length === 0) return emptyState('ico-music', 'Aucun chant trouvé.');
 
