@@ -14,7 +14,9 @@
   {
     "key": "chorale_scoute_lyon_2026",
     "label": "Chorale Scoute de Lyon 2026",
-    "code": "15091793",
+    "code": null,
+    "cover": "covers/playlists/chorale_scoute_lyon_2026-mue2z9by.jpg",
+    "splitByCategory": false,
     "songIds": [
       "61e249eb2442e156f79991f9fbf4a2155fcd3a08",
       "9bd0a99ba77c151a441ebb4f49dd0f7bb514f16c",
