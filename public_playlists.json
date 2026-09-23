@@ -3,6 +3,8 @@
     "key": "emmanuel",
     "label": "Chants de l'Emmanuel",
     "code": "09344206",
+    "cover": "covers/playlists/emmanuel-mue2t8tl.jpg",
+    "splitByCategory": false,
     "songIds": [
       "a9be401e25a4d18440e8dbc782007908130e2e60",
       "39e85b29c5b227fb6adbd12c0892b3ab153e6f51"
