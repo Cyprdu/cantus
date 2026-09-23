@@ -6018,6 +6018,14 @@
 
     async function startPerformance(setlist) {
         if (!setlist || setlist.length === 0) return;
+        // Les playlists/messes gardent une copie de chaque chant : on reprend son adresse à jour
+        // dans la bibliothèque (même id), sinon un fichier renommé ou déplacé sur le dépôt
+        // resterait introuvable. Le nom affiché propre à la playlist/messe est conservé.
+        setlist = setlist.map(item => {
+            if (!item || item.type === 'note') return item;
+            const src = state.songs.find(s => s.id === item.id);
+            return src ? { ...item, url: src.url, path: src.path, lyricsUrl: src.lyricsUrl, category: src.category } : item;
+        });
         pendingSetlist = setlist;
         returnState = captureReturnState();
 
@@ -7931,18 +7939,52 @@
             </div>`).join('');
     }
 
-    // Chants d'une playlist, divisés par catégorie (titres de section) si la playlist le demande
-    // (option « Diviser la playlist par catégorie »), sinon dans l'ordre choisi.
+    // Catégories dépliées dans la playlist affichée (repliées par défaut, remises à zéro quand on
+    // change de playlist — voir viewPlaylist).
+    let expandedPlaylistCategories = new Set();
+    let expandedPlaylistIdx = null;
+
+    // Chants d'une playlist, divisés par catégorie si la playlist le demande (option « Diviser
+    // la playlist par catégorie ») — en accordéon replié comme la bibliothèque —, sinon dans
+    // l'ordre choisi.
     function renderPlaylistSongs(p) {
         if (!p.splitByCategory || p.songs.length === 0) {
             return renderList(p.songs, 'ico-music', 'Cette playlist est vide.');
         }
-        return groupSongsByCategory(p.songs).map(g => `
-            <div class="group-title">${escHtml(g.label)}<span class="cat-group-count">${g.items.length}</span></div>
-            ${renderList(g.items.map(x => x.song), 'ico-music', '')}`).join('');
+        return groupSongsByCategory(p.songs).map(g => {
+            const isOpen = expandedPlaylistCategories.has(g.key);
+            return `
+            <div class="cat-group">
+                <button class="cat-group-header" onclick="togglePlaylistCategory('${g.key}')" aria-expanded="${isOpen}">
+                    <span>${escHtml(g.label)}</span>
+                    <span class="cat-group-count">${g.items.length}</span>
+                    <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}" id="pl-cat-chevron-${g.key}"><use href="#ico-chevron"/></svg>
+                </button>
+                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="pl-cat-wrap-${g.key}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderList(g.items.map(x => x.song), 'ico-music', '')}</div></div></div>
+            </div>`;
+        }).join('');
+    }
+
+    // Même principe que toggleLibCategory : bascule des classes pour que l'animation joue.
+    function togglePlaylistCategory(key) {
+        const wasOpen = expandedPlaylistCategories.has(key);
+        if (wasOpen) expandedPlaylistCategories.delete(key);
+        else expandedPlaylistCategories.add(key);
+        const wrap = document.getElementById('pl-cat-wrap-' + key);
+        const chevron = document.getElementById('pl-cat-chevron-' + key);
+        if (wrap && chevron) {
+            wrap.classList.toggle('open', !wasOpen);
+            chevron.classList.toggle('open', !wasOpen);
+            chevron.closest('.cat-group-header')?.setAttribute('aria-expanded', String(!wasOpen));
+        } else {
+            const el = document.getElementById('pl-songs-list');
+            const p = state.playlists[state.currentPlaylistIdx];
+            if (el && p) el.innerHTML = renderPlaylistSongs(p);
+        }
     }
 
     function viewPlaylist(idx) {
+        if (expandedPlaylistIdx !== idx) { expandedPlaylistCategories = new Set(); expandedPlaylistIdx = idx; }
         state.currentPlaylistIdx = idx;
         const p = state.playlists[idx];
         if (!p) { showView('playlist'); return; }

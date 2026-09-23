@@ -36,6 +36,7 @@ version.json           Version courante, sert à déclencher la notification de 
 favicon.ico / .svg, favico.ico   Icônes
 partitions/<catégorie>/<nom>.pdf   Les partitions (source de vérité de la bibliothèque)
 paroles/<catégorie>/<nom>.txt      Paroles associées (même chemin relatif que le PDF, extension .txt)
+outils/restaurer_ids.py   Remet les identifiants (A20, LC5, P3…) devant les noms de partitions (voir ids_partitions.json)
 autre/               Fichiers hérités d'anciennes versions, non utilisés par l'app actuelle
 ```
 

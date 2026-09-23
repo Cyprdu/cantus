@@ -1,0 +1,1544 @@
+[
+  {
+    "id": "A1",
+    "partition": {
+      "avec_id": "partitions/adoration/A1 - Abba Père.pdf",
+      "sans_id": "partitions/adoration/Abba Père.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A1 - Abba Père.txt",
+      "sans_id": "paroles/adoration/Abba Père.txt"
+    }
+  },
+  {
+    "id": "A11",
+    "partition": {
+      "avec_id": "partitions/adoration/A11 - Fais-Moi Renaître.pdf",
+      "sans_id": "partitions/adoration/Fais-Moi Renaître.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A11 - Fais-Moi Renaître.txt",
+      "sans_id": "paroles/adoration/Fais-Moi Renaître.txt"
+    }
+  },
+  {
+    "id": "A12",
+    "partition": {
+      "avec_id": "partitions/adoration/A12_-_FIXE_TON_REGARD_SUR_JÉSUS.pdf",
+      "sans_id": "partitions/adoration/FIXE_TON_REGARD_SUR_JÉSUS.pdf"
+    }
+  },
+  {
+    "id": "A14",
+    "partition": {
+      "avec_id": "partitions/adoration/A14 - Humblement dans le Silence.pdf",
+      "sans_id": "partitions/adoration/Humblement dans le Silence.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A14 - Humblement dans le Silence.txt",
+      "sans_id": "paroles/adoration/Humblement dans le Silence.txt"
+    }
+  },
+  {
+    "id": "A16",
+    "partition": {
+      "avec_id": "partitions/adoration/A16 - Il est la, Jésus Sauveur.pdf",
+      "sans_id": "partitions/adoration/Il est la, Jésus Sauveur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A16 - Il est la, Jésus Sauveur.txt",
+      "sans_id": "paroles/adoration/Il est la, Jésus Sauveur.txt"
+    }
+  },
+  {
+    "id": "A18",
+    "partition": {
+      "avec_id": "partitions/adoration/A18 - Je N'Ai D'Autre Désir.pdf",
+      "sans_id": "partitions/adoration/Je N'Ai D'Autre Désir.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A18 - Je N'Ai D'Autre Désir.txt",
+      "sans_id": "paroles/adoration/Je N'Ai D'Autre Désir.txt"
+    }
+  },
+  {
+    "id": "A20",
+    "partition": {
+      "avec_id": "partitions/adoration/A20_-_Je_Suis_Né_pour_Te_Louer.pdf",
+      "sans_id": "partitions/adoration/Je_Suis_Né_pour_Te_Louer.pdf"
+    }
+  },
+  {
+    "id": "A23",
+    "partition": {
+      "avec_id": "partitions/adoration/A23 - Jésus Me Voici Devant Toi.pdf",
+      "sans_id": "partitions/adoration/Jésus Me Voici Devant Toi.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A23 - Jésus Me Voici Devant Toi.txt",
+      "sans_id": "paroles/adoration/Jésus Me Voici Devant Toi.txt"
+    }
+  },
+  {
+    "id": "A24",
+    "partition": {
+      "avec_id": "partitions/adoration/A24 - Jésus Mon Dieu je T'Adore.pdf",
+      "sans_id": "partitions/adoration/Jésus Mon Dieu je T'Adore.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A24 - Jésus Mon Dieu je T'Adore.txt",
+      "sans_id": "paroles/adoration/Jésus Mon Dieu je T'Adore.txt"
+    }
+  },
+  {
+    "id": "A26",
+    "partition": {
+      "avec_id": "partitions/adoration/A26_-_Jésus,_Jésus.pdf",
+      "sans_id": "partitions/adoration/Jésus,_Jésus.pdf"
+    }
+  },
+  {
+    "id": "A28",
+    "partition": {
+      "avec_id": "partitions/adoration/A28 - Le Seigneur est Ma Lumière et Mon Salut.pdf",
+      "sans_id": "partitions/adoration/Le Seigneur est Ma Lumière et Mon Salut.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A28 - Le Seigneur est Ma Lumière et Mon Salut.txt",
+      "sans_id": "paroles/adoration/Le Seigneur est Ma Lumière et Mon Salut.txt"
+    }
+  },
+  {
+    "id": "A2",
+    "partition": {
+      "avec_id": "partitions/adoration/A2_-_Âme_Du_Christ.pdf",
+      "sans_id": "partitions/adoration/Âme_Du_Christ.pdf"
+    }
+  },
+  {
+    "id": "A3",
+    "partition": {
+      "avec_id": "partitions/adoration/A3 - Je Veux T'Adorer.pdf",
+      "sans_id": "partitions/adoration/Je Veux T'Adorer.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A3 - Je Veux T'Adorer.txt",
+      "sans_id": "paroles/adoration/Je Veux T'Adorer.txt"
+    }
+  },
+  {
+    "id": "A31",
+    "partition": {
+      "avec_id": "partitions/adoration/A31 - Maintenant Seigneur.pdf",
+      "sans_id": "partitions/adoration/Maintenant Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A31 - Maintenant Seigneur.txt",
+      "sans_id": "paroles/adoration/Maintenant Seigneur.txt"
+    }
+  },
+  {
+    "id": "A32",
+    "partition": {
+      "avec_id": "partitions/adoration/A32 - Mon Seigneur et Mon Dieu.pdf",
+      "sans_id": "partitions/adoration/Mon Seigneur et Mon Dieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A32 - Mon Seigneur et Mon Dieu.txt",
+      "sans_id": "paroles/adoration/Mon Seigneur et Mon Dieu.txt"
+    }
+  },
+  {
+    "id": "A33",
+    "partition": {
+      "avec_id": "partitions/adoration/A33 - Mendiez.pdf",
+      "sans_id": "partitions/adoration/Mendiez.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A33 - Mendiez.txt",
+      "sans_id": "paroles/adoration/Mendiez.txt"
+    }
+  },
+  {
+    "id": "A34",
+    "partition": {
+      "avec_id": "partitions/adoration/A34 - Moi Si J'Avais Commis.pdf",
+      "sans_id": "partitions/adoration/Moi Si J'Avais Commis.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A34 - Moi Si J'Avais Commis.txt",
+      "sans_id": "paroles/adoration/Moi Si J'Avais Commis.txt"
+    }
+  },
+  {
+    "id": "A35",
+    "partition": {
+      "avec_id": "partitions/adoration/A35 - Ne Crains pas.pdf",
+      "sans_id": "partitions/adoration/Ne Crains pas.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A35 - Ne Crains pas.txt",
+      "sans_id": "paroles/adoration/Ne Crains pas.txt"
+    }
+  },
+  {
+    "id": "A36",
+    "partition": {
+      "avec_id": "partitions/adoration/A36_-_NOUS_T'ADORONS_DANS_TON_TEMPLE.pdf",
+      "sans_id": "partitions/adoration/NOUS_T'ADORONS_DANS_TON_TEMPLE.pdf"
+    }
+  },
+  {
+    "id": "A37",
+    "partition": {
+      "avec_id": "partitions/adoration/A37 - Ô Prends Mon Âme.pdf",
+      "sans_id": "partitions/adoration/Ô Prends Mon Âme.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A37 - Ô Prends Mon Âme.txt",
+      "sans_id": "paroles/adoration/Ô Prends Mon Âme.txt"
+    }
+  },
+  {
+    "id": "A40",
+    "partition": {
+      "avec_id": "partitions/adoration/A40 - Plus Près de Toi Mon Dieu.pdf",
+      "sans_id": "partitions/adoration/Plus Près de Toi Mon Dieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A40 - Plus Près de Toi Mon Dieu.txt",
+      "sans_id": "paroles/adoration/Plus Près de Toi Mon Dieu.txt"
+    }
+  },
+  {
+    "id": "A41",
+    "partition": {
+      "avec_id": "partitions/adoration/A41 - Prosternez-Vous.pdf",
+      "sans_id": "partitions/adoration/Prosternez-Vous.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A41 - Prosternez-Vous.txt",
+      "sans_id": "paroles/adoration/Prosternez-Vous.txt"
+    }
+  },
+  {
+    "id": "A42",
+    "partition": {
+      "avec_id": "partitions/adoration/A42 - Regardez L'Humilité de Dieu.pdf",
+      "sans_id": "partitions/adoration/Regardez L'Humilité de Dieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A42 - Regardez L'Humilité de Dieu.txt",
+      "sans_id": "paroles/adoration/Regardez L'Humilité de Dieu.txt"
+    }
+  },
+  {
+    "id": "A45",
+    "partition": {
+      "avec_id": "partitions/adoration/A45_-_TRANSFORMATION.pdf",
+      "sans_id": "partitions/adoration/TRANSFORMATION.pdf"
+    }
+  },
+  {
+    "id": "A46",
+    "partition": {
+      "avec_id": "partitions/adoration/A46 - Vivre D'Amour (Bebenek).pdf",
+      "sans_id": "partitions/adoration/Vivre D'Amour (Bebenek).pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A46 - Vivre D'Amour (Bebenek).txt",
+      "sans_id": "paroles/adoration/Vivre D'Amour (Bebenek).txt"
+    }
+  },
+  {
+    "id": "A48",
+    "partition": {
+      "avec_id": "partitions/adoration/A48 - En Toi je sais qui je suis.pdf",
+      "sans_id": "partitions/adoration/En Toi je sais qui je suis.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A48 - En Toi je sais qui je suis.txt",
+      "sans_id": "paroles/adoration/En Toi je sais qui je suis.txt"
+    }
+  },
+  {
+    "id": "A49",
+    "partition": {
+      "avec_id": "partitions/adoration/A49_-_Lumière_du_Monde.pdf",
+      "sans_id": "partitions/adoration/Lumière_du_Monde.pdf"
+    }
+  },
+  {
+    "id": "A52",
+    "partition": {
+      "avec_id": "partitions/adoration/A52 - Je Te Donne Tout.pdf",
+      "sans_id": "partitions/adoration/Je Te Donne Tout.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A52 - Je Te Donne Tout.txt",
+      "sans_id": "paroles/adoration/Je Te Donne Tout.txt"
+    }
+  },
+  {
+    "id": "A57",
+    "partition": {
+      "avec_id": "partitions/adoration/A57_-_QUAND_JE_TRAVERSE.pdf",
+      "sans_id": "partitions/adoration/QUAND_JE_TRAVERSE.pdf"
+    }
+  },
+  {
+    "id": "A59",
+    "partition": {
+      "avec_id": "partitions/adoration/A59_-_TON_AMOUR,_TA_PUISSANCE.pdf",
+      "sans_id": "partitions/adoration/TON_AMOUR,_TA_PUISSANCE.pdf"
+    }
+  },
+  {
+    "id": "A61",
+    "partition": {
+      "avec_id": "partitions/adoration/A61_-_L’amour_de_notre_Père.pdf",
+      "sans_id": "partitions/adoration/L’amour_de_notre_Père.pdf"
+    }
+  },
+  {
+    "id": "A62",
+    "partition": {
+      "avec_id": "partitions/adoration/A62 - Je Veux Te Donner Ma Vie.pdf",
+      "sans_id": "partitions/adoration/Je Veux Te Donner Ma Vie.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A62 - Je Veux Te Donner Ma Vie.txt",
+      "sans_id": "paroles/adoration/Je Veux Te Donner Ma Vie.txt"
+    }
+  },
+  {
+    "id": "A64",
+    "partition": {
+      "avec_id": "partitions/adoration/A64 - Auprès de Dieu.pdf",
+      "sans_id": "partitions/adoration/Auprès de Dieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A64 - Auprès de Dieu.txt",
+      "sans_id": "paroles/adoration/Auprès de Dieu.txt"
+    }
+  },
+  {
+    "id": "A7",
+    "partition": {
+      "avec_id": "partitions/adoration/A7_-_C'est_par_ta_grâce.pdf",
+      "sans_id": "partitions/adoration/C'est_par_ta_grâce.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/adoration/A7_-_C'est_par_ta_grâce.txt",
+      "sans_id": "paroles/adoration/C'est_par_ta_grâce.txt"
+    }
+  },
+  {
+    "id": "A8",
+    "partition": {
+      "avec_id": "partitions/adoration/A8_-_DONNE-MOI_SEULEMENT_DE_T’AIMER.pdf",
+      "sans_id": "partitions/adoration/DONNE-MOI_SEULEMENT_DE_T’AIMER.pdf"
+    }
+  },
+  {
+    "id": "C11",
+    "partition": {
+      "avec_id": "partitions/communion/C11 - Prenez et Mangez.pdf",
+      "sans_id": "partitions/communion/Prenez et Mangez.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C11 - Prenez et Mangez.txt",
+      "sans_id": "paroles/communion/Prenez et Mangez.txt"
+    }
+  },
+  {
+    "id": "C12",
+    "partition": {
+      "avec_id": "partitions/communion/C12 - Recevez le Christ.pdf",
+      "sans_id": "partitions/communion/Recevez le Christ.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C12 - Recevez le Christ.txt",
+      "sans_id": "paroles/communion/Recevez le Christ.txt"
+    }
+  },
+  {
+    "id": "C13",
+    "partition": {
+      "avec_id": "partitions/communion/C13 - Venez à Moi, vous qui Portez Un Fardeau.pdf",
+      "sans_id": "partitions/communion/Venez à Moi, vous qui Portez Un Fardeau.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C13 - Venez à Moi, vous qui Portez Un Fardeau.txt",
+      "sans_id": "paroles/communion/Venez à Moi, vous qui Portez Un Fardeau.txt"
+    }
+  },
+  {
+    "id": "C14",
+    "partition": {
+      "avec_id": "partitions/communion/C14 - Venez, Approchons-Nous.pdf",
+      "sans_id": "partitions/communion/Venez, Approchons-Nous.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C14 - Venez, Approchons-Nous.txt",
+      "sans_id": "paroles/communion/Venez, Approchons-Nous.txt"
+    }
+  },
+  {
+    "id": "C15",
+    "partition": {
+      "avec_id": "partitions/communion/C15 - Jésus nous Croyons.pdf",
+      "sans_id": "partitions/communion/Jésus nous Croyons.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C15 - Jésus nous Croyons.txt",
+      "sans_id": "paroles/communion/Jésus nous Croyons.txt"
+    }
+  },
+  {
+    "id": "C16",
+    "partition": {
+      "avec_id": "partitions/communion/C16_-_Seigneur_Jesus_Tu_Es_Present.pdf",
+      "sans_id": "partitions/communion/Seigneur_Jesus_Tu_Es_Present.pdf"
+    }
+  },
+  {
+    "id": "C1",
+    "partition": {
+      "avec_id": "partitions/communion/C1_-_APPROCHONS-NOUS_DE_LA_TABLE.pdf",
+      "sans_id": "partitions/communion/APPROCHONS-NOUS_DE_LA_TABLE.pdf"
+    }
+  },
+  {
+    "id": "C2",
+    "partition": {
+      "avec_id": "partitions/communion/C2_-_Dieu_éternel_et_bon.pdf",
+      "sans_id": "partitions/communion/Dieu_éternel_et_bon.pdf"
+    }
+  },
+  {
+    "id": "C3",
+    "partition": {
+      "avec_id": "partitions/communion/C3_-_Goutez_et_voyez.pdf",
+      "sans_id": "partitions/communion/Goutez_et_voyez.pdf"
+    }
+  },
+  {
+    "id": "C4",
+    "partition": {
+      "avec_id": "partitions/communion/C4_-_JE_SUIS_TON_DIEU,_TON_CRÉATEUR.pdf",
+      "sans_id": "partitions/communion/JE_SUIS_TON_DIEU,_TON_CRÉATEUR.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C4_-_JE_SUIS_TON_DIEU,_TON_CRÉATEUR.txt",
+      "sans_id": "paroles/communion/JE_SUIS_TON_DIEU,_TON_CRÉATEUR.txt"
+    }
+  },
+  {
+    "id": "C5",
+    "partition": {
+      "avec_id": "partitions/communion/C5 - Je vous Ai Choisis.pdf",
+      "sans_id": "partitions/communion/Je vous Ai Choisis.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C5 - Je vous Ai Choisis.txt",
+      "sans_id": "paroles/communion/Je vous Ai Choisis.txt"
+    }
+  },
+  {
+    "id": "C6",
+    "partition": {
+      "avec_id": "partitions/communion/C6 - Notre Dieu S'Est Fait Homme.pdf",
+      "sans_id": "partitions/communion/Notre Dieu S'Est Fait Homme.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C6 - Notre Dieu S'Est Fait Homme.txt",
+      "sans_id": "paroles/communion/Notre Dieu S'Est Fait Homme.txt"
+    }
+  },
+  {
+    "id": "C7",
+    "partition": {
+      "avec_id": "partitions/communion/C7 - Nous T'Avons Reconnu, Seigneur.pdf",
+      "sans_id": "partitions/communion/Nous T'Avons Reconnu, Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C7 - Nous T'Avons Reconnu, Seigneur.txt",
+      "sans_id": "paroles/communion/Nous T'Avons Reconnu, Seigneur.txt"
+    }
+  },
+  {
+    "id": "C8",
+    "partition": {
+      "avec_id": "partitions/communion/C8 - Ô Mon Cœur Te Rends-Tu Compte (Offertoire).pdf",
+      "sans_id": "partitions/communion/Ô Mon Cœur Te Rends-Tu Compte (Offertoire).pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/communion/C8 - Ô Mon Cœur Te Rends-Tu Compte (Offertoire).txt",
+      "sans_id": "paroles/communion/Ô Mon Cœur Te Rends-Tu Compte (Offertoire).txt"
+    }
+  },
+  {
+    "id": "C9",
+    "partition": {
+      "avec_id": "partitions/communion/C9_-_Grain_de_Blé_qui_Tombe_en_Terre.pdf",
+      "sans_id": "partitions/communion/Grain_de_Blé_qui_Tombe_en_Terre.pdf"
+    }
+  },
+  {
+    "id": "ES12",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES12 - Viens Esprit de Sainteté.pdf",
+      "sans_id": "partitions/esprit_saint/Viens Esprit de Sainteté.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES12 - Viens Esprit de Sainteté.txt",
+      "sans_id": "paroles/esprit_saint/Viens Esprit de Sainteté.txt"
+    }
+  },
+  {
+    "id": "ES13",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES13_-_VIENS_ESPRIT_SAINT.pdf",
+      "sans_id": "partitions/esprit_saint/VIENS_ESPRIT_SAINT.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES13_-_VIENS_ESPRIT_SAINT.txt",
+      "sans_id": "paroles/esprit_saint/VIENS_ESPRIT_SAINT.txt"
+    }
+  },
+  {
+    "id": "ES14",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES14_-_Viens_Esprit_Saint_Descends_Sur_Nous.pdf",
+      "sans_id": "partitions/esprit_saint/Viens_Esprit_Saint_Descends_Sur_Nous.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES14_-_Viens_Esprit_Saint_Descends_Sur_Nous.txt",
+      "sans_id": "paroles/esprit_saint/Viens_Esprit_Saint_Descends_Sur_Nous.txt"
+    }
+  },
+  {
+    "id": "ES15",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES15 - Viens Esprit Saint Libérateur.pdf",
+      "sans_id": "partitions/esprit_saint/Viens Esprit Saint Libérateur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES15 - Viens Esprit Saint Libérateur.txt",
+      "sans_id": "paroles/esprit_saint/Viens Esprit Saint Libérateur.txt"
+    }
+  },
+  {
+    "id": "ES16",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES16_-_Viens_embraser_nos_cœurs.pdf",
+      "sans_id": "partitions/esprit_saint/Viens_embraser_nos_cœurs.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES16_-_Viens_embraser_nos_cœurs.txt",
+      "sans_id": "paroles/esprit_saint/Viens_embraser_nos_cœurs.txt"
+    }
+  },
+  {
+    "id": "ES17",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES17 - Viens Esprit Très Saint.pdf",
+      "sans_id": "partitions/esprit_saint/Viens Esprit Très Saint.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES17 - Viens Esprit Très Saint.txt",
+      "sans_id": "paroles/esprit_saint/Viens Esprit Très Saint.txt"
+    }
+  },
+  {
+    "id": "ES18",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES18 - Viens Remplir de ton Feu.pdf",
+      "sans_id": "partitions/esprit_saint/Viens Remplir de ton Feu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES18 - Viens Remplir de ton Feu.txt",
+      "sans_id": "paroles/esprit_saint/Viens Remplir de ton Feu.txt"
+    }
+  },
+  {
+    "id": "ES19",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES19_-_VIENS_SOUFFLE_DE_DIEU_VIENS.pdf",
+      "sans_id": "partitions/esprit_saint/VIENS_SOUFFLE_DE_DIEU_VIENS.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES19_-_VIENS_SOUFFLE_DE_DIEU_VIENS.txt",
+      "sans_id": "paroles/esprit_saint/VIENS_SOUFFLE_DE_DIEU_VIENS.txt"
+    }
+  },
+  {
+    "id": "ES20",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES20_-_Viens_Esprit_Saint_(Toady).pdf",
+      "sans_id": "partitions/esprit_saint/Viens_Esprit_Saint_(Toady).pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES20_-_Viens_Esprit_Saint_(Toady).txt",
+      "sans_id": "paroles/esprit_saint/Viens_Esprit_Saint_(Toady).txt"
+    }
+  },
+  {
+    "id": "ES23",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES23_-_Viens,_viens_en_nos_cœurs_Esprit_d’amour.pdf",
+      "sans_id": "partitions/esprit_saint/Viens,_viens_en_nos_cœurs_Esprit_d’amour.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES23_-_Viens,_viens_en_nos_cœurs_Esprit_d’amour.txt",
+      "sans_id": "paroles/esprit_saint/Viens,_viens_en_nos_cœurs_Esprit_d’amour.txt"
+    }
+  },
+  {
+    "id": "ES25",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES25 - J'Attendrai (Glorious).pdf",
+      "sans_id": "partitions/esprit_saint/J'Attendrai (Glorious).pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES25 - J'Attendrai (Glorious).txt",
+      "sans_id": "paroles/esprit_saint/J'Attendrai (Glorious).txt"
+    }
+  },
+  {
+    "id": "ES3",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES3 - Esprit de Lumière, Esprit Créateur.pdf",
+      "sans_id": "partitions/esprit_saint/Esprit de Lumière, Esprit Créateur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES3 - Esprit de Lumière, Esprit Créateur.txt",
+      "sans_id": "paroles/esprit_saint/Esprit de Lumière, Esprit Créateur.txt"
+    }
+  },
+  {
+    "id": "ES5",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES5_-_Viens_Esprit_Saint_Feu_d'Amour.pdf",
+      "sans_id": "partitions/esprit_saint/Viens_Esprit_Saint_Feu_d'Amour.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES5_-_Viens_Esprit_Saint_Feu_d'Amour.txt",
+      "sans_id": "paroles/esprit_saint/Viens_Esprit_Saint_Feu_d'Amour.txt"
+    }
+  },
+  {
+    "id": "ES6",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES6 - Gloire à Toi Esprit de Feu.pdf",
+      "sans_id": "partitions/esprit_saint/Gloire à Toi Esprit de Feu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES6 - Gloire à Toi Esprit de Feu.txt",
+      "sans_id": "paroles/esprit_saint/Gloire à Toi Esprit de Feu.txt"
+    }
+  },
+  {
+    "id": "ES7",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES7 - Jésus Toi qui As Promis.pdf",
+      "sans_id": "partitions/esprit_saint/Jésus Toi qui As Promis.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES7 - Jésus Toi qui As Promis.txt",
+      "sans_id": "paroles/esprit_saint/Jésus Toi qui As Promis.txt"
+    }
+  },
+  {
+    "id": "ES8",
+    "partition": {
+      "avec_id": "partitions/esprit_saint/ES8 - L'Esprit Saint qui nous est Donne.pdf",
+      "sans_id": "partitions/esprit_saint/L'Esprit Saint qui nous est Donne.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/esprit_saint/ES8 - L'Esprit Saint qui nous est Donne.txt",
+      "sans_id": "paroles/esprit_saint/L'Esprit Saint qui nous est Donne.txt"
+    }
+  },
+  {
+    "id": "L11",
+    "partition": {
+      "avec_id": "partitions/louange/L11 - Grandes et Merveilleuses.pdf",
+      "sans_id": "partitions/louange/Grandes et Merveilleuses.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L11 - Grandes et Merveilleuses.txt",
+      "sans_id": "paroles/louange/Grandes et Merveilleuses.txt"
+    }
+  },
+  {
+    "id": "L12",
+    "partition": {
+      "avec_id": "partitions/louange/L12 - Il est Bon de Louer le Seigneur.pdf",
+      "sans_id": "partitions/louange/Il est Bon de Louer le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L12 - Il est Bon de Louer le Seigneur.txt",
+      "sans_id": "paroles/louange/Il est Bon de Louer le Seigneur.txt"
+    }
+  },
+  {
+    "id": "L13",
+    "partition": {
+      "avec_id": "partitions/louange/L13 - Il est Temps de Quitter Vos Tombeaux.pdf",
+      "sans_id": "partitions/louange/Il est Temps de Quitter Vos Tombeaux.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L13 - Il est Temps de Quitter Vos Tombeaux.txt",
+      "sans_id": "paroles/louange/Il est Temps de Quitter Vos Tombeaux.txt"
+    }
+  },
+  {
+    "id": "L14",
+    "partition": {
+      "avec_id": "partitions/louange/L14 - Il S'Est Manifesté.pdf",
+      "sans_id": "partitions/louange/Il S'Est Manifesté.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L14 - Il S'Est Manifesté.txt",
+      "sans_id": "paroles/louange/Il S'Est Manifesté.txt"
+    }
+  },
+  {
+    "id": "L15",
+    "partition": {
+      "avec_id": "partitions/louange/L15 - Je Veux Me Réjouir.pdf",
+      "sans_id": "partitions/louange/Je Veux Me Réjouir.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L15 - Je Veux Me Réjouir.txt",
+      "sans_id": "paroles/louange/Je Veux Me Réjouir.txt"
+    }
+  },
+  {
+    "id": "L16",
+    "partition": {
+      "avec_id": "partitions/louange/L16_-_Il_n'y_a_pas_de_petites_joies.pdf",
+      "sans_id": "partitions/louange/Il_n'y_a_pas_de_petites_joies.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L16_-_Il_n'y_a_pas_de_petites_joies.txt",
+      "sans_id": "paroles/louange/Il_n'y_a_pas_de_petites_joies.txt"
+    }
+  },
+  {
+    "id": "L19",
+    "partition": {
+      "avec_id": "partitions/louange/L19 - Par Toute la Terre.pdf",
+      "sans_id": "partitions/louange/Par Toute la Terre.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L19 - Par Toute la Terre.txt",
+      "sans_id": "paroles/louange/Par Toute la Terre.txt"
+    }
+  },
+  {
+    "id": "L1",
+    "partition": {
+      "avec_id": "partitions/louange/L1_-_ACCLAMEZ_DIEU_TOUTE_LA_TERRE.pdf",
+      "sans_id": "partitions/louange/ACCLAMEZ_DIEU_TOUTE_LA_TERRE.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L1_-_ACCLAMEZ_DIEU_TOUTE_LA_TERRE.txt",
+      "sans_id": "paroles/louange/ACCLAMEZ_DIEU_TOUTE_LA_TERRE.txt"
+    }
+  },
+  {
+    "id": "L20",
+    "partition": {
+      "avec_id": "partitions/louange/L20 - Pour tes Merveilles.pdf",
+      "sans_id": "partitions/louange/Pour tes Merveilles.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L20 - Pour tes Merveilles.txt",
+      "sans_id": "paroles/louange/Pour tes Merveilles.txt"
+    }
+  },
+  {
+    "id": "L21",
+    "partition": {
+      "avec_id": "partitions/louange/L21 - Pousse des Cris de Joie.pdf",
+      "sans_id": "partitions/louange/Pousse des Cris de Joie.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L21 - Pousse des Cris de Joie.txt",
+      "sans_id": "paroles/louange/Pousse des Cris de Joie.txt"
+    }
+  },
+  {
+    "id": "L22",
+    "partition": {
+      "avec_id": "partitions/louange/L22 - Mets ta Joie dans le Seigneur.pdf",
+      "sans_id": "partitions/louange/Mets ta Joie dans le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L22 - Mets ta Joie dans le Seigneur.txt",
+      "sans_id": "paroles/louange/Mets ta Joie dans le Seigneur.txt"
+    }
+  },
+  {
+    "id": "L23",
+    "partition": {
+      "avec_id": "partitions/louange/L23 - Réjouis-Toi Car il Vient.pdf",
+      "sans_id": "partitions/louange/Réjouis-Toi Car il Vient.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L23 - Réjouis-Toi Car il Vient.txt",
+      "sans_id": "paroles/louange/Réjouis-Toi Car il Vient.txt"
+    }
+  },
+  {
+    "id": "L24",
+    "partition": {
+      "avec_id": "partitions/louange/L24 - Seigneur tu es Toute Ma Joie.pdf",
+      "sans_id": "partitions/louange/Seigneur tu es Toute Ma Joie.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L24 - Seigneur tu es Toute Ma Joie.txt",
+      "sans_id": "paroles/louange/Seigneur tu es Toute Ma Joie.txt"
+    }
+  },
+  {
+    "id": "L25",
+    "partition": {
+      "avec_id": "partitions/louange/L25 - Tes Œuvres Te Bénissent.pdf",
+      "sans_id": "partitions/louange/Tes Œuvres Te Bénissent.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L25 - Tes Œuvres Te Bénissent.txt",
+      "sans_id": "paroles/louange/Tes Œuvres Te Bénissent.txt"
+    }
+  },
+  {
+    "id": "L26",
+    "partition": {
+      "avec_id": "partitions/louange/L26 - Tu es Bon.pdf",
+      "sans_id": "partitions/louange/Tu es Bon.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L26 - Tu es Bon.txt",
+      "sans_id": "paroles/louange/Tu es Bon.txt"
+    }
+  },
+  {
+    "id": "L28",
+    "partition": {
+      "avec_id": "partitions/louange/L28_-_Vous_les_Œuvres_du_Seigneur.pdf",
+      "sans_id": "partitions/louange/Vous_les_Œuvres_du_Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L28_-_Vous_les_Œuvres_du_Seigneur.txt",
+      "sans_id": "paroles/louange/Vous_les_Œuvres_du_Seigneur.txt"
+    }
+  },
+  {
+    "id": "L31",
+    "partition": {
+      "avec_id": "partitions/louange/L31 - Criez pour Dieu Notre Force.pdf",
+      "sans_id": "partitions/louange/Criez pour Dieu Notre Force.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L31 - Criez pour Dieu Notre Force.txt",
+      "sans_id": "paroles/louange/Criez pour Dieu Notre Force.txt"
+    }
+  },
+  {
+    "id": "L35",
+    "partition": {
+      "avec_id": "partitions/louange/L35 - Sauve ton Peuple.pdf",
+      "sans_id": "partitions/louange/Sauve ton Peuple.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L35 - Sauve ton Peuple.txt",
+      "sans_id": "paroles/louange/Sauve ton Peuple.txt"
+    }
+  },
+  {
+    "id": "L36",
+    "partition": {
+      "avec_id": "partitions/louange/L36 - Comment ne pas Te Louer.pdf",
+      "sans_id": "partitions/louange/Comment ne pas Te Louer.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L36 - Comment ne pas Te Louer.txt",
+      "sans_id": "paroles/louange/Comment ne pas Te Louer.txt"
+    }
+  },
+  {
+    "id": "L37",
+    "partition": {
+      "avec_id": "partitions/louange/L37 - Jeunes et Vieux.pdf",
+      "sans_id": "partitions/louange/Jeunes et Vieux.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L37 - Jeunes et Vieux.txt",
+      "sans_id": "paroles/louange/Jeunes et Vieux.txt"
+    }
+  },
+  {
+    "id": "L38",
+    "partition": {
+      "avec_id": "partitions/louange/L38_-_RESUCITO.pdf",
+      "sans_id": "partitions/louange/RESUCITO.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L38_-_RESUCITO.txt",
+      "sans_id": "paroles/louange/RESUCITO.txt"
+    }
+  },
+  {
+    "id": "L39",
+    "partition": {
+      "avec_id": "partitions/louange/L39_-_Règne_A_Jamais.pdf",
+      "sans_id": "partitions/louange/Règne_A_Jamais.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L39_-_Règne_A_Jamais.txt",
+      "sans_id": "paroles/louange/Règne_A_Jamais.txt"
+    }
+  },
+  {
+    "id": "L40",
+    "partition": {
+      "avec_id": "partitions/louange/L40 - Réjouis-Toi, Fille de Sion.pdf",
+      "sans_id": "partitions/louange/Réjouis-Toi, Fille de Sion.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L40 - Réjouis-Toi, Fille de Sion.txt",
+      "sans_id": "paroles/louange/Réjouis-Toi, Fille de Sion.txt"
+    }
+  },
+  {
+    "id": "L42",
+    "partition": {
+      "avec_id": "partitions/louange/L42 - Soyons Toujours Joyeux.pdf",
+      "sans_id": "partitions/louange/Soyons Toujours Joyeux.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L42 - Soyons Toujours Joyeux.txt",
+      "sans_id": "paroles/louange/Soyons Toujours Joyeux.txt"
+    }
+  },
+  {
+    "id": "L44",
+    "partition": {
+      "avec_id": "partitions/louange/L44 - Alléluia, Magnificat.pdf",
+      "sans_id": "partitions/louange/Alléluia, Magnificat.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L44 - Alléluia, Magnificat.txt",
+      "sans_id": "paroles/louange/Alléluia, Magnificat.txt"
+    }
+  },
+  {
+    "id": "L45",
+    "partition": {
+      "avec_id": "partitions/louange/L45 - Exultez pour le Seigneur.pdf",
+      "sans_id": "partitions/louange/Exultez pour le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L45 - Exultez pour le Seigneur.txt",
+      "sans_id": "paroles/louange/Exultez pour le Seigneur.txt"
+    }
+  },
+  {
+    "id": "L46",
+    "partition": {
+      "avec_id": "partitions/louange/L46 - Gloire à Toi ô Dieu Notre Père.pdf",
+      "sans_id": "partitions/louange/Gloire à Toi ô Dieu Notre Père.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L46 - Gloire à Toi ô Dieu Notre Père.txt",
+      "sans_id": "paroles/louange/Gloire à Toi ô Dieu Notre Père.txt"
+    }
+  },
+  {
+    "id": "L48",
+    "partition": {
+      "avec_id": "partitions/louange/L48 - Mon Amour C'Est le Seigneur.pdf",
+      "sans_id": "partitions/louange/Mon Amour C'Est le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L48 - Mon Amour C'Est le Seigneur.txt",
+      "sans_id": "paroles/louange/Mon Amour C'Est le Seigneur.txt"
+    }
+  },
+  {
+    "id": "L49",
+    "partition": {
+      "avec_id": "partitions/louange/L49 - Nous Voulons Voir Jésus Élevé.pdf",
+      "sans_id": "partitions/louange/Nous Voulons Voir Jésus Élevé.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L49 - Nous Voulons Voir Jésus Élevé.txt",
+      "sans_id": "paroles/louange/Nous Voulons Voir Jésus Élevé.txt"
+    }
+  },
+  {
+    "id": "L50",
+    "partition": {
+      "avec_id": "partitions/louange/L50_-_DANSONS_ENSEMBLE.pdf",
+      "sans_id": "partitions/louange/DANSONS_ENSEMBLE.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L50_-_DANSONS_ENSEMBLE.txt",
+      "sans_id": "paroles/louange/DANSONS_ENSEMBLE.txt"
+    }
+  },
+  {
+    "id": "L51",
+    "partition": {
+      "avec_id": "partitions/louange/L51_-_Quand_j’invoque_le_Seigneur.pdf",
+      "sans_id": "partitions/louange/Quand_j’invoque_le_Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L51_-_Quand_j’invoque_le_Seigneur.txt",
+      "sans_id": "paroles/louange/Quand_j’invoque_le_Seigneur.txt"
+    }
+  },
+  {
+    "id": "L52",
+    "partition": {
+      "avec_id": "partitions/louange/L52_-_Que_Ferais-Je_pour_L’Éternel.pdf",
+      "sans_id": "partitions/louange/Que_Ferais-Je_pour_L’Éternel.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L52_-_Que_Ferais-Je_pour_L’Éternel.txt",
+      "sans_id": "paroles/louange/Que_Ferais-Je_pour_L’Éternel.txt"
+    }
+  },
+  {
+    "id": "L53",
+    "partition": {
+      "avec_id": "partitions/louange/L53 - Qu'Ils Sont Beaux.pdf",
+      "sans_id": "partitions/louange/Qu'Ils Sont Beaux.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L53 - Qu'Ils Sont Beaux.txt",
+      "sans_id": "paroles/louange/Qu'Ils Sont Beaux.txt"
+    }
+  },
+  {
+    "id": "L59",
+    "partition": {
+      "avec_id": "partitions/louange/L59 - Glorifie le Seigneur.pdf",
+      "sans_id": "partitions/louange/Glorifie le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L59 - Glorifie le Seigneur.txt",
+      "sans_id": "paroles/louange/Glorifie le Seigneur.txt"
+    }
+  },
+  {
+    "id": "L5",
+    "partition": {
+      "avec_id": "partitions/louange/L5_-_DEBOUT_RESPLENDIS.pdf",
+      "sans_id": "partitions/louange/DEBOUT_RESPLENDIS.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L5_-_DEBOUT_RESPLENDIS.txt",
+      "sans_id": "paroles/louange/DEBOUT_RESPLENDIS.txt"
+    }
+  },
+  {
+    "id": "L60",
+    "partition": {
+      "avec_id": "partitions/louange/L60_-_Briser_les_chaînes.pdf",
+      "sans_id": "partitions/louange/Briser_les_chaînes.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L60_-_Briser_les_chaînes.txt",
+      "sans_id": "paroles/louange/Briser_les_chaînes.txt"
+    }
+  },
+  {
+    "id": "L61",
+    "partition": {
+      "avec_id": "partitions/louange/L61_-_Ouvrez_les_portes.pdf",
+      "sans_id": "partitions/louange/Ouvrez_les_portes.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L61_-_Ouvrez_les_portes.txt",
+      "sans_id": "paroles/louange/Ouvrez_les_portes.txt"
+    }
+  },
+  {
+    "id": "L62",
+    "partition": {
+      "avec_id": "partitions/louange/L62 - Hosanna.pdf",
+      "sans_id": "partitions/louange/Hosanna.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L62 - Hosanna.txt",
+      "sans_id": "paroles/louange/Hosanna.txt"
+    }
+  },
+  {
+    "id": "L6",
+    "partition": {
+      "avec_id": "partitions/louange/L6_-_ÉLÈVE-TOI.pdf",
+      "sans_id": "partitions/louange/ÉLÈVE-TOI.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L6_-_ÉLÈVE-TOI.txt",
+      "sans_id": "paroles/louange/ÉLÈVE-TOI.txt"
+    }
+  },
+  {
+    "id": "L8",
+    "partition": {
+      "avec_id": "partitions/louange/L8_-_GLOIRE_À_TOI_SEIGNEUR_SOURCE_DE_TOUTE_JOIE.pdf",
+      "sans_id": "partitions/louange/GLOIRE_À_TOI_SEIGNEUR_SOURCE_DE_TOUTE_JOIE.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L8_-_GLOIRE_À_TOI_SEIGNEUR_SOURCE_DE_TOUTE_JOIE.txt",
+      "sans_id": "paroles/louange/GLOIRE_À_TOI_SEIGNEUR_SOURCE_DE_TOUTE_JOIE.txt"
+    }
+  },
+  {
+    "id": "L9",
+    "partition": {
+      "avec_id": "partitions/louange/L9_-_GLOIRE_ET_LOUANGE_À_TOI_SEIGNEUR.pdf",
+      "sans_id": "partitions/louange/GLOIRE_ET_LOUANGE_À_TOI_SEIGNEUR.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange/L9_-_GLOIRE_ET_LOUANGE_À_TOI_SEIGNEUR.txt",
+      "sans_id": "paroles/louange/GLOIRE_ET_LOUANGE_À_TOI_SEIGNEUR.txt"
+    }
+  },
+  {
+    "id": "LC1",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC1 - Béni Soit ton Nom.pdf",
+      "sans_id": "partitions/louange_calme/Béni Soit ton Nom.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC1 - Béni Soit ton Nom.txt",
+      "sans_id": "paroles/louange_calme/Béni Soit ton Nom.txt"
+    }
+  },
+  {
+    "id": "LC14",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC14 - Je Veux Te Glorifier.pdf",
+      "sans_id": "partitions/louange_calme/Je Veux Te Glorifier.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC14 - Je Veux Te Glorifier.txt",
+      "sans_id": "paroles/louange_calme/Je Veux Te Glorifier.txt"
+    }
+  },
+  {
+    "id": "LC16",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC16 - Ton Nom Emmanuel.pdf",
+      "sans_id": "partitions/louange_calme/Ton Nom Emmanuel.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC16 - Ton Nom Emmanuel.txt",
+      "sans_id": "paroles/louange_calme/Ton Nom Emmanuel.txt"
+    }
+  },
+  {
+    "id": "LC18",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC18_-_Bénissez_le_Seigneur.pdf",
+      "sans_id": "partitions/louange_calme/Bénissez_le_Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC18_-_Bénissez_le_Seigneur.txt",
+      "sans_id": "paroles/louange_calme/Bénissez_le_Seigneur.txt"
+    }
+  },
+  {
+    "id": "LC19",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC19_-_Il_m'aime.pdf",
+      "sans_id": "partitions/louange_calme/Il_m'aime.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC19_-_Il_m'aime.txt",
+      "sans_id": "paroles/louange_calme/Il_m'aime.txt"
+    }
+  },
+  {
+    "id": "LC21",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC21 - Ô Jésus Sauveur.pdf",
+      "sans_id": "partitions/louange_calme/Ô Jésus Sauveur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC21 - Ô Jésus Sauveur.txt",
+      "sans_id": "paroles/louange_calme/Ô Jésus Sauveur.txt"
+    }
+  },
+  {
+    "id": "LC22",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC22_-_Oui_règne_en_moi.pdf",
+      "sans_id": "partitions/louange_calme/Oui_règne_en_moi.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC22_-_Oui_règne_en_moi.txt",
+      "sans_id": "paroles/louange_calme/Oui_règne_en_moi.txt"
+    }
+  },
+  {
+    "id": "LC23",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC23 - Que Ma Bouche Chante tes Louanges.pdf",
+      "sans_id": "partitions/louange_calme/Que Ma Bouche Chante tes Louanges.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC23 - Que Ma Bouche Chante tes Louanges.txt",
+      "sans_id": "paroles/louange_calme/Que Ma Bouche Chante tes Louanges.txt"
+    }
+  },
+  {
+    "id": "LC24",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC24 - L'Éternel est Mon Berger.pdf",
+      "sans_id": "partitions/louange_calme/L'Éternel est Mon Berger.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC24 - L'Éternel est Mon Berger.txt",
+      "sans_id": "paroles/louange_calme/L'Éternel est Mon Berger.txt"
+    }
+  },
+  {
+    "id": "LC25",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC25_-_Cet_Amour.pdf",
+      "sans_id": "partitions/louange_calme/Cet_Amour.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC25_-_Cet_Amour.txt",
+      "sans_id": "paroles/louange_calme/Cet_Amour.txt"
+    }
+  },
+  {
+    "id": "LC26",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC26_-_Je_loue_ton_nom.pdf",
+      "sans_id": "partitions/louange_calme/Je_loue_ton_nom.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC26_-_Je_loue_ton_nom.txt",
+      "sans_id": "paroles/louange_calme/Je_loue_ton_nom.txt"
+    }
+  },
+  {
+    "id": "LC27",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC27_-_Qu’Exulte_la_Terre.pdf",
+      "sans_id": "partitions/louange_calme/Qu’Exulte_la_Terre.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC27_-_Qu’Exulte_la_Terre.txt",
+      "sans_id": "paroles/louange_calme/Qu’Exulte_la_Terre.txt"
+    }
+  },
+  {
+    "id": "LC28",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC28 - Que ton Nom Résonne en ce Lieu.pdf",
+      "sans_id": "partitions/louange_calme/Que ton Nom Résonne en ce Lieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC28 - Que ton Nom Résonne en ce Lieu.txt",
+      "sans_id": "paroles/louange_calme/Que ton Nom Résonne en ce Lieu.txt"
+    }
+  },
+  {
+    "id": "LC2",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC2_-_CAR_DIEU.pdf",
+      "sans_id": "partitions/louange_calme/CAR_DIEU.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC2_-_CAR_DIEU.txt",
+      "sans_id": "paroles/louange_calme/CAR_DIEU.txt"
+    }
+  },
+  {
+    "id": "LC3",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC3 - Combien Dieu est Grand.pdf",
+      "sans_id": "partitions/louange_calme/Combien Dieu est Grand.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC3 - Combien Dieu est Grand.txt",
+      "sans_id": "paroles/louange_calme/Combien Dieu est Grand.txt"
+    }
+  },
+  {
+    "id": "LC4",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC4 - Christ est la Lumière.pdf",
+      "sans_id": "partitions/louange_calme/Christ est la Lumière.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC4 - Christ est la Lumière.txt",
+      "sans_id": "paroles/louange_calme/Christ est la Lumière.txt"
+    }
+  },
+  {
+    "id": "LC5",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC5 - Je Veux Chanter Mes Hymnes.pdf",
+      "sans_id": "partitions/louange_calme/Je Veux Chanter Mes Hymnes.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC5 - Je Veux Chanter Mes Hymnes.txt",
+      "sans_id": "paroles/louange_calme/Je Veux Chanter Mes Hymnes.txt"
+    }
+  },
+  {
+    "id": "LC6",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC6 - Je Veux Voir Dieu.pdf",
+      "sans_id": "partitions/louange_calme/Je Veux Voir Dieu.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC6 - Je Veux Voir Dieu.txt",
+      "sans_id": "paroles/louange_calme/Je Veux Voir Dieu.txt"
+    }
+  },
+  {
+    "id": "LC7",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC7 - Que Vienne ton Règne.pdf",
+      "sans_id": "partitions/louange_calme/Que Vienne ton Règne.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC7 - Que Vienne ton Règne.txt",
+      "sans_id": "paroles/louange_calme/Que Vienne ton Règne.txt"
+    }
+  },
+  {
+    "id": "LC8",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC8 - Acclamons le Roi du Ciel.pdf",
+      "sans_id": "partitions/louange_calme/Acclamons le Roi du Ciel.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC8 - Acclamons le Roi du Ciel.txt",
+      "sans_id": "paroles/louange_calme/Acclamons le Roi du Ciel.txt"
+    }
+  },
+  {
+    "id": "LC9",
+    "partition": {
+      "avec_id": "partitions/louange_calme/LC9 - Célébrez la Douceur de son Nom.pdf",
+      "sans_id": "partitions/louange_calme/Célébrez la Douceur de son Nom.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/louange_calme/LC9 - Célébrez la Douceur de son Nom.txt",
+      "sans_id": "paroles/louange_calme/Célébrez la Douceur de son Nom.txt"
+    }
+  },
+  {
+    "id": "M1",
+    "partition": {
+      "avec_id": "partitions/marie/M1 - Chantez Avec Moi le Seigneur.pdf",
+      "sans_id": "partitions/marie/Chantez Avec Moi le Seigneur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M1 - Chantez Avec Moi le Seigneur.txt",
+      "sans_id": "paroles/marie/Chantez Avec Moi le Seigneur.txt"
+    }
+  },
+  {
+    "id": "M10",
+    "partition": {
+      "avec_id": "partitions/marie/M10 - Je Suis Tout à Toi Marie.pdf",
+      "sans_id": "partitions/marie/Je Suis Tout à Toi Marie.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M10 - Je Suis Tout à Toi Marie.txt",
+      "sans_id": "paroles/marie/Je Suis Tout à Toi Marie.txt"
+    }
+  },
+  {
+    "id": "M11",
+    "partition": {
+      "avec_id": "partitions/marie/M11 - Marie Douce Lumière.pdf",
+      "sans_id": "partitions/marie/Marie Douce Lumière.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M11 - Marie Douce Lumière.txt",
+      "sans_id": "paroles/marie/Marie Douce Lumière.txt"
+    }
+  },
+  {
+    "id": "M12",
+    "partition": {
+      "avec_id": "partitions/marie/M12_-_Ô_Mère_Bien_Aimée.pdf",
+      "sans_id": "partitions/marie/Ô_Mère_Bien_Aimée.pdf"
+    }
+  },
+  {
+    "id": "M13",
+    "partition": {
+      "avec_id": "partitions/marie/M13 - Couronnée D'Etoiles.pdf",
+      "sans_id": "partitions/marie/Couronnée D'Etoiles.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M13 - Couronnée D'Etoiles.txt",
+      "sans_id": "paroles/marie/Couronnée D'Etoiles.txt"
+    }
+  },
+  {
+    "id": "M2",
+    "partition": {
+      "avec_id": "partitions/marie/M2_-_Magnificat.pdf",
+      "sans_id": "partitions/marie/Magnificat.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M2_-_Magnificat.txt",
+      "sans_id": "paroles/marie/Magnificat.txt"
+    }
+  },
+  {
+    "id": "M3",
+    "partition": {
+      "avec_id": "partitions/marie/M3 - Réjouis-Toi, Marie.pdf",
+      "sans_id": "partitions/marie/Réjouis-Toi, Marie.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M3 - Réjouis-Toi, Marie.txt",
+      "sans_id": "paroles/marie/Réjouis-Toi, Marie.txt"
+    }
+  },
+  {
+    "id": "M4",
+    "partition": {
+      "avec_id": "partitions/marie/M4_-_Ô_MARIE_APPRENDS-NOUS_LE_CHEMIN.pdf",
+      "sans_id": "partitions/marie/Ô_MARIE_APPRENDS-NOUS_LE_CHEMIN.pdf"
+    }
+  },
+  {
+    "id": "M5",
+    "partition": {
+      "avec_id": "partitions/marie/M5 - Ô Mère du Sauveur.pdf",
+      "sans_id": "partitions/marie/Ô Mère du Sauveur.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M5 - Ô Mère du Sauveur.txt",
+      "sans_id": "paroles/marie/Ô Mère du Sauveur.txt"
+    }
+  },
+  {
+    "id": "M6",
+    "partition": {
+      "avec_id": "partitions/marie/M6 - Regarde L'Etoile.pdf",
+      "sans_id": "partitions/marie/Regarde L'Etoile.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M6 - Regarde L'Etoile.txt",
+      "sans_id": "paroles/marie/Regarde L'Etoile.txt"
+    }
+  },
+  {
+    "id": "M7",
+    "partition": {
+      "avec_id": "partitions/marie/M7_-_Sous_ton_voile_de_tendresse.pdf",
+      "sans_id": "partitions/marie/Sous_ton_voile_de_tendresse.pdf"
+    }
+  },
+  {
+    "id": "M8",
+    "partition": {
+      "avec_id": "partitions/marie/M8 - Totus Tuus.pdf",
+      "sans_id": "partitions/marie/Totus Tuus.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M8 - Totus Tuus.txt",
+      "sans_id": "paroles/marie/Totus Tuus.txt"
+    }
+  },
+  {
+    "id": "M9",
+    "partition": {
+      "avec_id": "partitions/marie/M9 - Tu As Porte Celui qui Porte Tout.pdf",
+      "sans_id": "partitions/marie/Tu As Porte Celui qui Porte Tout.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/marie/M9 - Tu As Porte Celui qui Porte Tout.txt",
+      "sans_id": "paroles/marie/Tu As Porte Celui qui Porte Tout.txt"
+    }
+  },
+  {
+    "id": "P1",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P1_-_Alléluia_-_St_Michel.pdf",
+      "sans_id": "partitions/polyphonique/Alléluia_-_St_Michel.pdf"
+    }
+  },
+  {
+    "id": "P2",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P2_-_En_esprit_et_en_vérité.pdf",
+      "sans_id": "partitions/polyphonique/En_esprit_et_en_vérité.pdf"
+    },
+    "paroles": {
+      "avec_id": "paroles/polyphonique/P2_-_En_esprit_et_en_vérité.txt",
+      "sans_id": "paroles/polyphonique/En_esprit_et_en_vérité.txt"
+    }
+  },
+  {
+    "id": "P3",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P3_-_HOSTIA_SANCTA.pdf",
+      "sans_id": "partitions/polyphonique/HOSTIA_SANCTA.pdf"
+    }
+  },
+  {
+    "id": "P4",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P4_-_Hymne_des_Cherubins.pdf",
+      "sans_id": "partitions/polyphonique/Hymne_des_Cherubins.pdf"
+    }
+  },
+  {
+    "id": "P5",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P5_-_Laissons_La_Présence.pdf",
+      "sans_id": "partitions/polyphonique/Laissons_La_Présence.pdf"
+    }
+  },
+  {
+    "id": "P6",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P6_-_L’amour_de_la_croix.pdf",
+      "sans_id": "partitions/polyphonique/L’amour_de_la_croix.pdf"
+    }
+  },
+  {
+    "id": "P7",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P7_-_Me_Voici.pdf",
+      "sans_id": "partitions/polyphonique/Me_Voici.pdf"
+    }
+  },
+  {
+    "id": "P8",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P8_-_Ô_Père_infiniment_bon.pdf",
+      "sans_id": "partitions/polyphonique/Ô_Père_infiniment_bon.pdf"
+    }
+  },
+  {
+    "id": "P9",
+    "partition": {
+      "avec_id": "partitions/polyphonique/P9_-_Prière_de_Charles_de_Foucauld.pdf",
+      "sans_id": "partitions/polyphonique/Prière_de_Charles_de_Foucauld.pdf"
+    }
+  }
+]
