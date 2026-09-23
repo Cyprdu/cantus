@@ -2,7 +2,7 @@
   {
     "key": "emmanuel",
     "label": "Chants de l'Emmanuel",
-    "code": null,
+    "code": "09344206",
     "cover": "covers/playlists/emmanuel-mue2t8tl.jpg",
     "splitByCategory": false,
     "songIds": [
@@ -14,8 +14,8 @@
   {
     "key": "chorale_scoute_lyon_2026",
     "label": "Chorale Scoute de Lyon 2026",
-    "code": "61733042",
-    "cover": "covers/playlists/chorale_scoute_lyon_2026-mue2z9by.jpg",
+    "code": "15091793",
+    "cover": "covers/playlists/chorale_scoute_lyon_2026-mue337cn.jpg",
     "splitByCategory": false,
     "songIds": [
       "61e249eb2442e156f79991f9fbf4a2155fcd3a08",
