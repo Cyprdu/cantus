@@ -10,7 +10,7 @@ C'est une PWA (Progressive Web App) **100% statique, sans build ni backend** : t
 - **Visionneuse plein écran** : zoom (molette, pincement, boutons), mode page double sur grand écran, tourne-page tactile ou par boutons, reconnaissance faciale (pencher la tête pour tourner la page), pédale externe (ESP32), sortie de veille désactivée pendant la lecture.
 - **Mode Paroles** : bascule à tout moment entre la partition (PDF) et les paroles seules, en grand texte défilant — pratique pour les chanteurs qui n'ont pas besoin de la portée.
 - **Playlists** et **Messes** : prépare un déroulé de chants pour une messe, avec récupération automatique des lectures du jour (API AELF) insérées comme n'importe quel autre élément du déroulé.
-- **Mode Live** : un appareil "hôte" partage en direct le chant en cours à d'autres appareils du groupe, connectés en pair-à-pair (WebRTC, appairage par QR code) — chacun peut suivre sur son propre écran et s'envoyer des messages courts pendant le service.
+- **Mode Live** : raccourcis vers les playlists de l'appareil pour n'ajouter que leurs chants (divisés par catégorie si la playlist l'est). Un appareil "hôte" partage en direct le chant en cours à d'autres appareils du groupe, connectés en pair-à-pair (WebRTC, appairage par QR code) — chacun peut suivre sur son propre écran et s'envoyer des messages courts pendant le service.
 - **Mode hors-ligne** : téléchargement des partitions en cache local (Service Worker) pour une consultation sans connexion.
 - **Mode administrateur** : avec un token GitHub (Personal Access Token), importer, renommer, déplacer ou supprimer une partition et ses paroles directement depuis l'app — les changements sont commités sur le dépôt.
 
@@ -45,13 +45,16 @@ autre/               Fichiers hérités d'anciennes versions, non utilisés par 
 
 ### Mode administrateur
 
-Un administrateur entre un Personal Access Token GitHub (avec droit d'écriture sur le dépôt) dans les Paramètres ; il est chiffré et stocké uniquement sur l'appareil. Une fois actif :
+Un administrateur entre un Personal Access Token GitHub (avec droit d'écriture sur le dépôt) dans les Paramètres ; il est chiffré et stocké uniquement sur l'appareil. Une fois actif, toutes les tâches d'administration passent par le **Dashboard Admin** (plein écran, pensé pour tablette), accessible depuis les Paramètres ou l'icône à côté de la roue crantée :
 
-- **Importer** une partition (fichier ou lien direct) et, en option, ses paroles → commités sur GitHub sous `partitions/` et `paroles/`.
-- **Modifier** une partition : renommer, changer de catégorie, corriger ou ajouter les paroles (le fichier de paroles suit le renommage).
-- **Supprimer** une partition.
+- **Partitions** : importer (au choix *locale*, sur cet appareil seulement, ou *générale*, commitée sur GitHub sous `partitions/` et `paroles/`), renommer, changer de catégorie, corriger les paroles, supprimer.
+- **Catégories** (`categories.json`) : ajouter, renommer, supprimer.
+- **Playlists publiques** (`public_playlists.json`) : photo obligatoire (publiée sous `covers/playlists/`), option « diviser par catégorie », accès libre ou par code à 8 chiffres.
+- **Messes publiques** (`public_messes.json`) : même logique que les playlists (déroulé complet avec notes et lectures AELF, accès libre ou par code).
 
-Sans mode administrateur, un import reste local à l'appareil (stocké dans le cache du navigateur), sans toucher au dépôt.
+Les utilisateurs importent une playlist ou une messe publique depuis le bouton « Importer » de l'onglet correspondant (code d'accès, fichier .json, ou contenu public sans code), ou via un lien `?code=…`.
+
+Sans mode administrateur, un import de partition reste local à l'appareil (stocké dans le cache du navigateur), sans toucher au dépôt.
 
 ## Déploiement
 

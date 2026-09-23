@@ -223,7 +223,7 @@
         /* ─── LECTURES AELF (éditeur de messe) ─── */
         .aelf-panel { background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-sm); margin: var(--sp-sm); flex-shrink: 0; }
         .aelf-panel-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: var(--sp-xs); }
-        .aelf-add-btn { width: 100%; justify-content: flex-start; margin-bottom: 6px; }
+        .aelf-add-btn { width: 100%; justify-content: flex-start; margin-bottom: 6px; white-space: normal; text-align: left; }
         .aelf-add-btn:last-child { margin-bottom: 0; }
         .btn-icon.is-downloaded { color: var(--accent); }
         /* ─── CATEGORY SELECT ─── */
@@ -605,29 +605,13 @@
         #song-request-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
         #song-request-modal.open { display: flex; }
 
-        /* ─── CODE DE PLAYLIST PUBLIQUE (déblocage) ─── */
-        #playlist-code-modal { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
-        #playlist-code-modal.open { display: flex; }
+        /* ─── CODE D'ACCÈS (playlist / messe publique) ─── */
         .cat-code-input { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: .3em; }
 
-        /* ─── TABLEAU DE BORD ADMIN (catégories + playlists publiques) ───
-           Panneau plein, pas une popup : réutilise exactement le mécanisme du tiroir Paramètres
-           (.drawer-overlay / .drawer-panel.drawer-panel-right / .drawer-head / .drawer-body). */
-        .admin-dash-tabs { margin-bottom: var(--sp-md); }
-        .admin-dash-section { display: none; }
-        .admin-dash-section.active { display: block; }
-        .cat-mgr-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .cat-mgr-row:last-child { border-bottom: none; }
-        .cat-mgr-name { font-size: 13px; font-weight: 600; color: var(--text); }
-        .cat-mgr-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+        /* ─── PASTILLES DE STATUT (dashboard admin) ─── */
         .cat-mgr-badge { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 20px; padding: 2px 8px; flex-shrink: 0; }
         .cat-mgr-badge.pub { background: var(--accent-dim); color: var(--accent); }
         .cat-mgr-badge.priv { background: var(--danger-dim); color: var(--danger); }
-        .cat-mgr-code { font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
-        .cat-mgr-actions { display: flex; gap: 4px; flex-shrink: 0; }
-        .pl-editor-song-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .pl-editor-song-row:last-child { border-bottom: none; }
-        .pl-editor-song-row .input-field { flex: 1; }
 
         /* ─── ONBOARDING (première visite) ─── */
         #onboarding-modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 8000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
@@ -675,6 +659,230 @@
         .dl-pill-toggle svg { width: 14px; height: 14px; }
         .dl-pill-toggle:hover { background: var(--accent-dim); color: var(--accent); }
         @supports (padding: env(safe-area-inset-bottom)) { #dl-pill { bottom: calc(var(--sp-lg) + env(safe-area-inset-bottom)); } }
+
+        /* ─── BOUTONS DÉSACTIVÉS ─── */
+        .btn:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+
+        /* ─── BOUTON « DASHBOARD » DE L'EN-TÊTE (visible seulement avec les pouvoirs admin) ─── */
+        #header-dash-btn { display: none; color: var(--accent); }
+        #header-dash-btn.visible { display: inline-flex; }
+
+        /* ─── POPUPS GÉNÉRIQUES ───
+           Même habillage que les modales existantes ; .modal-top passe au-dessus du dashboard
+           admin et du sélecteur de chants plein écran (ex : ajout d'une note depuis l'éditeur). */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 7000; display: none; justify-content: center; align-items: center; padding: var(--sp-lg); }
+        .modal-overlay.open { display: flex; }
+        .modal-overlay.modal-top { z-index: 7700; }
+        .form-error { display: none; font-size: 12px; color: var(--danger); margin-bottom: var(--sp-sm); line-height: 1.4; }
+        .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
+        .choice-list { display: flex; flex-direction: column; gap: var(--sp-sm); }
+        .choice-btn { display: flex; align-items: center; gap: var(--sp-md); width: 100%; min-height: 76px; padding: 14px 16px; text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-lg); color: var(--text); cursor: pointer; font: inherit; transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+        .choice-btn:hover { border-color: var(--accent-glow); background: var(--surface-3); }
+        .choice-btn:active { transform: scale(.985); }
+        .choice-ico { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+        .choice-ico .icon { width: 22px; height: 22px; }
+        .choice-ico img { width: 100%; height: 100%; object-fit: cover; }
+        .choice-text { min-width: 0; }
+        .choice-title { display: block; font-size: 15px; font-weight: 600; }
+        .choice-desc { display: block; font-size: 12.5px; color: var(--text-2); margin-top: 3px; line-height: 1.45; }
+        .import-target-note { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); font-size: 12.5px; line-height: 1.4; margin-bottom: var(--sp-md); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); }
+        .import-target-note.is-general { background: var(--accent-dim); border-color: var(--accent-glow); color: var(--text); }
+        .import-target-note .icon { color: var(--accent); }
+        .btn-back-inline { min-height: 40px; padding: 6px 12px; margin-bottom: var(--sp-md); }
+
+        /* ─── REGROUPEMENT PAR CATÉGORIE (playlists « divisées », Mode Live, dashboard) ─── */
+        .group-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: var(--sp-lg) 2px var(--sp-sm); }
+        .group-title:first-child { margin-top: 0; }
+        .group-title .cat-group-count { margin-left: auto; }
+
+        /* ─── ÉDITEUR DE DÉROULÉ (messes / playlists, locales ou publiques) ───
+           Une seule colonne, grosses lignes tactiles : poignée de glisser-déposer + boutons
+           monter/descendre, pour réordonner aussi bien au doigt qu'avec un clavier. */
+        .coll-editor { max-width: 860px; margin: 0 auto; }
+        .coll-section-title { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin: var(--sp-md) 2px var(--sp-sm); }
+        .coll-section-title span:last-child { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--text-2); }
+        .coll-list { display: flex; flex-direction: column; gap: 6px; }
+        .coll-row { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 5px 5px 5px 0; min-height: 60px; transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
+        .coll-row.is-note { border-left: 3px solid var(--accent); }
+        .coll-row.flash { animation: collFlash .7s var(--ease-out); }
+        @keyframes collFlash { from { background: var(--accent-dim); border-color: var(--accent); } to { background: var(--surface); } }
+        .coll-row.sortable-ghost { opacity: .35; }
+        .coll-row.sortable-chosen, .coll-row.sortable-drag { border-color: var(--accent); box-shadow: var(--shadow-lg); background: var(--surface-2); }
+        .coll-grip { width: 42px; align-self: stretch; display: flex; align-items: center; justify-content: center; color: var(--text-3); cursor: grab; touch-action: none; flex-shrink: 0; border-radius: var(--r-sm); }
+        .coll-grip:active { cursor: grabbing; color: var(--accent); }
+        .coll-grip .icon { width: 20px; height: 20px; }
+        .coll-pos { width: 22px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-3); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+        .coll-main { flex: 1; min-width: 0; padding: 0 4px; }
+        .coll-name { font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--text); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+        .coll-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .coll-actions { display: flex; gap: 2px; flex-shrink: 0; }
+        .coll-actions .btn-icon { min-width: 40px; min-height: 42px; padding: 8px; }
+        .coll-actions .icon-up { transform: rotate(180deg); }
+        .coll-empty { border: 2px dashed var(--border); border-radius: var(--r-lg); padding: var(--sp-xl) var(--sp-lg); text-align: center; color: var(--text-3); }
+        .coll-empty .icon { width: 36px; height: 36px; opacity: .45; margin-bottom: var(--sp-sm); }
+        .coll-empty p { margin: 0; font-size: 13px; line-height: 1.5; }
+        /* Barre d'ajout collée en bas de l'écran (à portée de pouce) dans les éditeurs locaux ;
+           en ligne, sous la liste, dans le dashboard (dont la barre collante est « Enregistrer »). */
+        .coll-add-bar { position: sticky; bottom: 0; z-index: 20; display: flex; gap: var(--sp-sm); padding: var(--sp-md) 0 var(--sp-sm); margin-top: var(--sp-sm); background: linear-gradient(to bottom, transparent, var(--bg) 22%); box-shadow: 0 var(--sp-lg) 0 0 var(--bg); }
+        .coll-add-bar .btn { flex: 1; min-height: 52px; font-size: 14px; }
+        .coll-add-bar.coll-add-bar--inline { position: static; background: none; box-shadow: none; padding: var(--sp-md) 0 0; }
+        .coll-options { padding: 0 var(--sp-md); margin-bottom: var(--sp-sm); }
+        @media (max-width: 480px) {
+            .coll-pos { display: none; }
+            .coll-grip { width: 36px; }
+            .coll-actions .btn-icon { min-width: 38px; }
+            .coll-add-bar .btn { padding: 10px 12px; }
+        }
+
+        /* ─── SÉLECTEUR DE CHANTS PLEIN ÉCRAN ─── */
+        #song-picker { position: fixed; inset: 0; z-index: 7500; background: var(--bg); display: none; flex-direction: column; }
+        #song-picker.open { display: flex; animation: sheetIn var(--t-base) var(--ease-out); }
+        @keyframes sheetIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+        .picker-head { display: flex; align-items: center; gap: var(--sp-sm); padding: var(--sp-sm) var(--sp-md); padding-top: max(var(--sp-sm), env(safe-area-inset-top)); background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .picker-title { flex: 1; min-width: 0; }
+        .picker-title h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .picker-title div { font-size: 12px; color: var(--text-2); }
+        .picker-search { padding: var(--sp-sm) var(--sp-md) var(--sp-md); background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .picker-search .search-field { max-width: 860px; margin: 0 auto; }
+        .picker-search .search-input { font-size: 16px; padding-top: 13px; padding-bottom: 13px; }
+        .picker-body { flex: 1; overflow-y: auto; padding: var(--sp-md); padding-bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+        .picker-body-inner { max-width: 860px; margin: 0 auto; }
+        .picker-row { display: flex; align-items: center; gap: var(--sp-sm); padding: 6px 6px 6px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); margin-bottom: 6px; min-height: 60px; transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
+        .picker-row:last-child { margin-bottom: 0; }
+        .picker-row.added { border-color: var(--accent-glow); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+        .picker-main { flex: 1; min-width: 0; }
+        .picker-add-btn { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--accent-glow); background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; padding: 0; transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
+        .picker-add-btn:active { transform: scale(.86); }
+        .picker-add-btn .icon { width: 20px; height: 20px; }
+        .picker-add-btn.is-added { background: var(--accent); color: #090909; border-color: var(--accent); animation: pickPop .28s var(--ease-out); }
+        @keyframes pickPop { 0% { transform: scale(.8); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+        .picker-add-count { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        #song-picker .cat-group-header { min-height: 54px; font-size: 15px; }
+
+        /* ─── DASHBOARD ADMIN (plein écran, pensé tablette : grosses cibles tactiles) ─── */
+        #admin-dashboard { position: fixed; inset: 0; z-index: 6500; background: var(--bg); display: none; flex-direction: column; }
+        #admin-dashboard.open { display: flex; animation: sheetIn var(--t-base) var(--ease-out); }
+        .adash-top { display: flex; align-items: center; gap: var(--sp-md); min-height: 68px; padding: 0 var(--sp-lg); padding-top: env(safe-area-inset-top); background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .adash-brand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+        .adash-brand-ico { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .adash-brand-ico .icon { width: 22px; height: 22px; }
+        .adash-brand h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .adash-brand p { margin: 0; font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .adash-body { flex: 1; display: flex; min-height: 0; }
+        .adash-nav { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; padding: var(--sp-md); background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
+        .adash-nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; padding: 0 14px; border: none; border-radius: var(--r-md); background: transparent; color: var(--text-2); font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; white-space: nowrap; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+        .adash-nav-btn:hover { background: var(--surface-2); color: var(--text); }
+        .adash-nav-btn.active { background: var(--accent-dim); color: var(--accent); }
+        .adash-nav-btn .icon { width: 20px; height: 20px; }
+        .adash-nav-count { margin-left: auto; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: var(--surface-3); color: var(--text-2); }
+        .adash-nav-btn.active .adash-nav-count { background: var(--accent); color: #090909; }
+        /* Pas de padding bas sur la zone défilante elle-même : la barre « Enregistrer » (sticky) se
+           colle ainsi au vrai bord de l'écran, sans laisser le contenu défiler dessous. */
+        .adash-main { flex: 1; min-width: 0; overflow-y: auto; padding: var(--sp-lg) var(--sp-xl) 0; overscroll-behavior: contain; }
+        .adash-main-inner { max-width: 940px; margin: 0 auto; padding-bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom)); }
+        .adash-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-md); flex-wrap: wrap; margin-bottom: var(--sp-lg); }
+        .adash-section-head h3 { margin: 0; font-size: 23px; font-weight: 700; color: var(--text); }
+        .adash-section-head p { margin: 5px 0 0; font-size: 13.5px; color: var(--text-2); max-width: 62ch; line-height: 1.5; }
+        .adash-section-head .btn { min-height: 50px; font-size: 14px; padding: 12px 20px; }
+        .adash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--sp-md); margin-bottom: var(--sp-lg); }
+        .adash-stat { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-lg); text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); color: var(--text); font: inherit; cursor: pointer; transition: border-color var(--t-fast) var(--ease); }
+        .adash-stat:hover { border-color: var(--accent-glow); }
+        .adash-stat-value { font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+        .adash-stat-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+        .adash-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-sm); }
+        .adash-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: var(--sp-md); }
+        .adash-card .empty-state { padding: var(--sp-lg); }
+        .adash-row { display: flex; align-items: center; gap: var(--sp-md); min-height: 68px; padding: 10px var(--sp-md); border-bottom: 1px solid var(--border); }
+        .adash-row:last-child { border-bottom: none; }
+        .adash-row--click { cursor: pointer; }
+        .adash-row--click:hover { background: var(--surface-2); }
+        .adash-row-thumb { width: 54px; height: 54px; border-radius: var(--r-md); background: var(--surface-3); border: 1px solid var(--border); color: var(--text-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+        .adash-row-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .adash-row-thumb .icon { width: 22px; height: 22px; }
+        .adash-row-main { flex: 1; min-width: 0; }
+        .adash-row-title { font-size: 15px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .adash-row-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 5px; font-size: 12px; color: var(--text-2); }
+        .adash-row-sub .cat-badge { margin: 0; }
+        .adash-row-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .adash-row-actions .btn-icon { min-width: 46px; min-height: 46px; }
+        .adash-meta { font-size: 12px; color: var(--text-2); }
+        .mini-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 0 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .mini-chip:hover { border-color: var(--accent-glow); }
+        .mini-chip .icon { color: var(--accent); }
+        .adash-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
+        .adash-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-lg); margin-bottom: var(--sp-md); }
+        .adash-form .input-field, .adash-search .search-input { font-size: 15px; min-height: 50px; }
+        .adash-inline-form { display: flex; gap: var(--sp-sm); }
+        .adash-inline-form .input-field { flex: 1; }
+        .adash-inline-form .btn { min-height: 50px; }
+        .adash-search { margin-bottom: var(--sp-md); }
+        .adash-toggle-row { padding: 14px 0; }
+        .adash-toggle-row .settings-row-label { font-size: 15px; }
+        .adash-toggle-row .settings-row-desc { font-size: 12.5px; }
+        .adash-editor-head { display: flex; align-items: center; gap: var(--sp-md); margin-bottom: var(--sp-lg); }
+        .adash-editor-head h3 { margin: 0; font-size: 21px; font-weight: 700; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .adash-editor-head .btn { flex-shrink: 0; }
+        .adash-props { display: flex; gap: var(--sp-lg); align-items: flex-start; flex-wrap: wrap; }
+        .adash-props-fields { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: var(--sp-sm); }
+        .adash-props-fields .settings-note { margin: 0; }
+        .cover-picker { position: relative; width: 150px; height: 150px; border-radius: var(--r-lg); border: 2px dashed var(--border); background: var(--surface-3); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; cursor: pointer; flex-shrink: 0; transition: border-color var(--t-fast) var(--ease); }
+        .cover-picker:hover { border-color: var(--accent); }
+        .cover-picker.has-img { border-style: solid; }
+        .cover-picker img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .cover-picker-label { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 14px 8px; font-size: 12px; font-weight: 600; color: var(--text-2); text-align: center; }
+        .cover-picker:not(.has-img) .cover-picker-label { height: 100%; justify-content: center; }
+        .cover-picker.has-img .cover-picker-label { flex-direction: row; justify-content: center; padding: 8px; color: #fff; background: linear-gradient(to top, rgba(0,0,0,.75), transparent); }
+        .cover-picker-label .icon { width: 24px; height: 24px; }
+        .cover-picker.has-img .cover-picker-label .icon { width: 15px; height: 15px; }
+        .adash-code-box { display: flex; align-items: center; gap: var(--sp-md); flex-wrap: wrap; padding: var(--sp-md); margin-top: var(--sp-xs); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); }
+        .adash-code-big { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 26px; font-weight: 700; letter-spacing: .22em; color: var(--accent); }
+        .adash-code-actions { display: flex; gap: var(--sp-sm); flex-wrap: wrap; margin-left: auto; }
+        .adash-savebar { position: sticky; bottom: 0; z-index: 20; display: flex; gap: var(--sp-sm); justify-content: flex-end; margin-top: var(--sp-lg); padding: var(--sp-md) 0 calc(var(--sp-md) + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 25%); }
+        .adash-savebar .btn { min-height: 52px; font-size: 14px; padding: 12px 20px; }
+        .adash-savebar .adash-save-btn { min-width: 180px; }
+        /* Tablette portrait / téléphone : la barre latérale devient une rangée d'onglets défilante. */
+        @media (max-width: 899px) {
+            .adash-body { flex-direction: column; }
+            .adash-nav { width: auto; flex-direction: row; gap: 6px; padding: 8px var(--sp-md); border-right: none; border-bottom: 1px solid var(--border); overflow-x: auto; overflow-y: hidden; flex-shrink: 0; scrollbar-width: none; }
+            .adash-nav::-webkit-scrollbar { display: none; }
+            .adash-nav-btn { width: auto; min-height: 46px; font-size: 14px; flex-shrink: 0; }
+            .adash-nav-count { margin-left: 2px; }
+            .adash-main { padding: var(--sp-lg) var(--sp-lg) 0; }
+        }
+        @media (max-width: 560px) {
+            .adash-top { padding: 0 var(--sp-md); padding-top: env(safe-area-inset-top); min-height: 60px; }
+            .adash-brand p { display: none; }
+            .adash-brand-ico { width: 36px; height: 36px; }
+            .adash-close-label { display: none; }
+            .adash-main { padding: var(--sp-md) var(--sp-md) 0; }
+            .adash-section-head h3 { font-size: 20px; }
+            .adash-section-head .btn { width: 100%; }
+            .adash-row { gap: 10px; padding: 10px 12px; }
+            .adash-row-thumb { width: 46px; height: 46px; }
+            .adash-btn-label { display: none; }
+            .adash-form { padding: var(--sp-md); }
+            .adash-props { gap: var(--sp-md); }
+            .cover-picker { width: 100%; height: 190px; }
+            .adash-code-actions { margin-left: 0; width: 100%; }
+            .adash-code-actions .btn { flex: 1; }
+            .adash-savebar .btn { flex: 1; padding: 10px 12px; }
+            .adash-savebar .adash-save-btn { min-width: 0; flex: 2; }
+            .adash-inline-form { flex-direction: column; }
+            .adash-stats { grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+            .adash-stat { padding: var(--sp-md); }
+            .adash-stat-value { font-size: 26px; }
+        }
+
+        /* ─── MODE LIVE : raccourcis « source » (bibliothèque entière ou une playlist) ─── */
+        .live-src-chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 8px 0; flex-shrink: 0; scrollbar-width: none; }
+        .live-src-chips::-webkit-scrollbar { display: none; }
+        .chip { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); font: inherit; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+        .chip.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
+        .live-lib-row { min-height: 46px; }
+        .live-lib-row .live-add-ico { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #live-lib-list .group-title { margin: var(--sp-md) 4px 4px; }
+        #live-lib-list .group-title:first-child { margin-top: 4px; }
+        @media (max-width: 768px) { .live-editor-grid .editor-col { height: min(480px, 64dvh); } }
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
@@ -746,6 +954,10 @@
         <symbol id="ico-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20c1.4 0 2.4-1 2.4-2.2 0-.6-.24-1.1-.63-1.5-.4-.4-.63-.9-.63-1.5 0-1.2 1-2.2 2.2-2.2H17a4 4 0 0 0 4-4c0-4.4-4-8.6-9-8.6z"></path><circle cx="6.5" cy="11.5" r="1.2"></circle><circle cx="9.5" cy="7" r="1.2"></circle><circle cx="14.5" cy="7" r="1.2"></circle><circle cx="17.5" cy="11.5" r="1.2"></circle></symbol>
         <symbol id="ico-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></symbol>
         <symbol id="ico-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></symbol>
+        <symbol id="ico-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></symbol>
+        <symbol id="ico-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></symbol>
+        <symbol id="ico-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></symbol>
+        <symbol id="ico-device" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></symbol>
     </defs>
 </svg>
 
@@ -757,6 +969,11 @@
                 <span class="sync-dot"></span>
                 <span id="sync-text">À jour</span>
             </div>
+            <!-- Accès direct au Dashboard Admin : affiché uniquement quand une clé admin est
+                 enregistrée et ses pouvoirs actifs (voir updateAdminHeaderButton). -->
+            <button class="btn btn-icon" id="header-dash-btn" onclick="openAdminDashboard()" aria-label="Dashboard Admin" title="Dashboard Admin">
+                <svg class="icon"><use href="#ico-dashboard"></use></svg>
+            </button>
             <button class="btn btn-icon" onclick="openSettings()" aria-label="Paramètres" title="Paramètres">
                 <svg class="icon"><use href="#ico-settings"></use></svg>
             </button>
@@ -949,30 +1166,16 @@
             </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" id="my-songs-section">
             <div class="settings-section-title"><svg class="icon"><use href="#ico-music"/></svg>Mes partitions</div>
             <div class="settings-row settings-row-stack" style="border-bottom:none;">
                 <div>
                     <div class="settings-row-label">Importer une partition</div>
-                    <div class="settings-row-desc">Ajoutée uniquement sur cet appareil (pas partagée), sauf en mode administrateur où elle devient visible par tout le monde.</div>
+                    <div class="settings-row-desc">Ajoutée uniquement sur cet appareil (pas partagée). Pour importer une playlist ou une messe publique, utilisez le bouton « Importer » des onglets Playlists et Messes.</div>
                 </div>
-                <button class="btn btn-ghost" onclick="openImportModal()">
+                <button class="btn btn-ghost" onclick="openImportModal('local')">
                     <svg class="icon icon-sm"><use href="#ico-upload"/></svg>
                     Importer
-                </button>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Playlists</div>
-            <div class="settings-row settings-row-stack" style="border-bottom:none;">
-                <div>
-                    <div class="settings-row-label">Playlist réservée ?</div>
-                    <div class="settings-row-desc">Importez une playlist publique avec le code à 8 chiffres qu'on vous a communiqué.</div>
-                </div>
-                <button class="btn btn-ghost" onclick="openPlaylistCodeModal()">
-                    <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                    Importer un code de playlist
                 </button>
             </div>
         </div>
@@ -1026,11 +1229,12 @@
 <div id="import-modal">
     <div class="settings-card" style="max-width: 420px;">
         <div class="settings-head">
-            <h3>Importer une partition</h3>
+            <h3 id="import-modal-title">Importer une partition</h3>
             <button class="btn btn-icon" onclick="closeImportModal()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
+        <div class="import-target-note" id="import-target-note"></div>
         <div class="segmented" style="margin-bottom: var(--sp-sm);">
             <button type="button" class="import-mode-btn active" data-mode="file" onclick="setImportMode('file')">Depuis mon appareil</button>
             <button type="button" class="import-mode-btn" data-mode="url" onclick="setImportMode('url')">Depuis un lien</button>
@@ -1049,10 +1253,7 @@
         <div class="settings-row-desc" style="margin-bottom: 6px;">Affichées aux chanteurs qui préfèrent le mode "Paroles" à la partition PDF.</div>
         <textarea id="import-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 110px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
         <div id="import-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="submitImportPartition()" id="import-submit-btn">
-            <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
-            Envoyer sur GitHub
-        </button>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitImportPartition()" id="import-submit-btn"></button>
     </div>
 </div>
 
@@ -1078,55 +1279,139 @@
     </div>
 </div>
 
-<div id="playlist-code-modal">
-    <div class="settings-card" style="max-width: 380px;">
+<!-- Import d'une playlist ou d'une messe (onglets Playlists / Messes) : choix entre un fichier
+     .json et un code d'accès public, + liste des playlists/messes publiques sans code. -->
+<div id="collection-import-modal" class="modal-overlay">
+    <div class="settings-card" style="max-width: 460px;">
         <div class="settings-head">
-            <h3>Importer une playlist</h3>
-            <button class="btn btn-icon" onclick="closePlaylistCodeModal()" aria-label="Fermer">
+            <h3 id="coll-import-title">Importer</h3>
+            <button class="btn btn-icon" onclick="closeCollectionImport()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
-        <p class="settings-note" style="margin-bottom: var(--sp-md);">
-            Saisissez le code à 8 chiffres qu'on vous a communiqué : la playlist correspondante sera ajoutée à vos playlists sur cet appareil.
-        </p>
-        <input type="text" id="playlist-code-input" class="input-field cat-code-input" placeholder="········" inputmode="numeric" maxlength="8" style="margin-bottom: var(--sp-sm);">
-        <div id="playlist-code-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="submitPlaylistCode()" id="playlist-code-submit-btn">Importer</button>
+        <div id="coll-import-body"></div>
     </div>
 </div>
 
-<div id="admin-dashboard-modal" class="drawer-overlay">
-    <div class="drawer-backdrop" onclick="closeAdminDashboard()"></div>
-    <div class="drawer-panel drawer-panel-right">
-        <div class="drawer-head">
-            <h3>Administration</h3>
-            <button class="btn btn-icon" onclick="closeAdminDashboard()" aria-label="Fermer">
+<!-- Création d'une playlist locale -->
+<div id="new-playlist-modal" class="modal-overlay">
+    <div class="settings-card" style="max-width: 420px;">
+        <div class="settings-head">
+            <h3>Nouvelle playlist</h3>
+            <button class="btn btn-icon" onclick="closeNewPlaylistModal()" aria-label="Fermer">
                 <svg class="icon"><use href="#ico-x"></use></svg>
             </button>
         </div>
-        <div class="drawer-body">
-            <div class="segmented admin-dash-tabs" id="admin-dash-tabs">
-                <button type="button" class="active" onclick="switchAdminDashTab('categories')">Catégories</button>
-                <button type="button" onclick="switchAdminDashTab('playlists')">Playlists publiques</button>
+        <label class="field-label" for="new-playlist-name">Nom de la playlist</label>
+        <input type="text" id="new-playlist-name" class="input-field" placeholder="Ex : Louange Été" style="margin-bottom: var(--sp-sm);" onkeydown="if (event.key === 'Enter') confirmNewPlaylist()">
+        <div class="settings-row" style="border-bottom:none; margin-bottom: var(--sp-sm);">
+            <div>
+                <div class="settings-row-label">Diviser la playlist par catégorie</div>
+                <div class="settings-row-desc">Les chants sont regroupés par catégorie (Louange, Adoration…) au lieu d'une liste unique.</div>
             </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="new-playlist-split">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+        </div>
+        <div id="new-playlist-error" class="form-error"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="confirmNewPlaylist()">Créer la playlist</button>
+    </div>
+</div>
 
-            <div id="admin-dash-categories" class="admin-dash-section active">
-                <div id="category-manager-list" style="margin-bottom: var(--sp-md);"></div>
-                <div class="settings-section" style="margin:0;">
-                    <div class="settings-row-label" style="margin-bottom: 6px;">Ajouter une catégorie</div>
-                    <input type="text" id="cat-mgr-new-name" class="input-field" placeholder="Nom de la catégorie" style="margin-bottom: var(--sp-sm);">
-                    <div id="category-manager-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-                    <button class="btn btn-primary" style="width:100%;" onclick="submitNewCategory()" id="cat-mgr-add-btn">
-                        <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
-                        Ajouter la catégorie
-                    </button>
-                </div>
-            </div>
+<!-- Choix du type d'import d'une partition (admin, depuis le Dashboard) -->
+<div id="import-choice-modal" class="modal-overlay">
+    <div class="settings-card" style="max-width: 480px;">
+        <div class="settings-head">
+            <h3>Importer une partition</h3>
+            <button class="btn btn-icon" onclick="closeImportChoice()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div class="choice-list">
+            <button class="choice-btn" onclick="chooseAdminImport('local')">
+                <span class="choice-ico"><svg class="icon"><use href="#ico-device"></use></svg></span>
+                <span class="choice-text">
+                    <span class="choice-title">Importation locale</span>
+                    <span class="choice-desc">Uniquement sur cet appareil, dans le cache du navigateur. Personne d'autre ne la voit, et elle disparaît si les données du site sont effacées. Pratique pour un essai ou un usage personnel.</span>
+                </span>
+            </button>
+            <button class="choice-btn" onclick="chooseAdminImport('github')">
+                <span class="choice-ico"><svg class="icon"><use href="#ico-globe"></use></svg></span>
+                <span class="choice-text">
+                    <span class="choice-title">Importation générale</span>
+                    <span class="choice-desc">Publiée sur GitHub dans la bibliothèque commune : visible par tous les utilisateurs de Cantus dès leur prochaine synchronisation.</span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
 
-            <div id="admin-dash-playlists" class="admin-dash-section">
-                <div id="public-playlist-manager-root"></div>
+<!-- Dashboard Admin : plein écran, toutes les tâches administratives au même endroit -->
+<div id="admin-dashboard" role="dialog" aria-modal="true" aria-label="Dashboard Admin">
+    <div class="adash-top">
+        <div class="adash-brand">
+            <div class="adash-brand-ico"><svg class="icon"><use href="#ico-dashboard"></use></svg></div>
+            <div style="min-width:0;">
+                <h2>Dashboard Admin</h2>
+                <p>Contenu public de Cantus : partitions, catégories, playlists et messes</p>
             </div>
         </div>
+        <button class="btn btn-ghost" onclick="closeAdminDashboard()" aria-label="Fermer le dashboard">
+            <svg class="icon"><use href="#ico-x"></use></svg>
+            <span class="adash-close-label">Fermer</span>
+        </button>
+    </div>
+    <div class="adash-body">
+        <div class="adash-nav" id="adash-nav" role="tablist"></div>
+        <div class="adash-main" id="adash-main">
+            <div class="adash-main-inner" id="adash-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Sélecteur de chants plein écran (ajout aux messes / playlists, locales ou publiques) -->
+<div id="song-picker" role="dialog" aria-modal="true" aria-labelledby="song-picker-title">
+    <div class="picker-head">
+        <button class="btn btn-icon" onclick="closeSongPicker()" aria-label="Retour">
+            <svg class="icon"><use href="#ico-arrow-left"></use></svg>
+        </button>
+        <div class="picker-title">
+            <h3 id="song-picker-title">Ajouter des chants</h3>
+            <div id="song-picker-count"></div>
+        </div>
+        <button class="btn btn-primary" onclick="closeSongPicker()">
+            <svg class="icon icon-sm"><use href="#ico-check"></use></svg>
+            Terminé
+        </button>
+    </div>
+    <div class="picker-search">
+        <div class="search-field">
+            <svg class="icon"><use href="#ico-search"></use></svg>
+            <input type="search" id="song-picker-search" class="search-input" placeholder="Rechercher un chant…" autocomplete="off" oninput="filterSongPicker(this.value)">
+        </div>
+    </div>
+    <div class="picker-body" id="song-picker-body">
+        <div class="picker-body-inner" id="song-picker-list"></div>
+    </div>
+</div>
+
+<!-- Ajout / modification d'une note (ou d'une lecture AELF) dans un déroulé -->
+<div id="note-sheet" class="modal-overlay modal-top">
+    <div class="settings-card" style="max-width: 480px;">
+        <div class="settings-head">
+            <h3 id="note-sheet-title">Ajouter une note</h3>
+            <button class="btn btn-icon" onclick="closeNoteSheet()" aria-label="Fermer">
+                <svg class="icon"><use href="#ico-x"></use></svg>
+            </button>
+        </div>
+        <div id="note-sheet-aelf"></div>
+        <label class="field-label" for="note-sheet-name">Titre</label>
+        <input type="text" id="note-sheet-name" class="input-field" placeholder="Ex : ANNONCES, PRIÈRE UNIVERSELLE…" style="margin-bottom: var(--sp-sm);">
+        <label class="field-label" for="note-sheet-content">Texte (optionnel)</label>
+        <textarea id="note-sheet-content" class="input-field" placeholder="Texte, accords, consignes…" style="height: 130px; margin-bottom: var(--sp-md);"></textarea>
+        <div id="note-sheet-error" class="form-error"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitNoteSheet()" id="note-sheet-submit">Ajouter la note</button>
     </div>
 </div>
 
@@ -1443,6 +1728,8 @@
     // (importable en un clic, sans code). C'est ici — et non plus sur les catégories — que vit le
     // mécanisme "réservé, débloqué par un code".
     let PUBLIC_PLAYLISTS = [];
+    // Même principe pour les messes (public_messes.json) : { key, label, date, code, items: [...] }.
+    let PUBLIC_MESSES = [];
 
     async function loadCategoriesRegistry() {
         try {
@@ -1471,25 +1758,60 @@
                 if (Array.isArray(data3)) PUBLIC_PLAYLISTS = data3;
             }
         } catch (e) { /* public_playlists.json absent : aucune playlist publique */ }
+
+        try {
+            const r4 = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/public_messes.json`, { cache: 'no-store' });
+            if (r4.ok) {
+                const data4 = await r4.json();
+                if (Array.isArray(data4)) PUBLIC_MESSES = data4;
+            }
+        } catch (e) { /* public_messes.json absent : aucune messe publique */ }
     }
 
-    // Valide un code à 8 chiffres contre le registre des playlists publiques et, si valide,
-    // importe une copie de cette playlist dans les playlists de cet appareil (même mécanisme que
-    // l'import via lien ?importPl=, voir init()). Utilisé par la modale (saisie manuelle) et par
-    // le lien ?code=… géré dans init(). Nécessite que state.songs soit déjà peuplé (résolution des
-    // chants par id) — voir l'ordonnancement dans init().
+    // Valide un code à 8 chiffres contre le registre des playlists (ou des messes) publiques et,
+    // si valide, importe une copie dans les playlists (ou messes) de cet appareil. Utilisé par la
+    // popup « Importer » des onglets et par le lien ?code=… géré dans init(). Nécessite que
+    // state.songs soit déjà peuplé (résolution des chants par id) — voir l'ordonnancement dans init().
+    function normalizeAccessCode(rawCode) {
+        return (rawCode || '').replace(/\D/g, '');
+    }
+
     function redeemPlaylistCode(rawCode) {
-        const code = (rawCode || '').replace(/\D/g, '');
+        const code = normalizeAccessCode(rawCode);
         if (code.length !== 8) return { ok: false, error: 'Le code doit contenir 8 chiffres.' };
         const pl = PUBLIC_PLAYLISTS.find(p => p.code === code);
-        if (!pl) return { ok: false, error: 'Code invalide.' };
+        if (!pl) {
+            return { ok: false, error: PUBLIC_MESSES.some(m => m.code === code)
+                ? "Ce code correspond à une messe : importez-le depuis l'onglet Messes."
+                : 'Code invalide.' };
+        }
         return importPublicPlaylist(pl);
+    }
+
+    function redeemMesseCode(rawCode) {
+        const code = normalizeAccessCode(rawCode);
+        if (code.length !== 8) return { ok: false, error: 'Le code doit contenir 8 chiffres.' };
+        const m = PUBLIC_MESSES.find(x => x.code === code);
+        if (!m) {
+            return { ok: false, error: PUBLIC_PLAYLISTS.some(p => p.code === code)
+                ? "Ce code correspond à une playlist : importez-le depuis l'onglet Playlists."
+                : 'Code invalide.' };
+        }
+        return importPublicMesse(m);
+    }
+
+    // Lien ?code=… : le code peut désigner indifféremment une playlist ou une messe (les codes
+    // sont uniques entre les deux registres, voir allPublicCodes).
+    function redeemAnyCode(rawCode) {
+        const code = normalizeAccessCode(rawCode);
+        if (PUBLIC_MESSES.some(m => m.code === code)) return { ...redeemMesseCode(code), kind: 'messe' };
+        return { ...redeemPlaylistCode(code), kind: 'playlist' };
     }
 
     // Construit une playlist locale à partir d'une entrée du registre public (résout chaque
     // songId contre state.songs, applique le nom de substitution scopé à cette playlist s'il y en
-    // a un) et l'ajoute aux playlists de cet appareil. Utilisé par redeemPlaylistCode() et par
-    // l'import direct (playlist publique sans code).
+    // a un) et l'ajoute aux playlists de cet appareil — ou met à jour la copie déjà importée
+    // (reconnue par publicKey) plutôt que de créer un doublon.
     function importPublicPlaylist(pl) {
         const overrides = pl.itemOverrides || {};
         const songs = (pl.songIds || []).map(id => {
@@ -1499,9 +1821,28 @@
             return override && override.displayName ? { ...src, name: override.displayName } : { ...src };
         }).filter(Boolean);
         if (songs.length === 0) return { ok: false, error: 'Aucun chant disponible pour cette playlist pour le moment.' };
-        state.playlists.push({ name: pl.label, description: '', cover: null, songs, isPlaylist: true });
+        const copy = { name: pl.label, description: '', cover: publicCoverUrl(pl.cover), splitByCategory: !!pl.splitByCategory, songs, isPlaylist: true, publicKey: pl.key };
+        const existingIdx = state.playlists.findIndex(p => p.publicKey === pl.key);
+        if (existingIdx !== -1) state.playlists[existingIdx] = { ...state.playlists[existingIdx], ...copy };
+        else state.playlists.push(copy);
         savePlaylists();
-        return { ok: true, playlist: pl };
+        return { ok: true, entry: pl, updated: existingIdx !== -1 };
+    }
+
+    function importPublicMesse(pm) {
+        const songs = (pm.items || []).map(it => {
+            if (it.type === 'note') return { type: 'note', name: it.name, ref: it.ref || '', content: it.content || '' };
+            const src = state.songs.find(s => s.id === it.id);
+            if (!src) return null;
+            return it.displayName ? { ...src, name: it.displayName } : { ...src };
+        }).filter(Boolean);
+        if (songs.length === 0) return { ok: false, error: 'Aucun élément disponible pour cette messe pour le moment.' };
+        const copy = { name: pm.label, date: pm.date || null, songs, publicKey: pm.key };
+        const existingIdx = state.messes.findIndex(m => m.publicKey === pm.key);
+        if (existingIdx !== -1) state.messes[existingIdx] = { ...state.messes[existingIdx], ...copy };
+        else state.messes.push(copy);
+        saveMesses();
+        return { ok: true, entry: pm, updated: existingIdx !== -1 };
     }
 
     function naturalCompare(a, b) {
@@ -1987,14 +2328,29 @@
         localStorage.setItem('cantus_admin_powers_enabled', enabled ? 'true' : 'false');
         renderAdminSection();
         refreshActiveList();
+        if (!enabled && isAdminDashboardOpen()) closeAdminDashboard();
         showToast(enabled ? 'Pouvoirs administrateur activés.' : 'Pouvoirs administrateur désactivés.');
     }
 
+    // Bouton « Dashboard » à côté de la roue crantée : uniquement quand une clé admin est
+    // enregistrée ET ses pouvoirs actifs.
+    function updateAdminHeaderButton() {
+        const btn = document.getElementById('header-dash-btn');
+        if (btn) btn.classList.toggle('visible', isAdminActive());
+    }
+
     function renderAdminSection() {
+        updateAdminHeaderButton();
+        // Les administrateurs importent depuis le Dashboard (qui propose import local ou général) :
+        // la section « Mes partitions » des Paramètres ne sert qu'aux utilisateurs normaux.
+        const mySongsSection = document.getElementById('my-songs-section');
+        if (mySongsSection) mySongsSection.style.display = isAdminActive() ? 'none' : '';
+
         const el = document.getElementById('admin-section');
         if (!el) return;
 
         if (!isAdminUnlocked()) {
+            el.className = '';
             el.innerHTML = `
                 <div class="admin-link-wrap">
                     <button class="admin-link" onclick="openAdminModal()">Mode administrateur</button>
@@ -2002,13 +2358,21 @@
             return;
         }
 
+        el.className = 'settings-section';
         el.innerHTML = `
             <div class="settings-section-title"><svg class="icon"><use href="#ico-key"/></svg>Administration</div>
-            <div class="settings-row" style="border-bottom:none;">
+            <button class="btn btn-primary" style="width:100%; min-height:52px; font-size:14px;" onclick="openAdminDashboard()" ${adminPowersEnabled ? '' : 'disabled'}>
+                <svg class="icon"><use href="#ico-dashboard"/></svg>
+                Dashboard Admin
+            </button>
+            <p class="settings-note">${adminPowersEnabled
+                ? 'Partitions, catégories, playlists et messes publiques : toutes les tâches d’administration se font depuis le Dashboard (aussi accessible via l’icône à côté de la roue crantée).'
+                : 'Activez les pouvoirs administrateur pour accéder au Dashboard.'}</p>
+            <div class="settings-row" style="border-bottom:none; margin-top: var(--sp-xs);">
                 <div>
                     <div class="settings-row-label">Pouvoirs administrateur</div>
                     <div class="settings-row-desc">${adminPowersEnabled
-                        ? "Actifs : modifier ou importer une partition l'envoie sur GitHub, visible par tout le monde."
+                        ? 'Actifs : vos modifications sont publiées sur GitHub, visibles par tout le monde.'
                         : "Désactivés : appli normale pour vous — l'import d'une partition reste local, sans droit de modification."}</div>
                 </div>
                 <label class="toggle-switch">
@@ -2016,21 +2380,22 @@
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 </label>
             </div>
-            <div class="admin-actions">
-                <button class="btn btn-ghost" style="width:100%;" onclick="openAdminDashboard()">
-                    <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                    Administration (catégories, playlists)
-                </button>
-                <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>
-            </div>`;
+            <button class="btn btn-ghost" style="width:100%;" onclick="logoutAdmin()">Oublier la clé sur cet appareil</button>`;
     }
 
     /* ══════════════════════════════════════════
-       TABLEAU DE BORD ADMIN — CATÉGORIES (liste plate, création/renommage/suppression) et
-       PLAYLISTS PUBLIQUES (création/édition/code à 8 chiffres/suppression). Panneau plein
-       (voir #admin-dashboard-modal), pas une popup. Tout est écrit sur GitHub via
-       commitTextToGithub, comme le reste des contenus admin.
+       DASHBOARD ADMIN — plein écran, pensé tablette/téléphone (tactile, portrait ou paysage).
+
+       Regroupe TOUTES les tâches administratives : import/édition des partitions de la
+       bibliothèque commune, catégories, playlists publiques et messes publiques. Tout est écrit
+       sur GitHub via commitTextToGithub/commitBase64ToGithub, comme le reste des contenus admin.
+
+       Navigation : barre latérale sur grand écran (tablette paysage, ordinateur), rangée
+       d'onglets défilante sinon (voir CSS .adash-*). adashEditor != null pendant la création ou
+       l'édition d'une playlist/messe publique : rien n'est envoyé sur GitHub avant « Enregistrer ».
     ══════════════════════════════════════════ */
+    const COVERS_PATH = 'covers';
+
     function slugifyCategoryKey(name, existingKeys) {
         const base = name.trim().toLowerCase()
             .normalize('NFD').replace(/[̀-ͯ]/g, '') // enlève les accents
@@ -2051,6 +2416,19 @@
         return code;
     }
 
+    // Codes déjà attribués, playlists ET messes confondues : un même code ne doit jamais
+    // désigner deux contenus (le lien ?code=… les résout indifféremment, voir redeemAnyCode).
+    function allPublicCodes(except) {
+        return [...PUBLIC_PLAYLISTS, ...PUBLIC_MESSES]
+            .filter(p => p.code && p !== except)
+            .map(p => p.code);
+    }
+
+    function publicCoverUrl(path) {
+        if (!path) return null;
+        return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${path.split('/').map(encodeURIComponent).join('/')}`;
+    }
+
     function copyCode(code) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(code).then(() => showToast('Code copié.')).catch(() => showToast('Code : ' + code));
@@ -2059,10 +2437,10 @@
         }
     }
 
-    // Lien direct d'import (ouvre l'app et importe la playlist automatiquement, voir le
-    // traitement de ?code=… dans init()) — pratique à coller dans un message plutôt que de faire
-    // recopier le code à la main.
-    function copyPlaylistLink(code) {
+    // Lien direct d'import (ouvre l'app et importe la playlist ou la messe automatiquement, voir
+    // le traitement de ?code=… dans init()) — pratique à coller dans un message plutôt que de
+    // faire recopier le code à la main.
+    function copyPublicLink(code) {
         const url = window.location.origin + window.location.pathname + '?code=' + code;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => showToast('Lien copié.')).catch(() => showToast(url));
@@ -2071,32 +2449,328 @@
         }
     }
 
-    function openAdminDashboard() {
+    function catLabel(key) {
+        return CATEGORY_LABELS[key] || 'Autre';
+    }
+
+    // Regroupe une liste de chants (copies de playlist/messe comprises) par catégorie
+    // principale, dans l'ordre du registre des catégories. La catégorie est relue sur la version
+    // actuelle du chant dans la bibliothèque quand elle existe (un chant recatégorisé par un admin
+    // suit donc son nouveau groupe). Les notes éventuelles finissent dans un groupe à part.
+    function groupSongsByCategory(songs) {
+        const groups = new Map();
+        songs.forEach((s, index) => {
+            let key = '__notes__';
+            if (s.type !== 'note') {
+                const current = state.songs.find(x => x.id === s.id) || s;
+                key = CATEGORY_LABELS[current.category] ? current.category : 'autre';
+            }
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push({ song: s, index });
+        });
+        return [...groups.entries()]
+            .sort((a, b) => (CATEGORY_ORDER[a[0]] ?? 999) - (CATEGORY_ORDER[b[0]] ?? 999))
+            .map(([key, items]) => ({ key, label: key === '__notes__' ? 'Notes' : catLabel(key), items }));
+    }
+
+    function choiceBtnHtml(icon, title, desc, onclick, thumbUrl) {
+        return `
+            <button class="choice-btn" onclick="${onclick}">
+                <span class="choice-ico">${thumbUrl ? `<img src="${escHtml(thumbUrl)}" alt="" loading="lazy">` : `<svg class="icon"><use href="#${icon}"/></svg>`}</span>
+                <span class="choice-text">
+                    <span class="choice-title">${title}</span>
+                    <span class="choice-desc">${desc}</span>
+                </span>
+            </button>`;
+    }
+
+    function toggleRowHtml(label, desc, checked, onchange) {
+        return `
+            <div class="settings-row adash-toggle-row">
+                <div>
+                    <div class="settings-row-label">${label}</div>
+                    <div class="settings-row-desc">${desc}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="${onchange}">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>`;
+    }
+
+    // Recadre une image en carré (centre) et la compresse en JPEG : la couverture reste nette sur
+    // tous les écrans tout en restant légère à publier sur GitHub puis à télécharger.
+    function processCoverImage(file, size) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = e => {
+                const img = new Image();
+                img.onerror = reject;
+                img.onload = () => {
+                    const side = Math.min(img.width, img.height);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = size;
+                    canvas.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /* ─── OUVERTURE / NAVIGATION ─── */
+    let adashSection = 'home';   // 'home' | 'songs' | 'categories' | 'playlists' | 'messes'
+    let adashEditor = null;      // { kind: 'playlist'|'messe', isNew, draft, dirty }
+    let adashSongQuery = '';
+
+    const ADASH_SECTIONS = [
+        { key: 'home',       label: 'Accueil',             icon: 'ico-dashboard' },
+        { key: 'songs',      label: 'Partitions',          icon: 'ico-music',  count: () => state.songs.filter(s => !s.isLocal).length },
+        { key: 'categories', label: 'Catégories',          icon: 'ico-folder', count: () => CATEGORIES.length },
+        { key: 'playlists',  label: 'Playlists publiques', icon: 'ico-list',   count: () => PUBLIC_PLAYLISTS.length },
+        { key: 'messes',     label: 'Messes publiques',    icon: 'ico-cal',    count: () => PUBLIC_MESSES.length }
+    ];
+
+    function isAdminDashboardOpen() {
+        return document.getElementById('admin-dashboard').classList.contains('open');
+    }
+
+    function openAdminDashboard(section) {
         if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
-        document.getElementById('cat-mgr-new-name').value = '';
-        setCategoryManagerError('');
-        renderCategoryManagerList();
-        adminDashPlaylistEditKey = null;
-        plDraft = null;
-        renderPublicPlaylistManagerRoot();
-        switchAdminDashTab('categories');
-        document.getElementById('admin-dashboard-modal').classList.add('open');
+        closeSettings();
+        adashDropEditor();
+        adashSection = section || 'home';
+        renderAdminDashboard();
+        document.getElementById('admin-dashboard').classList.add('open');
+    }
+
+    function confirmDiscardAdashEditor() {
+        return !adashEditor || !adashEditor.dirty || confirm('Des modifications ne sont pas enregistrées. Les abandonner ?');
+    }
+
+    // Quitte l'éditeur de playlist/messe publique et rend la main à l'éditeur local
+    // éventuellement ouvert en arrière-plan (voir collEdStash).
+    function adashDropEditor() {
+        if (!adashEditor) return;
+        adashEditor = null;
+        collEd = collEdStash;
+        collEdStash = null;
     }
 
     function closeAdminDashboard() {
-        document.getElementById('admin-dashboard-modal').classList.remove('open');
+        if (!confirmDiscardAdashEditor()) return;
+        adashDropEditor();
+        document.getElementById('admin-dashboard').classList.remove('open');
+        refreshActiveList();
     }
 
-    function switchAdminDashTab(tab) {
-        const tabs = document.querySelectorAll('#admin-dash-tabs button');
-        if (tabs[0]) tabs[0].classList.toggle('active', tab === 'categories');
-        if (tabs[1]) tabs[1].classList.toggle('active', tab === 'playlists');
-        document.getElementById('admin-dash-categories').classList.toggle('active', tab === 'categories');
-        document.getElementById('admin-dash-playlists').classList.toggle('active', tab === 'playlists');
+    function adashGo(section) {
+        if (!confirmDiscardAdashEditor()) return;
+        adashDropEditor();
+        adashSection = section;
+        renderAdminDashboard();
+    }
+
+    function adashCloseEditor() {
+        adashGo(adashSection);
+    }
+
+    // Appelé après toute modification de la bibliothèque (import, édition, suppression…) pour
+    // que les compteurs et listes du dashboard restent à jour s'il est ouvert.
+    function refreshAdminDashboardIfOpen() {
+        if (!isAdminDashboardOpen()) return;
+        renderAdashNav();
+        if (!adashEditor) renderAdashContent();
+    }
+
+    function renderAdminDashboard() {
+        renderAdashNav();
+        renderAdashContent();
+        document.getElementById('adash-main').scrollTop = 0;
+    }
+
+    function renderAdashNav() {
+        const nav = document.getElementById('adash-nav');
+        nav.innerHTML = ADASH_SECTIONS.map(s => `
+            <button class="adash-nav-btn ${adashSection === s.key ? 'active' : ''}" role="tab" aria-selected="${adashSection === s.key}" onclick="adashGo('${s.key}')">
+                <svg class="icon"><use href="#${s.icon}"/></svg>
+                <span>${s.label}</span>
+                ${s.count ? `<span class="adash-nav-count">${s.count()}</span>` : ''}
+            </button>`).join('');
+        // En mode « onglets horizontaux » (tablette portrait, téléphone), garde l'onglet actif visible.
+        const active = nav.querySelector('.adash-nav-btn.active');
+        if (active && nav.scrollWidth > nav.clientWidth) {
+            nav.scrollLeft = Math.max(0, active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2);
+        }
+    }
+
+    function renderAdashContent() {
+        const el = document.getElementById('adash-content');
+        if (adashEditor) {
+            el.innerHTML = adashEditor.kind === 'playlist' ? renderAdashPlaylistEditor() : renderAdashMesseEditor();
+            mountCollEditor();
+            return;
+        }
+        if (adashSection === 'songs') el.innerHTML = renderAdashSongs();
+        else if (adashSection === 'categories') el.innerHTML = renderAdashCategories();
+        else if (adashSection === 'playlists') el.innerHTML = renderAdashPlaylists();
+        else if (adashSection === 'messes') el.innerHTML = renderAdashMesses();
+        else el.innerHTML = renderAdashHome();
+    }
+
+    function rerenderAdashKeepScroll() {
+        const main = document.getElementById('adash-main');
+        const top = main.scrollTop;
+        renderAdashContent();
+        main.scrollTop = top;
+    }
+
+    /* ─── ACCUEIL ─── */
+    function renderAdashHome() {
+        const stat = (key, value, label) => `
+            <button class="adash-stat" onclick="adashGo('${key}')">
+                <span class="adash-stat-value">${value}</span>
+                <span class="adash-stat-label">${label}</span>
+            </button>`;
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>Vue d'ensemble</h3>
+                    <p>Tout ce qui est publié depuis ce dashboard est visible par l'ensemble des utilisateurs de Cantus.</p>
+                </div>
+            </div>
+            <div class="adash-stats">
+                ${stat('songs', state.songs.filter(s => !s.isLocal).length, 'Partitions')}
+                ${stat('categories', CATEGORIES.length, 'Catégories')}
+                ${stat('playlists', PUBLIC_PLAYLISTS.length, 'Playlists publiques')}
+                ${stat('messes', PUBLIC_MESSES.length, 'Messes publiques')}
+            </div>
+            <div class="coll-section-title"><span>Actions rapides</span></div>
+            <div class="adash-quick">
+                ${choiceBtnHtml('ico-upload', 'Importer une partition', 'Sur cet appareil seulement, ou pour tout le monde.', 'openAdminImportChoice()')}
+                ${choiceBtnHtml('ico-list', 'Nouvelle playlist publique', 'Photo, code d’accès, division par catégorie.', "openAdashPlaylistEditor('__new__')")}
+                ${choiceBtnHtml('ico-cal', 'Nouvelle messe publique', 'Déroulé partagé, lectures du jour, code d’accès.', "openAdashMesseEditor('__new__')")}
+                ${choiceBtnHtml('ico-folder', 'Gérer les catégories', 'Ajouter, renommer ou supprimer une catégorie.', "adashGo('categories')")}
+            </div>`;
+    }
+
+    /* ─── PARTITIONS ─── */
+    function openAdminImportChoice() {
+        if (!isAdminActive()) { openImportModal('local'); return; }
+        document.getElementById('import-choice-modal').classList.add('open');
+    }
+
+    function closeImportChoice() {
+        document.getElementById('import-choice-modal').classList.remove('open');
+    }
+
+    function chooseAdminImport(target) {
+        closeImportChoice();
+        openImportModal(target);
+    }
+
+    function renderAdashSongs() {
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>Partitions</h3>
+                    <p>Importez une partition, ou modifiez-en une existante : nom, catégories, paroles, suppression.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAdminImportChoice()">
+                    <svg class="icon"><use href="#ico-upload"/></svg>
+                    Importer une partition
+                </button>
+            </div>
+            <div class="search-field adash-search">
+                <svg class="icon"><use href="#ico-search"/></svg>
+                <input type="search" class="search-input" id="adash-song-search" placeholder="Rechercher une partition…" autocomplete="off" value="${escHtml(adashSongQuery)}" oninput="filterAdashSongs(this.value)">
+            </div>
+            <div id="adash-song-list">${renderAdashSongList()}</div>`;
+    }
+
+    function filterAdashSongs(query) {
+        adashSongQuery = query;
+        document.getElementById('adash-song-list').innerHTML = renderAdashSongList();
+    }
+
+    function renderAdashSongList() {
+        const q = normalizeSearch(adashSongQuery);
+        const songs = state.songs.filter(s => !q || normalizeSearch(s.name).includes(q));
+        if (!songs.length) return `<div class="adash-card">${emptyState('ico-music', 'Aucune partition trouvée.')}</div>`;
+        const row = s => `
+            <div class="adash-row">
+                <div class="adash-row-main">
+                    <div class="adash-row-title">${escHtml(s.name)}</div>
+                    <div class="adash-row-sub">
+                        ${effectiveCategoriesForSong(s).map(k => `<span class="cat-badge">${escHtml(catLabel(k))}</span>`).join('')}
+                        ${s.isLocal ? '<span class="cat-badge local-badge">Local</span>' : ''}
+                        ${(s.lyricsUrl || s.lyricsText) ? '<span class="adash-meta">Paroles</span>' : ''}
+                    </div>
+                </div>
+                <div class="adash-row-actions">
+                    <button class="btn btn-icon" onclick="playSingle('${s.id}')" title="Lire" aria-label="Lire">
+                        <svg class="icon"><use href="#ico-play"/></svg>
+                    </button>
+                    <button class="btn btn-ghost" onclick="openEditSongModal('${s.id}', event)" aria-label="Modifier">
+                        <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
+                        <span class="adash-btn-label">Modifier</span>
+                    </button>
+                </div>
+            </div>`;
+        if (q) return `<div class="adash-card">${songs.map(row).join('')}</div>`;
+        return groupSongsByCategory(songs).map(g => `
+            <div class="group-title">${escHtml(g.label)}<span class="cat-group-count">${g.items.length}</span></div>
+            <div class="adash-card">${g.items.map(x => row(x.song)).join('')}</div>`).join('');
+    }
+
+    /* ─── CATÉGORIES (liste plate, création/renommage/suppression) ─── */
+    function renderAdashCategories() {
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>Catégories</h3>
+                    <p>Elles organisent la bibliothèque. Une catégorie ne peut être supprimée que si aucun chant ne l'utilise ; « Autre » est permanente.</p>
+                </div>
+            </div>
+            <div class="adash-form">
+                <label class="field-label" for="cat-mgr-new-name">Nouvelle catégorie</label>
+                <div class="adash-inline-form">
+                    <input type="text" id="cat-mgr-new-name" class="input-field" placeholder="Nom de la catégorie" onkeydown="if (event.key === 'Enter') submitNewCategory()">
+                    <button class="btn btn-primary" onclick="submitNewCategory()" id="cat-mgr-add-btn">
+                        <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
+                        Ajouter
+                    </button>
+                </div>
+                <div id="category-manager-error" class="form-error" style="margin: var(--sp-sm) 0 0;"></div>
+            </div>
+            <div class="adash-card">${CATEGORIES.map(c => {
+                const usage = categoryUsageCount(c.key);
+                const canDelete = c.key !== 'autre' && usage === 0;
+                const deleteTitle = canDelete ? 'Supprimer' : (c.key === 'autre' ? 'Catégorie permanente' : `Utilisée par ${usage} chant(s)`);
+                return `
+                <div class="adash-row">
+                    <div class="adash-row-thumb"><svg class="icon"><use href="#ico-folder"/></svg></div>
+                    <div class="adash-row-main">
+                        <div class="adash-row-title">${escHtml(c.label)}</div>
+                        <div class="adash-row-sub"><span class="adash-meta">${usage} chant${usage > 1 ? 's' : ''}</span></div>
+                    </div>
+                    <div class="adash-row-actions">
+                        <button class="btn btn-icon" onclick="renameCategoryPrompt('${c.key}')" title="Renommer" aria-label="Renommer">
+                            <svg class="icon"><use href="#ico-edit"/></svg>
+                        </button>
+                        <button class="btn btn-icon danger" onclick="deleteCategoryConfirm('${c.key}')" title="${deleteTitle}" aria-label="Supprimer" ${canDelete ? '' : 'disabled'}>
+                            <svg class="icon"><use href="#ico-trash"/></svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
     }
 
     function setCategoryManagerError(msg) {
         const el = document.getElementById('category-manager-error');
+        if (!el) return;
         el.textContent = msg || '';
         el.style.display = msg ? 'block' : 'none';
     }
@@ -2113,26 +2787,7 @@
     }
 
     function renderCategoryManagerList() {
-        const el = document.getElementById('category-manager-list');
-        if (!el) return;
-        el.innerHTML = CATEGORIES.map(c => {
-            const usageCount = categoryUsageCount(c.key);
-            const canDelete = c.key !== 'autre' && usageCount === 0;
-            return `
-            <div class="cat-mgr-row">
-                <div style="min-width:0;">
-                    <div class="cat-mgr-name">${escHtml(c.label)}</div>
-                </div>
-                <div class="cat-mgr-actions">
-                    <button class="btn btn-icon" onclick="renameCategoryPrompt('${c.key}')" title="Renommer" aria-label="Renommer">
-                        <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
-                    </button>
-                    <button class="btn btn-icon danger" onclick="deleteCategoryConfirm('${c.key}')" title="${canDelete ? 'Supprimer' : 'Utilisée par ' + usageCount + ' chant(s)'}" aria-label="Supprimer" ${canDelete ? '' : 'disabled'}>
-                        <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
-                    </button>
-                </div>
-            </div>`;
-        }).join('');
+        refreshAdminDashboardIfOpen();
     }
 
     async function submitNewCategory() {
@@ -2148,7 +2803,6 @@
         setCategoryManagerError('');
         try {
             await persistCategoriesChange([...CATEGORIES, newCat], `Ajoute la catégorie "${name}" via l'application`);
-            document.getElementById('cat-mgr-new-name').value = '';
             renderCategoryManagerList();
             refreshActiveList();
             showToast(`Catégorie « ${name} » créée.`);
@@ -2198,223 +2852,276 @@
         }
     }
 
-    /* ─── PLAYLISTS PUBLIQUES (admin) ───
-       plDraft est une copie de travail de la playlist en cours de création/édition dans le
-       tableau de bord ; rien n'est écrit sur GitHub tant que savePublicPlaylistDraft() n'a pas
-       été appelé. adminDashPlaylistEditKey vaut null (liste), '__new__' (création) ou la clé
-       d'une playlist existante (édition). */
-    let adminDashPlaylistEditKey = null;
-    let plDraft = null;
+    /* ─── PLAYLISTS & MESSES PUBLIQUES : éléments communs ─── */
+    function codeChipsHtml(code) {
+        if (!code) return `<span class="cat-mgr-badge pub">Sans code</span>`;
+        const c = escHtml(code);
+        return `
+            <button class="mini-chip" onclick="event.stopPropagation(); copyCode('${c}')" title="Copier le code">
+                <svg class="icon icon-sm"><use href="#ico-key"/></svg><span class="adash-code">${c}</span>
+            </button>
+            <button class="mini-chip" onclick="event.stopPropagation(); copyPublicLink('${c}')" title="Copier le lien d'import">
+                <svg class="icon icon-sm"><use href="#ico-link"/></svg>Lien
+            </button>`;
+    }
 
+    function adashCodeBlockHtml(d) {
+        const c = escHtml(d.code || '');
+        return `
+            ${toggleRowHtml('Accès par code',
+                d.code ? 'Seules les personnes qui ont le code (ou le lien) peuvent l’importer.' : 'Importable par tous, sans code, depuis le bouton « Importer ».',
+                !!d.code, 'adashToggleCode(this.checked)')}
+            ${d.code ? `
+            <div class="adash-code-box">
+                <div class="adash-code-big">${c}</div>
+                <div class="adash-code-actions">
+                    <button class="btn btn-ghost" onclick="copyCode('${c}')"><svg class="icon icon-sm"><use href="#ico-key"/></svg>Copier le code</button>
+                    <button class="btn btn-ghost" onclick="copyPublicLink('${c}')"><svg class="icon icon-sm"><use href="#ico-link"/></svg>Copier le lien</button>
+                    <button class="btn btn-ghost" onclick="adashRegenerateCode()">Nouveau code</button>
+                </div>
+            </div>` : ''}`;
+    }
+
+    function adashCurrentEntry() {
+        if (!adashEditor || adashEditor.isNew) return null;
+        const list = adashEditor.kind === 'playlist' ? PUBLIC_PLAYLISTS : PUBLIC_MESSES;
+        return list.find(p => p.key === adashEditor.draft.key) || null;
+    }
+
+    function adashToggleCode(checked) {
+        const d = adashEditor.draft;
+        d.code = checked ? generateCategoryCode(allPublicCodes(adashCurrentEntry())) : null;
+        adashEditor.dirty = true;
+        rerenderAdashKeepScroll();
+    }
+
+    function adashRegenerateCode() {
+        adashEditor.draft.code = generateCategoryCode(allPublicCodes(adashCurrentEntry()));
+        adashEditor.dirty = true;
+        rerenderAdashKeepScroll();
+    }
+
+    function setAdashEditorError(msg) {
+        const el = document.getElementById('adash-editor-error');
+        if (!el) { if (msg) showToast(msg); return; }
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+        if (msg) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function adashSaveBarHtml(onSave, onDelete) {
+        return `
+            <div id="adash-editor-error" class="form-error" style="margin-top: var(--sp-md);"></div>
+            <div class="adash-savebar">
+                ${onDelete ? `
+                <button class="btn btn-danger" onclick="${onDelete}" aria-label="Supprimer">
+                    <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
+                    <span class="adash-btn-label">Supprimer</span>
+                </button>` : ''}
+                <button class="btn btn-ghost" onclick="adashCloseEditor()">Annuler</button>
+                <button class="btn btn-primary adash-save-btn" id="adash-save-btn" onclick="${onSave}">
+                    <svg class="icon icon-sm"><use href="#ico-check"/></svg>
+                    Enregistrer
+                </button>
+            </div>`;
+    }
+
+    function adashSetSaving(saving) {
+        const btn = document.getElementById('adash-save-btn');
+        if (!btn) return;
+        btn.disabled = saving;
+        btn.innerHTML = saving
+            ? 'Enregistrement…'
+            : '<svg class="icon icon-sm"><use href="#ico-check"/></svg> Enregistrer';
+    }
+
+    // Ouvre un éditeur de playlist/messe publique : l'éditeur de déroulé partagé (collEd) pointe
+    // alors sur le brouillon ; celui d'un éventuel éditeur local ouvert derrière le dashboard est
+    // mis de côté et restauré en sortie (adashDropEditor).
+    function adashOpenEditor(ed) {
+        if (!adashEditor) collEdStash = collEd;
+        adashEditor = ed;
+        adashSection = ed.kind === 'playlist' ? 'playlists' : 'messes';
+        const d = ed.draft;
+        collEd = {
+            items: d.items,
+            listId: 'adash-coll-list',
+            allowDuplicates: ed.kind === 'messe',
+            renameable: true,
+            date: () => (ed.kind === 'messe' ? d.date || null : null),
+            makeSongItem: src => ({ type: 'song', id: src.id, name: src.name }),
+            onChange: () => { ed.dirty = true; },
+            pickerTitle: () => d.label || (ed.kind === 'playlist' ? 'Nouvelle playlist' : 'Nouvelle messe')
+        };
+        renderAdminDashboard();
+    }
+
+    /* ─── PLAYLISTS PUBLIQUES ───
+       Format de public_playlists.json : { key, label, code: string|null, cover: chemin GitHub de la
+       photo, splitByCategory, songIds: [...], itemOverrides: { songId: { displayName } } }. */
     async function persistPublicPlaylistsChange(newList, message) {
         await commitTextToGithub('public_playlists.json', JSON.stringify(newList, null, 2), message);
         PUBLIC_PLAYLISTS = newList;
     }
 
-    function renderPublicPlaylistManagerRoot() {
-        const el = document.getElementById('public-playlist-manager-root');
-        if (!el) return;
-        el.innerHTML = adminDashPlaylistEditKey === null
-            ? renderPublicPlaylistList()
-            : renderPublicPlaylistEditor();
-    }
-
-    function renderPublicPlaylistList() {
+    function renderAdashPlaylists() {
         const rows = PUBLIC_PLAYLISTS.map(p => `
-            <div class="cat-mgr-row">
-                <div style="min-width:0;">
-                    <div class="cat-mgr-name">${escHtml(p.label)}</div>
-                    <div class="cat-mgr-sub">${(p.songIds || []).length} chant(s)</div>
-                    <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-                        <span class="cat-mgr-badge ${p.code ? 'priv' : 'pub'}">${p.code ? 'Avec code' : 'Sans code'}</span>
-                        ${p.code ? `<span class="cat-mgr-code">${escHtml(p.code)}</span>
-                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyCode('${escHtml(p.code)}')" title="Copier le code" aria-label="Copier le code">
-                                <svg class="icon icon-sm"><use href="#ico-key"/></svg>
-                            </button>
-                            <button class="btn btn-icon" style="width:24px;height:24px;min-width:0;min-height:0;" onclick="copyPlaylistLink('${escHtml(p.code)}')" title="Copier le lien d'import" aria-label="Copier le lien d'import">
-                                <svg class="icon icon-sm"><use href="#ico-link"/></svg>
-                            </button>` : ''}
+            <div class="adash-row adash-row--click" onclick="openAdashPlaylistEditor('${p.key}')">
+                <div class="adash-row-thumb">${p.cover ? `<img src="${escHtml(publicCoverUrl(p.cover))}" alt="" loading="lazy">` : `<svg class="icon"><use href="#ico-image"/></svg>`}</div>
+                <div class="adash-row-main">
+                    <div class="adash-row-title">${escHtml(p.label)}</div>
+                    <div class="adash-row-sub">
+                        <span class="adash-meta">${(p.songIds || []).length} chant${(p.songIds || []).length > 1 ? 's' : ''}${p.splitByCategory ? ' · par catégorie' : ''}</span>
+                        ${!p.cover ? '<span class="cat-mgr-badge priv">Photo manquante</span>' : ''}
                     </div>
+                    <div class="adash-row-sub">${codeChipsHtml(p.code)}</div>
                 </div>
-                <div class="cat-mgr-actions">
-                    <button class="btn btn-icon" onclick="openPublicPlaylistEditor('${p.key}')" title="Modifier" aria-label="Modifier">
-                        <svg class="icon icon-sm"><use href="#ico-edit"/></svg>
+                <div class="adash-row-actions">
+                    <button class="btn btn-icon" onclick="event.stopPropagation(); openAdashPlaylistEditor('${p.key}')" title="Modifier" aria-label="Modifier">
+                        <svg class="icon"><use href="#ico-edit"/></svg>
                     </button>
-                    <button class="btn btn-icon danger" onclick="deletePublicPlaylistConfirm('${p.key}')" title="Supprimer" aria-label="Supprimer">
-                        <svg class="icon icon-sm"><use href="#ico-trash"/></svg>
+                    <button class="btn btn-icon danger" onclick="event.stopPropagation(); deletePublicPlaylistConfirm('${p.key}')" title="Supprimer" aria-label="Supprimer">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
                     </button>
                 </div>
             </div>`).join('');
         return `
-            <div style="margin-bottom: var(--sp-md);">${rows || '<div class="settings-row-desc">Aucune playlist publique.</div>'}</div>
-            <button class="btn btn-primary" style="width:100%;" onclick="openPublicPlaylistEditor('__new__')">
-                <svg class="icon icon-sm"><use href="#ico-plus"></use></svg>
-                Créer une playlist publique
-            </button>`;
-    }
-
-    function openPublicPlaylistEditor(key) {
-        if (key === '__new__') {
-            plDraft = { key: null, label: '', code: null, songIds: [], itemOverrides: {} };
-        } else {
-            const found = PUBLIC_PLAYLISTS.find(p => p.key === key);
-            if (!found) return;
-            plDraft = JSON.parse(JSON.stringify(found));
-        }
-        adminDashPlaylistEditKey = key;
-        renderPublicPlaylistManagerRoot();
-    }
-
-    function closePublicPlaylistEditor() {
-        plDraft = null;
-        adminDashPlaylistEditKey = null;
-        renderPublicPlaylistManagerRoot();
-    }
-
-    function setPlMgrError(msg) {
-        const el = document.getElementById('pl-mgr-error');
-        if (!el) return;
-        el.textContent = msg || '';
-        el.style.display = msg ? 'block' : 'none';
-    }
-
-    function renderPublicPlaylistEditor() {
-        const isNew = adminDashPlaylistEditKey === '__new__';
-        return `
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom: var(--sp-md);">
-                <button class="btn btn-icon" onclick="closePublicPlaylistEditor()" aria-label="Retour">
-                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
-                </button>
-                <div class="settings-row-label" style="margin:0;">${isNew ? 'Nouvelle playlist publique' : 'Modifier la playlist'}</div>
-            </div>
-            <input type="text" id="pl-mgr-name" class="input-field" placeholder="Nom de la playlist" value="${escHtml(plDraft.label)}" style="margin-bottom: var(--sp-sm);" oninput="plDraft.label = this.value">
-            <div class="settings-row" style="border-bottom:none; padding: 4px 0 var(--sp-sm);">
+            <div class="adash-section-head">
                 <div>
-                    <div class="settings-row-label">Réservée par un code</div>
-                    <div class="settings-row-desc">${plDraft.code ? 'Code : ' + escHtml(plDraft.code) : 'Importable directement, sans code.'}</div>
+                    <h3>Playlists publiques</h3>
+                    <p>Importables par tous depuis l'onglet Playlists → Importer, librement ou avec un code d'accès à 8 chiffres.</p>
                 </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${plDraft.code ? 'checked' : ''} onchange="togglePlDraftCode(this.checked)">
-                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                </label>
+                <button class="btn btn-primary" onclick="openAdashPlaylistEditor('__new__')">
+                    <svg class="icon"><use href="#ico-plus"/></svg>
+                    Nouvelle playlist publique
+                </button>
             </div>
-            ${plDraft.code ? `
-            <div style="display:flex; gap:8px; margin-bottom: var(--sp-md);">
-                <button class="btn btn-ghost" style="flex:1;" onclick="copyPlaylistLink('${escHtml(plDraft.code)}')">
-                    <svg class="icon icon-sm"><use href="#ico-link"></use></svg>
-                    Copier le lien
+            <div class="adash-card">${rows || emptyState('ico-list', 'Aucune playlist publique pour l’instant.')}</div>`;
+    }
+
+    function openAdashPlaylistEditor(key) {
+        if (!confirmDiscardAdashEditor()) return;
+        let draft;
+        if (key === '__new__') {
+            draft = { key: null, label: '', code: null, splitByCategory: false, cover: null, coverDataUrl: null, items: [] };
+        } else {
+            const p = PUBLIC_PLAYLISTS.find(x => x.key === key);
+            if (!p) return;
+            const overrides = p.itemOverrides || {};
+            draft = {
+                key: p.key, label: p.label, code: p.code || null, splitByCategory: !!p.splitByCategory,
+                cover: p.cover || null, coverDataUrl: null,
+                items: (p.songIds || []).map(id => {
+                    const src = state.songs.find(s => s.id === id);
+                    const item = { type: 'song', id, name: src ? src.name : '(chant introuvable)' };
+                    if (overrides[id] && overrides[id].displayName) item.displayName = overrides[id].displayName;
+                    return item;
+                })
+            };
+        }
+        adashDropEditor();
+        adashOpenEditor({ kind: 'playlist', isNew: key === '__new__', draft, dirty: false });
+    }
+
+    function renderAdashPlaylistEditor() {
+        const ed = adashEditor, d = ed.draft;
+        const coverSrc = d.coverDataUrl || publicCoverUrl(d.cover);
+        return `
+            <div class="adash-editor-head">
+                <button class="btn btn-ghost" onclick="adashCloseEditor()">
+                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                    <span class="adash-btn-label">Retour</span>
                 </button>
-                <button class="btn btn-ghost" style="flex:1;" onclick="regeneratePlDraftCode()">Régénérer le code</button>
-            </div>` : ''}
-
-            <div class="settings-row-label" style="margin: var(--sp-sm) 0 4px;">Chants (<span id="pl-mgr-song-count">${plDraft.songIds.length}</span>)</div>
-            <div id="pl-mgr-added-songs" style="margin-bottom: var(--sp-md);">${renderPlDraftAddedSongs()}</div>
-
-            <div class="settings-row-label" style="margin-bottom: 4px;">Ajouter un chant</div>
-            <input type="text" class="input-field" placeholder="Rechercher…" style="margin-bottom: var(--sp-sm);" oninput="filterPlDraftSongPicker(this.value)">
-            <div id="pl-mgr-song-picker" style="max-height:160px; overflow-y:auto; margin-bottom: var(--sp-md);">${renderPlDraftSongPicker(state.songs)}</div>
-
-            <div id="pl-mgr-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
-            <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
-                <button class="btn btn-primary" style="width:100%;" onclick="savePublicPlaylistDraft()" id="pl-mgr-save-btn">Enregistrer</button>
-                ${!isNew ? `<button class="btn btn-danger" style="width:100%;" onclick="deletePublicPlaylistConfirm('${adminDashPlaylistEditKey}')">Supprimer la playlist</button>` : ''}
-            </div>`;
-    }
-
-    function renderPlDraftAddedSongs() {
-        if (!plDraft.songIds.length) return `<div class="settings-row-desc">Aucun chant pour l'instant.</div>`;
-        return plDraft.songIds.map(id => {
-            const src = state.songs.find(s => s.id === id);
-            const label = src ? src.name : '(chant introuvable)';
-            const override = (plDraft.itemOverrides && plDraft.itemOverrides[id] && plDraft.itemOverrides[id].displayName) || '';
-            return `
-            <div class="pl-editor-song-row">
-                <span style="flex:1; min-width:0; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escHtml(label)}">${escHtml(label)}</span>
-                <input type="text" class="input-field" placeholder="Nom dans cette playlist (optionnel)" value="${escHtml(override)}" style="max-width:160px;" oninput="setPlDraftOverride('${id}', this.value)">
-                <button class="btn btn-icon danger" style="width:32px;height:32px;min-width:0;min-height:0;" onclick="removePlDraftSong('${id}')" aria-label="Retirer">
-                    <svg class="icon icon-sm"><use href="#ico-x"/></svg>
+                <h3>${ed.isNew ? 'Nouvelle playlist publique' : 'Modifier la playlist'}</h3>
+            </div>
+            <div class="adash-form adash-props">
+                <label class="cover-picker ${coverSrc ? 'has-img' : ''}" title="Photo de la playlist">
+                    ${coverSrc ? `<img src="${escHtml(coverSrc)}" alt="">` : ''}
+                    <span class="cover-picker-label">
+                        <svg class="icon"><use href="#ico-image"/></svg>
+                        ${coverSrc ? 'Changer la photo' : 'Ajouter une photo'}
+                    </span>
+                    <input type="file" accept="image/*" style="display:none" onchange="adashPickCover(event)">
+                </label>
+                <div class="adash-props-fields">
+                    <label class="field-label" for="adash-pl-name">Nom de la playlist</label>
+                    <input type="text" id="adash-pl-name" class="input-field" value="${escHtml(d.label)}" placeholder="Ex : Chorale Scoute de Lyon 2026" oninput="adashEditor.draft.label = this.value; adashEditor.dirty = true;">
+                    <p class="settings-note">La photo est obligatoire : elle est publiée sur GitHub et sert de couverture chez tous ceux qui importent la playlist. Recadrée automatiquement en carré.</p>
+                </div>
+            </div>
+            <div class="adash-form" style="padding-top: var(--sp-xs); padding-bottom: var(--sp-xs);">
+                ${toggleRowHtml('Diviser la playlist par catégorie',
+                    'Les chants sont regroupés par catégorie dans la playlist et dans les raccourcis du Mode Live.',
+                    d.splitByCategory, 'adashEditor.draft.splitByCategory = this.checked; adashEditor.dirty = true;')}
+                ${adashCodeBlockHtml(d)}
+            </div>
+            <div class="coll-section-title"><span>Chants</span><span id="adash-coll-list-count"></span></div>
+            <div id="adash-coll-list" class="coll-list"></div>
+            <div class="coll-add-bar coll-add-bar--inline">
+                <button class="btn btn-primary" onclick="openSongPicker()">
+                    <svg class="icon"><use href="#ico-plus"/></svg>
+                    Ajouter des chants
                 </button>
-            </div>`;
-        }).join('');
+            </div>
+            ${adashSaveBarHtml('savePublicPlaylistDraft()', ed.isNew ? '' : `deletePublicPlaylistConfirm('${d.key}')`)}`;
     }
 
-    function renderPlDraftSongPicker(list) {
-        const available = list.filter(s => !plDraft.songIds.includes(s.id));
-        if (!available.length) return `<div class="settings-row-desc">Aucun chant disponible.</div>`;
-        return available.slice(0, 40).map(s => `
-            <div class="ed-item ed-item--add" onclick="addPlDraftSong('${s.id}')">
-                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-                <span class="ed-name">${escHtml(s.name)}</span>
-            </div>`).join('');
-    }
-
-    function filterPlDraftSongPicker(query) {
-        const q = normalizeSearch(query);
-        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(
-            state.songs.filter(s => normalizeSearch(s.name).includes(q))
-        );
-    }
-
-    function refreshPlDraftSongCount() {
-        const el = document.getElementById('pl-mgr-song-count');
-        if (el) el.textContent = plDraft.songIds.length;
-    }
-
-    function addPlDraftSong(id) {
-        plDraft.songIds.push(id);
-        document.getElementById('pl-mgr-added-songs').innerHTML = renderPlDraftAddedSongs();
-        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(state.songs);
-        refreshPlDraftSongCount();
-    }
-
-    function removePlDraftSong(id) {
-        plDraft.songIds = plDraft.songIds.filter(x => x !== id);
-        if (plDraft.itemOverrides) delete plDraft.itemOverrides[id];
-        document.getElementById('pl-mgr-added-songs').innerHTML = renderPlDraftAddedSongs();
-        document.getElementById('pl-mgr-song-picker').innerHTML = renderPlDraftSongPicker(state.songs);
-        refreshPlDraftSongCount();
-    }
-
-    function setPlDraftOverride(id, value) {
-        if (!plDraft.itemOverrides) plDraft.itemOverrides = {};
-        if (value.trim()) plDraft.itemOverrides[id] = { displayName: value.trim() };
-        else delete plDraft.itemOverrides[id];
-    }
-
-    function togglePlDraftCode(checked) {
-        plDraft.code = checked
-            ? generateCategoryCode(PUBLIC_PLAYLISTS.filter(p => p.code).map(p => p.code))
-            : null;
-        renderPublicPlaylistManagerRoot();
-    }
-
-    function regeneratePlDraftCode() {
-        plDraft.code = generateCategoryCode(PUBLIC_PLAYLISTS.filter(p => p.code && p.key !== plDraft.key).map(p => p.code));
-        renderPublicPlaylistManagerRoot();
+    async function adashPickCover(event) {
+        const file = event.target.files[0];
+        if (!file || !adashEditor) return;
+        try {
+            adashEditor.draft.coverDataUrl = await processCoverImage(file, 600);
+            adashEditor.dirty = true;
+            rerenderAdashKeepScroll();
+        } catch (e) {
+            showToast('Image illisible, essayez un autre fichier.');
+        }
     }
 
     async function savePublicPlaylistDraft() {
-        if (!isAdminActive()) { setPlMgrError('Pouvoirs administrateur inactifs.'); return; }
-        const name = plDraft.label.trim();
-        if (!name) { setPlMgrError('Donnez un nom à la playlist.'); return; }
-        if (!plDraft.songIds.length) { setPlMgrError('Ajoutez au moins un chant.'); return; }
+        const ed = adashEditor;
+        if (!ed || ed.kind !== 'playlist') return;
+        if (!isAdminActive()) { setAdashEditorError('Pouvoirs administrateur inactifs.'); return; }
+        const d = ed.draft;
+        const name = (d.label || '').trim();
+        if (!name) { setAdashEditorError('Donnez un nom à la playlist.'); return; }
+        if (!d.cover && !d.coverDataUrl) { setAdashEditorError('Ajoutez une photo de playlist (obligatoire).'); return; }
+        if (!d.items.length) { setAdashEditorError('Ajoutez au moins un chant.'); return; }
 
-        const isNew = !plDraft.key;
-        if (isNew) plDraft.key = slugifyCategoryKey(name, PUBLIC_PLAYLISTS.map(p => p.key));
-        const entry = { key: plDraft.key, label: name, code: plDraft.code || null, songIds: plDraft.songIds, itemOverrides: plDraft.itemOverrides || {} };
-
-        const btn = document.getElementById('pl-mgr-save-btn');
-        if (btn) btn.disabled = true;
-        setPlMgrError('');
+        if (!d.key) d.key = slugifyCategoryKey(name, PUBLIC_PLAYLISTS.map(p => p.key));
+        const key = d.key;
+        adashSetSaving(true);
+        setAdashEditorError('');
         try {
-            const updated = isNew ? [...PUBLIC_PLAYLISTS, entry] : PUBLIC_PLAYLISTS.map(p => p.key === entry.key ? entry : p);
-            await persistPublicPlaylistsChange(updated, `${isNew ? 'Ajoute' : 'Modifie'} la playlist publique "${name}" via l'application`);
-            showToast(`Playlist « ${name} » enregistrée.`);
-            closePublicPlaylistEditor();
+            let oldCover = null;
+            if (d.coverDataUrl) {
+                const coverPath = `${COVERS_PATH}/playlists/${key}-${Date.now().toString(36)}.jpg`;
+                await commitBase64ToGithub(coverPath, d.coverDataUrl.split(',')[1], `Photo de la playlist publique "${name}" via l'application`);
+                oldCover = d.cover;
+                // Mémorisé tout de suite : si l'écriture du registre échoue ensuite, un nouvel
+                // essai ne republiera pas la même photo une seconde fois.
+                d.cover = coverPath;
+                d.coverDataUrl = null;
+            }
+            const itemOverrides = {};
+            d.items.forEach(it => { if (it.displayName) itemOverrides[it.id] = { displayName: it.displayName }; });
+            const entry = {
+                key, label: name, code: d.code || null, cover: d.cover, splitByCategory: !!d.splitByCategory,
+                songIds: d.items.map(it => it.id), itemOverrides
+            };
+            const exists = PUBLIC_PLAYLISTS.some(p => p.key === key);
+            const updated = exists ? PUBLIC_PLAYLISTS.map(p => p.key === key ? entry : p) : [...PUBLIC_PLAYLISTS, entry];
+            await persistPublicPlaylistsChange(updated, `${exists ? 'Modifie' : 'Ajoute'} la playlist publique "${name}" via l'application`);
+            if (oldCover && oldCover !== d.cover) {
+                deleteGithubTextFile(oldCover, `Retire l'ancienne photo de la playlist "${name}"`).catch(() => {});
+            }
+            showToast(`Playlist « ${name} » publiée.`);
+            ed.dirty = false;
+            adashGo('playlists');
         } catch (e) {
-            setPlMgrError(e.message || "Échec de l'enregistrement.");
+            setAdashEditorError(e.message || "Échec de l'enregistrement.");
         } finally {
-            if (btn) btn.disabled = false;
+            adashSetSaving(false);
         }
     }
 
@@ -2422,41 +3129,614 @@
         if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
         const pl = PUBLIC_PLAYLISTS.find(p => p.key === key);
         if (!pl) return;
-        if (!confirm(`Supprimer définitivement la playlist publique « ${pl.label} » ? Les chants eux-mêmes ne seront pas supprimés de la bibliothèque.`)) return;
+        if (!confirm(`Supprimer définitivement la playlist publique « ${pl.label} » ? Les chants eux-mêmes ne seront pas supprimés de la bibliothèque, et ceux qui l'ont déjà importée la gardent.`)) return;
         try {
-            const updated = PUBLIC_PLAYLISTS.filter(p => p.key !== key);
-            await persistPublicPlaylistsChange(updated, `Supprime la playlist publique "${pl.label}" via l'application`);
+            await persistPublicPlaylistsChange(PUBLIC_PLAYLISTS.filter(p => p.key !== key), `Supprime la playlist publique "${pl.label}" via l'application`);
+            if (pl.cover) deleteGithubTextFile(pl.cover, `Retire la photo de la playlist "${pl.label}"`).catch(() => {});
             showToast('Playlist publique supprimée.');
-            closePublicPlaylistEditor();
+            if (adashEditor) adashEditor.dirty = false;
+            adashGo('playlists');
         } catch (e) {
             showToast('Échec : ' + (e.message || 'erreur inconnue'));
         }
     }
 
-    /* ─── CODE DE PLAYLIST (modale de déblocage, Paramètres + bibliothèque) ─── */
-    function openPlaylistCodeModal() {
-        document.getElementById('playlist-code-input').value = '';
-        setPlaylistCodeError('');
-        document.getElementById('playlist-code-modal').classList.add('open');
+    /* ─── MESSES PUBLIQUES ───
+       Même logique que les playlists publiques. Format de public_messes.json : { key, label,
+       date: 'YYYY-MM-DD'|null, code: string|null, items: [{ type: 'song', id, displayName? } |
+       { type: 'note', name, ref?, content }] } — l'ordre des éléments EST le déroulé. */
+    async function persistPublicMessesChange(newList, message) {
+        await commitTextToGithub('public_messes.json', JSON.stringify(newList, null, 2), message);
+        PUBLIC_MESSES = newList;
     }
 
-    function closePlaylistCodeModal() {
-        document.getElementById('playlist-code-modal').classList.remove('open');
+    function renderAdashMesses() {
+        const rows = PUBLIC_MESSES.map(m => {
+            const items = m.items || [];
+            const songCount = items.filter(it => it.type !== 'note').length;
+            const noteCount = items.length - songCount;
+            return `
+            <div class="adash-row adash-row--click" onclick="openAdashMesseEditor('${m.key}')">
+                <div class="adash-row-thumb"><svg class="icon"><use href="#ico-cal"/></svg></div>
+                <div class="adash-row-main">
+                    <div class="adash-row-title">${escHtml(m.label)}</div>
+                    <div class="adash-row-sub">
+                        <span class="adash-meta">${songCount} chant${songCount > 1 ? 's' : ''}${noteCount ? ` · ${noteCount} note${noteCount > 1 ? 's' : ''}` : ''}</span>
+                    </div>
+                    <div class="adash-row-sub">${codeChipsHtml(m.code)}</div>
+                </div>
+                <div class="adash-row-actions">
+                    <button class="btn btn-icon" onclick="event.stopPropagation(); openAdashMesseEditor('${m.key}')" title="Modifier" aria-label="Modifier">
+                        <svg class="icon"><use href="#ico-edit"/></svg>
+                    </button>
+                    <button class="btn btn-icon danger" onclick="event.stopPropagation(); deletePublicMesseConfirm('${m.key}')" title="Supprimer" aria-label="Supprimer">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>Messes publiques</h3>
+                    <p>Un déroulé complet (chants, lectures, notes) importable par tous depuis l'onglet Messes → Importer, librement ou avec un code d'accès.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAdashMesseEditor('__new__')">
+                    <svg class="icon"><use href="#ico-plus"/></svg>
+                    Nouvelle messe publique
+                </button>
+            </div>
+            <div class="adash-card">${rows || emptyState('ico-cal', 'Aucune messe publique pour l’instant.')}</div>`;
     }
 
-    function setPlaylistCodeError(msg) {
-        const el = document.getElementById('playlist-code-error');
-        el.textContent = msg || '';
-        el.style.display = msg ? 'block' : 'none';
+    function openAdashMesseEditor(key) {
+        if (!confirmDiscardAdashEditor()) return;
+        let draft;
+        if (key === '__new__') {
+            const today = new Date().toISOString().slice(0, 10);
+            draft = { key: null, label: formatMesseDateLabel(today), date: today, code: null, items: [] };
+        } else {
+            const m = PUBLIC_MESSES.find(x => x.key === key);
+            if (!m) return;
+            draft = {
+                key: m.key, label: m.label, date: m.date || null, code: m.code || null,
+                items: (m.items || []).map(it => {
+                    if (it.type === 'note') return { type: 'note', name: it.name, ref: it.ref || '', content: it.content || '' };
+                    const src = state.songs.find(s => s.id === it.id);
+                    const item = { type: 'song', id: it.id, name: src ? src.name : '(chant introuvable)' };
+                    if (it.displayName) item.displayName = it.displayName;
+                    return item;
+                })
+            };
+        }
+        adashDropEditor();
+        adashOpenEditor({ kind: 'messe', isNew: key === '__new__', draft, dirty: false });
     }
 
-    function submitPlaylistCode() {
-        const raw = document.getElementById('playlist-code-input').value;
-        const result = redeemPlaylistCode(raw);
-        if (!result.ok) { setPlaylistCodeError(result.error); return; }
-        closePlaylistCodeModal();
-        showToast(`Playlist « ${result.playlist.label} » importée !`);
-        showView('playlist');
+    // Tant que le nom n'a pas été personnalisé (il vaut encore le libellé de l'ancienne date), il
+    // suit la date choisie — comme pour une messe locale, dont le nom est dérivé de sa date.
+    function adashMesseDateChanged(value) {
+        const d = adashEditor.draft;
+        const autoName = !d.label.trim() || (d.date && d.label === formatMesseDateLabel(d.date));
+        d.date = value || null;
+        if (autoName && d.date) {
+            d.label = formatMesseDateLabel(d.date);
+            const input = document.getElementById('adash-me-name');
+            if (input) input.value = d.label;
+        }
+        adashEditor.dirty = true;
+    }
+
+    function renderAdashMesseEditor() {
+        const ed = adashEditor, d = ed.draft;
+        return `
+            <div class="adash-editor-head">
+                <button class="btn btn-ghost" onclick="adashCloseEditor()">
+                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                    <span class="adash-btn-label">Retour</span>
+                </button>
+                <h3>${ed.isNew ? 'Nouvelle messe publique' : 'Modifier la messe'}</h3>
+            </div>
+            <div class="adash-form">
+                <div class="adash-props">
+                    <div class="adash-props-fields">
+                        <label class="field-label" for="adash-me-name">Nom de la messe</label>
+                        <input type="text" id="adash-me-name" class="input-field" value="${escHtml(d.label)}" placeholder="Ex : Messe des familles" oninput="adashEditor.draft.label = this.value; adashEditor.dirty = true;">
+                    </div>
+                    <div class="adash-props-fields" style="flex: 0 1 240px;">
+                        <label class="field-label" for="adash-me-date">Date</label>
+                        <input type="date" id="adash-me-date" class="input-field" value="${escHtml(d.date || '')}" onchange="adashMesseDateChanged(this.value)">
+                    </div>
+                </div>
+                <p class="settings-note">La date permet d'ajouter en un geste les lectures du jour (AELF) via « Note ou lecture ».</p>
+            </div>
+            <div class="adash-form" style="padding-top: var(--sp-xs); padding-bottom: var(--sp-xs);">
+                ${adashCodeBlockHtml(d)}
+            </div>
+            <div class="coll-section-title"><span>Déroulé</span><span id="adash-coll-list-count"></span></div>
+            <div id="adash-coll-list" class="coll-list"></div>
+            <div class="coll-add-bar coll-add-bar--inline">
+                <button class="btn btn-primary" onclick="openSongPicker()">
+                    <svg class="icon"><use href="#ico-plus"/></svg>
+                    Ajouter des chants
+                </button>
+                <button class="btn btn-ghost" onclick="openNoteSheet()">
+                    <svg class="icon"><use href="#ico-note"/></svg>
+                    Note ou lecture
+                </button>
+            </div>
+            ${adashSaveBarHtml('savePublicMesseDraft()', ed.isNew ? '' : `deletePublicMesseConfirm('${d.key}')`)}`;
+    }
+
+    async function savePublicMesseDraft() {
+        const ed = adashEditor;
+        if (!ed || ed.kind !== 'messe') return;
+        if (!isAdminActive()) { setAdashEditorError('Pouvoirs administrateur inactifs.'); return; }
+        const d = ed.draft;
+        const name = (d.label || '').trim();
+        if (!name) { setAdashEditorError('Donnez un nom à la messe.'); return; }
+        if (!d.items.length) { setAdashEditorError('Ajoutez au moins un chant ou une note au déroulé.'); return; }
+
+        if (!d.key) d.key = slugifyCategoryKey(name, PUBLIC_MESSES.map(m => m.key));
+        const key = d.key;
+        const entry = {
+            key, label: name, date: d.date || null, code: d.code || null,
+            items: d.items.map(it => it.type === 'note'
+                ? { type: 'note', name: it.name, ref: it.ref || '', content: it.content || '' }
+                : (it.displayName ? { type: 'song', id: it.id, displayName: it.displayName } : { type: 'song', id: it.id }))
+        };
+        adashSetSaving(true);
+        setAdashEditorError('');
+        try {
+            const exists = PUBLIC_MESSES.some(m => m.key === key);
+            const updated = exists ? PUBLIC_MESSES.map(m => m.key === key ? entry : m) : [...PUBLIC_MESSES, entry];
+            await persistPublicMessesChange(updated, `${exists ? 'Modifie' : 'Ajoute'} la messe publique "${name}" via l'application`);
+            showToast(`Messe « ${name} » publiée.`);
+            ed.dirty = false;
+            adashGo('messes');
+        } catch (e) {
+            setAdashEditorError(e.message || "Échec de l'enregistrement.");
+        } finally {
+            adashSetSaving(false);
+        }
+    }
+
+    async function deletePublicMesseConfirm(key) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        const m = PUBLIC_MESSES.find(x => x.key === key);
+        if (!m) return;
+        if (!confirm(`Supprimer définitivement la messe publique « ${m.label} » ? Ceux qui l'ont déjà importée la gardent.`)) return;
+        try {
+            await persistPublicMessesChange(PUBLIC_MESSES.filter(x => x.key !== key), `Supprime la messe publique "${m.label}" via l'application`);
+            showToast('Messe publique supprimée.');
+            if (adashEditor) adashEditor.dirty = false;
+            adashGo('messes');
+        } catch (e) {
+            showToast('Échec : ' + (e.message || 'erreur inconnue'));
+        }
+    }
+
+    /* ══════════════════════════════════════════
+       ÉDITEUR DE DÉROULÉ — commun aux messes/playlists locales (onglets Messes, Playlists) et
+       publiques (Dashboard Admin). `collEd` décrit la liste en cours d'édition :
+       - items : le tableau édité, muté en place (chants et, pour les messes, notes) ;
+       - listId : id du conteneur de la liste (distinct entre éditeur local et dashboard, qui
+         peuvent coexister dans le DOM) ;
+       - allowDuplicates : une messe peut reprendre un même chant, une playlist non (dans ce cas
+         le bouton du sélecteur bascule ajout/retrait) ;
+       - renameable : nom affiché propre à cette playlist/messe (publiques uniquement) ;
+       - date() : date AELF pour proposer les lectures du jour ;
+       - makeSongItem(src) : élément à insérer pour un chant de la bibliothèque ;
+       - onChange() : persistance (local) ou marquage « non enregistré » (dashboard).
+    ══════════════════════════════════════════ */
+    let collEd = null;
+    let collEdStash = null;
+
+    function collSourceSong(it) {
+        return it && it.type !== 'note' ? state.songs.find(s => s.id === it.id) || null : null;
+    }
+
+    function collItemName(it) {
+        if (it.type === 'note') return it.name || 'NOTE';
+        return it.displayName || it.name || (collSourceSong(it) || {}).name || '(chant introuvable)';
+    }
+
+    function collItemSub(it) {
+        if (it.type === 'note') return it.ref || 'Note';
+        const src = collSourceSong(it);
+        if (!src) return it.isLocal ? 'Partition locale' : 'Introuvable dans la bibliothèque';
+        return it.displayName ? `${catLabel(src.category)} · ${src.name}` : catLabel(src.category);
+    }
+
+    function collCountLabel() {
+        if (!collEd) return '';
+        const songs = collEd.items.filter(it => it.type !== 'note').length;
+        const notes = collEd.items.length - songs;
+        return `${songs} chant${songs > 1 ? 's' : ''}${notes ? ` · ${notes} note${notes > 1 ? 's' : ''}` : ''}`;
+    }
+
+    function renderCollList() {
+        const items = collEd.items;
+        if (!items.length) {
+            return `<div class="coll-empty"><svg class="icon"><use href="#ico-music"/></svg><p>Rien pour l'instant.<br>Appuyez sur « Ajouter des chants » pour commencer.</p></div>`;
+        }
+        const last = items.length - 1;
+        return items.map((it, i) => {
+            const isNote = it.type === 'note';
+            const canEdit = isNote || collEd.renameable;
+            return `
+            <div class="coll-row ${isNote ? 'is-note' : ''}" data-i="${i}">
+                <div class="coll-grip" title="Glisser pour déplacer" aria-hidden="true"><svg class="icon"><use href="#ico-grip"/></svg></div>
+                <div class="coll-pos">${i + 1}</div>
+                <div class="coll-main">
+                    <div class="coll-name">${escHtml(collItemName(it))}</div>
+                    <div class="coll-sub">${escHtml(collItemSub(it))}</div>
+                </div>
+                <div class="coll-actions">
+                    <button class="btn btn-icon" onclick="collMove(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Monter" aria-label="Monter">
+                        <svg class="icon icon-up"><use href="#ico-chevron"/></svg>
+                    </button>
+                    <button class="btn btn-icon" onclick="collMove(${i}, 1)" ${i === last ? 'disabled' : ''} title="Descendre" aria-label="Descendre">
+                        <svg class="icon"><use href="#ico-chevron"/></svg>
+                    </button>
+                    ${canEdit ? `
+                    <button class="btn btn-icon" onclick="${isNote ? `openNoteSheet(${i})` : `collRename(${i})`}" title="${isNote ? 'Modifier la note' : 'Nom affiché'}" aria-label="Modifier">
+                        <svg class="icon"><use href="#ico-edit"/></svg>
+                    </button>` : ''}
+                    <button class="btn btn-icon danger" onclick="collRemove(${i})" title="Retirer" aria-label="Retirer">
+                        <svg class="icon"><use href="#ico-x"/></svg>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function refreshCollList() {
+        if (!collEd) return;
+        const el = document.getElementById(collEd.listId);
+        if (el) el.innerHTML = renderCollList();
+        const countEl = document.getElementById(collEd.listId + '-count');
+        if (countEl) countEl.textContent = collCountLabel();
+    }
+
+    // Remplit la liste puis y monte le glisser-déposer. Le Sortable reste attaché au conteneur :
+    // les rafraîchissements suivants (refreshCollList) ne remplacent que son contenu.
+    function mountCollEditor() {
+        if (!collEd) return;
+        refreshCollList();
+        const el = document.getElementById(collEd.listId);
+        if (!el) return;
+        new Sortable(el, {
+            draggable: '.coll-row',
+            handle: '.coll-grip',
+            animation: 180,
+            forceFallback: true,
+            fallbackOnBody: true,
+            fallbackTolerance: 3,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            scroll: true,
+            bubbleScroll: true,
+            scrollSensitivity: 90,
+            scrollSpeed: 14,
+            onEnd: e => {
+                if (!collEd || e.oldIndex === e.newIndex) return;
+                const moved = collEd.items.splice(e.oldIndex, 1)[0];
+                collEd.items.splice(e.newIndex, 0, moved);
+                collEd.onChange();
+                refreshCollList();
+            }
+        });
+    }
+
+    function collMove(i, delta) {
+        if (!collEd) return;
+        const j = i + delta;
+        const items = collEd.items;
+        if (j < 0 || j >= items.length) return;
+        [items[i], items[j]] = [items[j], items[i]];
+        collEd.onChange();
+        refreshCollList();
+        const row = document.querySelector(`#${collEd.listId} .coll-row[data-i="${j}"]`);
+        if (row) {
+            row.classList.add('flash');
+            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }
+
+    function collRemove(i) {
+        if (!collEd || !collEd.items[i]) return;
+        collEd.items.splice(i, 1);
+        collEd.onChange();
+        refreshCollList();
+    }
+
+    function collRename(i) {
+        const it = collEd && collEd.items[i];
+        if (!it || it.type === 'note') return;
+        const src = collSourceSong(it);
+        const original = src ? src.name : it.name;
+        const value = prompt(`Nom affiché ici pour ce chant (laisser vide pour « ${original} ») :`, it.displayName || '');
+        if (value === null) return;
+        if (value.trim()) it.displayName = value.trim();
+        else delete it.displayName;
+        collEd.onChange();
+        refreshCollList();
+    }
+
+    /* ─── SÉLECTEUR DE CHANTS PLEIN ÉCRAN ───
+       Toute la bibliothèque, par catégories dépliables ou par recherche, avec un gros bouton +
+       à droite de chaque chant. L'ajout est immédiat (pas de validation finale) : « Terminé »
+       ne fait que refermer et rafraîchir la liste de l'éditeur. */
+    let pickerQuery = '';
+    const pickerExpanded = new Set();
+
+    function openSongPicker() {
+        if (!collEd) return;
+        pickerQuery = '';
+        document.getElementById('song-picker-search').value = '';
+        const title = typeof collEd.pickerTitle === 'function' ? collEd.pickerTitle() : collEd.pickerTitle;
+        document.getElementById('song-picker-title').textContent = title ? `Ajouter à « ${title} »` : 'Ajouter des chants';
+        renderSongPicker();
+        document.getElementById('song-picker').classList.add('open');
+        document.getElementById('song-picker-body').scrollTop = 0;
+    }
+
+    function closeSongPicker() {
+        document.getElementById('song-picker').classList.remove('open');
+        refreshCollList();
+    }
+
+    function isSongPickerOpen() {
+        return document.getElementById('song-picker').classList.contains('open');
+    }
+
+    function pickerCount(id) {
+        return collEd ? collEd.items.filter(it => it.type !== 'note' && it.id === id).length : 0;
+    }
+
+    function pickerBtnHtml(id, n) {
+        const removable = n > 0 && !collEd.allowDuplicates;
+        return `
+            <button class="picker-add-btn ${n ? 'is-added' : ''}" data-pick="${id}" onclick="pickerAdd('${id}')" aria-label="${removable ? 'Retirer' : 'Ajouter'}">
+                <svg class="icon"><use href="${removable ? '#ico-check' : '#ico-plus'}"/></svg>
+                ${n && collEd.allowDuplicates ? `<span class="picker-add-count">${n}</span>` : ''}
+            </button>`;
+    }
+
+    function pickerRowHtml(s) {
+        const n = pickerCount(s.id);
+        const cats = effectiveCategoriesForSong(s).map(catLabel).join(' · ') + (s.isLocal ? ' · Local' : '');
+        return `
+            <div class="picker-row ${n ? 'added' : ''}" data-pick-row="${s.id}">
+                <div class="picker-main">
+                    <div class="coll-name">${escHtml(s.name)}</div>
+                    <div class="coll-sub">${escHtml(cats)}</div>
+                </div>
+                ${pickerBtnHtml(s.id, n)}
+            </div>`;
+    }
+
+    function renderSongPicker() {
+        const q = normalizeSearch(pickerQuery);
+        const el = document.getElementById('song-picker-list');
+        if (q) {
+            const matches = state.songs.filter(s => normalizeSearch(s.name).includes(q));
+            el.innerHTML = matches.length ? matches.map(pickerRowHtml).join('') : emptyState('ico-search', 'Aucun chant ne correspond à cette recherche.');
+        } else {
+            const groups = CATEGORIES
+                .map(c => ({ c, items: state.songs.filter(s => effectiveCategoriesForSong(s).includes(c.key)) }))
+                .filter(g => g.items.length);
+            el.innerHTML = groups.length ? groups.map(({ c, items }) => {
+                const open = pickerExpanded.has(c.key);
+                return `
+                <div class="cat-group">
+                    <button class="cat-group-header" onclick="togglePickerCategory('${c.key}')" aria-expanded="${open}">
+                        <span>${escHtml(c.label)}</span>
+                        <span class="cat-group-count">${items.length}</span>
+                        <svg class="icon icon-sm cat-group-chevron ${open ? 'open' : ''}" id="pick-chevron-${c.key}"><use href="#ico-chevron"/></svg>
+                    </button>
+                    <div class="cat-group-body-wrap ${open ? 'open' : ''}" id="pick-wrap-${c.key}"><div class="cat-group-body"><div class="cat-group-body-inner">${items.map(pickerRowHtml).join('')}</div></div></div>
+                </div>`;
+            }).join('') : emptyState('ico-music', 'La bibliothèque est vide.');
+        }
+        updatePickerCounter();
+    }
+
+    function togglePickerCategory(key) {
+        const open = !pickerExpanded.has(key);
+        if (open) pickerExpanded.add(key); else pickerExpanded.delete(key);
+        document.getElementById('pick-wrap-' + key)?.classList.toggle('open', open);
+        document.getElementById('pick-chevron-' + key)?.classList.toggle('open', open);
+    }
+
+    function filterSongPicker(value) {
+        pickerQuery = value;
+        renderSongPicker();
+    }
+
+    function pickerAdd(id) {
+        if (!collEd) return;
+        const src = state.songs.find(s => s.id === id);
+        if (!src) return;
+        if (pickerCount(id) && !collEd.allowDuplicates) {
+            const idx = collEd.items.findIndex(it => it.type !== 'note' && it.id === id);
+            collEd.items.splice(idx, 1);
+        } else {
+            collEd.items.push(collEd.makeSongItem(src));
+        }
+        collEd.onChange();
+        // Mise à jour ciblée (un chant peut figurer dans plusieurs catégories) plutôt qu'un
+        // nouveau rendu complet : la position de défilement et les catégories ouvertes restent.
+        const n = pickerCount(id);
+        document.querySelectorAll(`[data-pick="${id}"]`).forEach(btn => { btn.outerHTML = pickerBtnHtml(id, n); });
+        document.querySelectorAll(`[data-pick-row="${id}"]`).forEach(row => row.classList.toggle('added', n > 0));
+        updatePickerCounter();
+        try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+    }
+
+    function updatePickerCounter() {
+        const el = document.getElementById('song-picker-count');
+        if (el) el.textContent = collCountLabel();
+    }
+
+    /* ─── NOTES ET LECTURES DU JOUR (messes) ─── */
+    let noteSheetEditIdx = null;
+
+    function openNoteSheet(editIdx) {
+        if (!collEd) return;
+        noteSheetEditIdx = typeof editIdx === 'number' ? editIdx : null;
+        const it = noteSheetEditIdx !== null ? collEd.items[noteSheetEditIdx] : null;
+        document.getElementById('note-sheet-title').textContent = it ? 'Modifier la note' : 'Ajouter une note ou une lecture';
+        document.getElementById('note-sheet-submit').textContent = it ? 'Enregistrer' : 'Ajouter la note';
+        document.getElementById('note-sheet-name').value = it ? it.name : '';
+        document.getElementById('note-sheet-content').value = it ? (it.content || '') : '';
+        const errEl = document.getElementById('note-sheet-error');
+        errEl.style.display = 'none';
+
+        const aelfEl = document.getElementById('note-sheet-aelf');
+        const date = collEd.date ? collEd.date() : null;
+        if (it || !date) {
+            aelfEl.innerHTML = '';
+        } else {
+            aelfEl.innerHTML = `
+                <div class="field-label">Lectures du ${escHtml(formatMesseDateLabel(date).toLowerCase())} (AELF)</div>
+                <div id="aelf-readings" style="margin-bottom: var(--sp-md);"><p class="settings-note" style="margin:0;">Chargement des lectures du jour…</p></div>
+                <div class="coll-section-title" style="margin: 0 0 var(--sp-sm);"><span>Ou une note libre</span></div>`;
+            loadAelfReadingsInto(date);
+        }
+        document.getElementById('note-sheet').classList.add('open');
+    }
+
+    function closeNoteSheet() {
+        document.getElementById('note-sheet').classList.remove('open');
+        noteSheetEditIdx = null;
+    }
+
+    function submitNoteSheet() {
+        if (!collEd) return;
+        const name = document.getElementById('note-sheet-name').value.trim();
+        const content = document.getElementById('note-sheet-content').value.trim();
+        if (!name) {
+            const errEl = document.getElementById('note-sheet-error');
+            errEl.textContent = 'Donnez un titre à la note.';
+            errEl.style.display = 'block';
+            return;
+        }
+        const existing = noteSheetEditIdx !== null ? collEd.items[noteSheetEditIdx] : null;
+        if (existing) {
+            existing.name = name.toUpperCase();
+            existing.content = content;
+        } else {
+            collEd.items.push({ type: 'note', name: name.toUpperCase(), content });
+        }
+        collEd.onChange();
+        refreshCollList();
+        closeNoteSheet();
+        showToast(existing ? 'Note modifiée.' : 'Note ajoutée.');
+    }
+
+    /* ─── IMPORT D'UNE PLAYLIST / D'UNE MESSE (bouton « Importer » des onglets) ───
+       Popup de choix plutôt qu'ouverture directe de l'explorateur de fichiers : fichier .json
+       exporté, code d'accès public à 8 chiffres, ou import en un geste des contenus publics
+       sans code. */
+    let collImportKind = 'playlist'; // 'playlist' | 'messe'
+    let collImportStep = 'choice';   // 'choice' | 'code'
+
+    function openCollectionImport(kind) {
+        collImportKind = kind === 'messe' ? 'messe' : 'playlist';
+        collImportStep = 'choice';
+        renderCollectionImport();
+        document.getElementById('collection-import-modal').classList.add('open');
+    }
+
+    function closeCollectionImport() {
+        document.getElementById('collection-import-modal').classList.remove('open');
+    }
+
+    function setCollectionImportStep(step) {
+        collImportStep = step;
+        renderCollectionImport();
+    }
+
+    function renderCollectionImport() {
+        const isMesse = collImportKind === 'messe';
+        const noun = isMesse ? 'messe' : 'playlist';
+        document.getElementById('coll-import-title').textContent = isMesse ? 'Importer une messe' : 'Importer une playlist';
+        const body = document.getElementById('coll-import-body');
+
+        if (collImportStep === 'code') {
+            body.innerHTML = `
+                <button class="btn btn-ghost btn-back-inline" onclick="setCollectionImportStep('choice')">
+                    <svg class="icon icon-sm"><use href="#ico-arrow-left"/></svg>
+                    Retour
+                </button>
+                <p class="settings-note" style="margin: 0 0 var(--sp-md); font-size: 12.5px;">
+                    Saisissez le code à 8 chiffres qu'on vous a communiqué : la ${noun} correspondante sera ajoutée à vos ${noun}s sur cet appareil.
+                </p>
+                <input type="text" id="coll-import-code" class="input-field cat-code-input" placeholder="········" inputmode="numeric" maxlength="8" autocomplete="off" style="margin-bottom: var(--sp-sm);" onkeydown="if (event.key === 'Enter') submitCollectionCode()">
+                <div id="coll-import-error" class="form-error"></div>
+                <button class="btn btn-primary" style="width:100%;" onclick="submitCollectionCode()">Importer</button>`;
+            setTimeout(() => document.getElementById('coll-import-code')?.focus(), 50);
+            return;
+        }
+
+        const openEntries = (isMesse ? PUBLIC_MESSES : PUBLIC_PLAYLISTS).filter(p => !p.code);
+        body.innerHTML = `
+            <div class="choice-list">
+                ${choiceBtnHtml('ico-key', isMesse ? 'Messe publique (code d’accès)' : 'Playlist publique (code d’accès)',
+                    'Entrez le code à 8 chiffres communiqué par un responsable.', "setCollectionImportStep('code')")}
+                ${choiceBtnHtml('ico-file', 'Depuis un fichier',
+                    'Fichier .json exporté depuis Cantus (bouton Partager → Télécharger .json).', 'importCollectionFromFile()')}
+            </div>
+            ${openEntries.length ? `
+            <div class="coll-section-title" style="margin-top: var(--sp-lg);"><span>Disponibles sans code</span></div>
+            <div class="choice-list">
+                ${openEntries.map(p => {
+                    const count = isMesse ? (p.items || []).length : (p.songIds || []).length;
+                    return choiceBtnHtml(isMesse ? 'ico-cal' : 'ico-list', escHtml(p.label),
+                        `${count} élément${count > 1 ? 's' : ''} · Appuyez pour importer`,
+                        `importOpenPublicCollection('${p.key}')`,
+                        !isMesse && p.cover ? publicCoverUrl(p.cover) : null);
+                }).join('')}
+            </div>` : ''}`;
+    }
+
+    function importCollectionFromFile() {
+        closeCollectionImport();
+        document.getElementById('file-import').click();
+    }
+
+    function afterCollectionImported(result, kind) {
+        const entry = result.entry;
+        showToast(result.updated
+            ? `« ${entry.label} » mise à jour.`
+            : `${kind === 'messe' ? 'Messe' : 'Playlist'} « ${entry.label} » importée !`);
+        showView(kind === 'messe' ? 'planner' : 'playlist');
+    }
+
+    function submitCollectionCode() {
+        const raw = document.getElementById('coll-import-code').value;
+        const result = collImportKind === 'messe' ? redeemMesseCode(raw) : redeemPlaylistCode(raw);
+        if (!result.ok) {
+            const el = document.getElementById('coll-import-error');
+            el.textContent = result.error;
+            el.style.display = 'block';
+            return;
+        }
+        closeCollectionImport();
+        afterCollectionImported(result, collImportKind);
+    }
+
+    function importOpenPublicCollection(key) {
+        const isMesse = collImportKind === 'messe';
+        const entry = (isMesse ? PUBLIC_MESSES : PUBLIC_PLAYLISTS).find(p => p.key === key && !p.code);
+        if (!entry) return;
+        const result = isMesse ? importPublicMesse(entry) : importPublicPlaylist(entry);
+        if (!result.ok) { showToast(result.error); return; }
+        closeCollectionImport();
+        afterCollectionImported(result, collImportKind);
     }
 
     function logoutAdmin() {
@@ -2467,6 +3747,10 @@
         // pouvoirs actifs par défaut, plutôt que d'hériter d'un interrupteur oublié désactivé.
         adminPowersEnabled = true;
         localStorage.removeItem('cantus_admin_powers_enabled');
+        if (isAdminDashboardOpen()) {
+            adashDropEditor();
+            document.getElementById('admin-dashboard').classList.remove('open');
+        }
         renderAdminSection();
         refreshActiveList();
         showToast('Accès administrateur oublié.');
@@ -2533,8 +3817,22 @@
     /* ─── IMPORT D'UNE PARTITION ─── */
     let importSelectedFile = null;
     let importMode = 'file'; // 'file' | 'url'
+    // 'local' : cache du navigateur de cet appareil uniquement ; 'github' : bibliothèque commune
+    // (admin uniquement, choisi explicitement dans la popup du Dashboard — voir chooseAdminImport).
+    let importTarget = 'local';
 
-    function openImportModal() {
+    function openImportModal(target) {
+        importTarget = target === 'github' && isAdminActive() ? 'github' : 'local';
+        const isGeneral = importTarget === 'github';
+        document.getElementById('import-modal-title').textContent = isGeneral ? 'Importation générale' : 'Importer une partition';
+        const note = document.getElementById('import-target-note');
+        note.classList.toggle('is-general', isGeneral);
+        note.innerHTML = isGeneral
+            ? '<svg class="icon icon-sm"><use href="#ico-globe"/></svg><span>Publiée sur GitHub : visible par tous les utilisateurs de Cantus.</span>'
+            : '<svg class="icon icon-sm"><use href="#ico-device"/></svg><span>Enregistrée uniquement sur cet appareil : personne d\'autre ne la verra.</span>';
+        document.getElementById('import-submit-btn').innerHTML = isGeneral
+            ? '<svg class="icon icon-sm"><use href="#ico-upload"/></svg> Publier pour tout le monde'
+            : '<svg class="icon icon-sm"><use href="#ico-device"/></svg> Enregistrer sur cet appareil';
         importSelectedFile = null;
         document.getElementById('import-file-input').value = '';
         document.getElementById('import-url-input').value = '';
@@ -2703,9 +4001,15 @@
         });
     }
 
-    // Envoie un fichier texte (paroles) sur GitHub, en réutilisant le même mécanisme "lire le sha
-    // existant puis PUT" que submitImportPartition/submitEditSong pour les PDF.
+    // Envoie un fichier texte (paroles, registres JSON) sur GitHub — voir commitBase64ToGithub.
     async function commitTextToGithub(path, text, message) {
+        return commitBase64ToGithub(path, btoa(unescape(encodeURIComponent(text))), message);
+    }
+
+    // Envoie un fichier quelconque (déjà encodé en base64 : texte, image de couverture…) sur
+    // GitHub, avec le même mécanisme "lire le sha existant puis PUT" que
+    // submitImportPartition/submitEditSong pour les PDF.
+    async function commitBase64ToGithub(path, base64Content, message) {
         const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
         let existingSha = null;
         try {
@@ -2717,7 +4021,7 @@
 
         const body = {
             message,
-            content: btoa(unescape(encodeURIComponent(text))),
+            content: base64Content,
             branch: GITHUB_BRANCH
         };
         if (existingSha) body.sha = existingSha;
@@ -2817,15 +4121,18 @@
         const lyricsText = document.getElementById('import-lyrics-input').value.trim();
         const extraCats = readExtraCatCheckboxes('import-extra-cats');
 
-        // Sans les pouvoirs administrateur actifs : import local uniquement (cache du
-        // navigateur de cet appareil), avec avertissement explicite avant d'enregistrer.
-        if (!isAdminActive()) {
-            const warned = confirm(
-                "Cette partition sera enregistrée uniquement sur cet appareil (dans le cache du navigateur) : " +
-                "elle n'est envoyée sur aucun serveur et personne d'autre ne la verra. " +
-                "Si vous désinstallez l'application ou effacez les données du site, elle sera perdue. Continuer ?"
-            );
-            if (!warned) return;
+        // Import local (cache du navigateur de cet appareil) : avertissement explicite avant
+        // d'enregistrer — sauf pour un admin, qui vient de choisir « Importation locale » dans
+        // une popup qui l'explique déjà.
+        if (importTarget !== 'github') {
+            if (!isAdminActive()) {
+                const warned = confirm(
+                    "Cette partition sera enregistrée uniquement sur cet appareil (dans le cache du navigateur) : " +
+                    "elle n'est envoyée sur aucun serveur et personne d'autre ne la verra. " +
+                    "Si vous désinstallez l'application ou effacez les données du site, elle sera perdue. Continuer ?"
+                );
+                if (!warned) return;
+            }
 
             const btn = document.getElementById('import-submit-btn');
             btn.disabled = true;
@@ -2840,6 +4147,7 @@
                 await refreshLocalSongsIntoState();
                 const activeTabBtn = document.querySelector('.tab-btn.active');
                 if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+                refreshAdminDashboardIfOpen();
             } catch (e) {
                 setImportModalError("Échec de l'enregistrement local.");
             } finally {
@@ -2848,6 +4156,8 @@
             }
             return;
         }
+
+        if (!isAdminActive()) { setImportModalError('Pouvoirs administrateur inactifs.'); return; }
 
         const btn = document.getElementById('import-submit-btn');
         btn.disabled = true;
@@ -2917,6 +4227,7 @@
             await loadLibrary();
             const activeTabBtn = document.querySelector('.tab-btn.active');
             if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
         } catch (e) {
             setImportModalError(e.message || "Échec de l'envoi.");
         } finally {
@@ -3000,6 +4311,7 @@
             await refreshLocalSongsIntoState();
             const activeTabBtn = document.querySelector('.tab-btn.active');
             if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
             return;
         }
 
@@ -3112,6 +4424,7 @@
             await loadLibrary();
             const activeTabBtn = document.querySelector('.tab-btn.active');
             if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
         } catch (e) {
             setEditModalError(e.message || "Échec de la mise à jour.");
         } finally {
@@ -3138,6 +4451,7 @@
             await refreshLocalSongsIntoState();
             const activeTabBtn = document.querySelector('.tab-btn.active');
             if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
             return;
         }
 
@@ -3175,6 +4489,7 @@
             await loadLibrary();
             const activeTabBtn = document.querySelector('.tab-btn.active');
             if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
         } catch (e) {
             setEditModalError(e.message || "Échec de la suppression.");
         } finally {
@@ -3224,6 +4539,7 @@
         applyTheme();
         checkForAppUpdate();
         await tryAutoUnlockAdmin();
+        updateAdminHeaderButton();
         // L'écran ne doit jamais s'éteindre tant que l'appli est ouverte (peu importe l'onglet,
         // Mode Live actif ou non) — voir aussi le ré-acquière au retour au premier plan plus bas.
         requestWakeLock();
@@ -3303,6 +4619,11 @@
         document.getElementById('live-participants-modal').addEventListener('click', function(e) {
             if (e.target === this) closeLiveParticipantsModal();
         });
+        // Popups génériques (import playlist/messe, nouvelle playlist, choix d'import, note) :
+        // un tap sur le fond assombri les referme, comme les autres modales.
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+        });
 
         // Zoom/déplacement de la partition : molette (ordinateur), pincement et glisser (tactile),
         // double-tap pour un aller-retour rapide vers 2.2x — voir onScoreViewportPointer*.
@@ -3342,16 +4663,16 @@
         // résoudre chaque songId — voir redeemPlaylistCode()/importPublicPlaylist().
         loadCategoriesRegistry().then(() => loadLibrary()).then(() => {
             if (codeParam) {
-                const result = redeemPlaylistCode(codeParam);
+                const result = redeemAnyCode(codeParam);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 if (result.ok) {
                     const standaloneHint = window.matchMedia('(display-mode: standalone)').matches
                         ? ''
                         : ' Astuce : ouvrez ce lien depuis l\'application installée la prochaine fois, pour une expérience plus fluide.';
-                    showToast(`Playlist « ${result.playlist.label} » importée !${standaloneHint}`);
-                    showView('playlist');
+                    showToast(`${result.kind === 'messe' ? 'Messe' : 'Playlist'} « ${result.entry.label} » importée !${standaloneHint}`);
+                    showView(result.kind === 'messe' ? 'planner' : 'playlist');
                 } else {
-                    alert(result.error || "Échec de l'import de la playlist.");
+                    alert(result.error || "Échec de l'import.");
                 }
             }
         }).then(refreshActiveList).catch(() => {});
@@ -3953,15 +5274,10 @@
         if (v === 'library') {
             c.innerHTML = `
                 <div class="search-wrap">
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <div class="search-field" style="flex:1;">
-                            <svg class="icon"><use href="#ico-search"/></svg>
-                            <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
-                                   oninput="filterLibrary('library')">
-                        </div>
-                        <button class="btn btn-icon" onclick="openPlaylistCodeModal()" title="Importer une playlist par code" aria-label="Importer une playlist par code">
-                            <svg class="icon"><use href="#ico-key"/></svg>
-                        </button>
+                    <div class="search-field">
+                        <svg class="icon"><use href="#ico-search"/></svg>
+                        <input type="text" class="search-input" id="lib-search" placeholder="Rechercher un chant…"
+                               oninput="filterLibrary('library')">
                     </div>
                 </div>
                 ${renderCategorySelect('lib-cat', 'library')}
@@ -3995,8 +5311,9 @@
                         <svg class="icon"><use href="#ico-plus"/></svg>
                         Nouvelle Messe
                     </button>
-                    <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" title="Importer un fichier" aria-label="Importer">
+                    <button class="btn btn-ghost" onclick="openCollectionImport('messe')" title="Importer une messe" aria-label="Importer une messe">
                         <svg class="icon"><use href="#ico-upload"/></svg>
+                        Importer
                     </button>
                 </div>
                 <div id="messes-list">${renderMesses()}</div>`;
@@ -4007,8 +5324,9 @@
                         <svg class="icon"><use href="#ico-plus"/></svg>
                         Nouvelle Playlist
                     </button>
-                    <button class="btn btn-ghost" onclick="document.getElementById('file-import').click()" title="Importer un fichier" aria-label="Importer">
+                    <button class="btn btn-ghost" onclick="openCollectionImport('playlist')" title="Importer une playlist" aria-label="Importer une playlist">
                         <svg class="icon"><use href="#ico-upload"/></svg>
+                        Importer
                     </button>
                 </div>
                 <div id="playlists-list">${renderPlaylists()}</div>`;
@@ -5053,6 +6371,21 @@
         }
     });
 
+    // Échap (clavier externe sur tablette, ordinateur) : referme la couche la plus haute —
+    // popup, puis sélecteur de chants, puis dashboard admin.
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape' || pedalCaptureTarget) return;
+        if (document.getElementById('performance-mode').style.display === 'flex') return;
+        const openPopups = [...document.querySelectorAll('.modal-overlay.open')];
+        if (openPopups.length) {
+            openPopups.sort((a, b) => (parseInt(getComputedStyle(b).zIndex) || 0) - (parseInt(getComputedStyle(a).zIndex) || 0))[0].classList.remove('open');
+        } else if (isSongPickerOpen()) {
+            closeSongPicker();
+        } else if (isAdminDashboardOpen()) {
+            closeAdminDashboard();
+        }
+    });
+
     window.addEventListener('resize', () => {
         if (state.pdf && document.getElementById('performance-mode').style.display === 'flex' && state.viewMode === 'score') {
             resetZoom(); // évite un zoom/décalage incohérent après un changement d'orientation ou de taille de fenêtre
@@ -5074,7 +6407,7 @@
 
     // Le nom de la messe est dérivé de sa date (ex: "Dimanche 12 mai 2026") plutôt que saisi
     // librement : c'est cette date qui sert ensuite à aller chercher les lectures du jour sur
-    // l'API AELF (voir loadAelfPanel).
+    // l'API AELF (voir openNoteSheet/loadAelfReadingsInto).
     function formatMesseDateLabel(dateStr) {
         const d = new Date(dateStr + 'T00:00:00');
         const label = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -5090,126 +6423,54 @@
         editMesse(state.messes.length - 1);
     }
 
+    // Éditeur d'une messe locale : déroulé en une seule colonne (voir l'éditeur de déroulé
+    // partagé, collEd), ajout des chants via le sélecteur plein écran, notes et lectures du jour
+    // via une popup — plus lisible sur téléphone qu'un écran coupé en deux colonnes étroites.
     function editMesse(idx) {
         state.currentMesseIdx = idx;
         const m = state.messes[idx];
+        if (!m) { showView('planner'); return; }
+
+        collEd = {
+            items: m.songs,
+            listId: 'coll-list',
+            allowDuplicates: true,
+            renameable: false,
+            date: () => m.date || null,
+            makeSongItem: src => ({ ...src }),
+            onChange: saveMesses,
+            pickerTitle: () => m.name
+        };
 
         document.getElementById('content').innerHTML = `
-            <div class="editor-head">
-                <button class="btn btn-icon" onclick="showView('planner')" aria-label="Retour">
-                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
-                </button>
-                <h3>${escHtml(m.name)}</h3>
-                <button class="btn btn-icon danger" onclick="deleteMesse(${idx})" title="Supprimer" aria-label="Supprimer">
-                    <svg class="icon"><use href="#ico-trash"/></svg>
-                </button>
-            </div>
-            <div class="editor-grid">
-                <div class="editor-col">
-                    <div class="col-header">Bibliothèque</div>
-                    <div class="search-wrap" style="padding:8px 8px 0">
-                        <div class="search-field">
-                            <svg class="icon"><use href="#ico-search"/></svg>
-                            <input type="text" class="search-input" style="margin:0"
-                                   placeholder="Ajouter un PDF…"
-                                   oninput="filterEditor(this.value)">
-                        </div>
-                    </div>
-                    <div id="editor-lib" class="col-body">${renderEditorList(state.songs)}</div>
+            <div class="coll-editor">
+                <div class="editor-head">
+                    <button class="btn btn-icon" onclick="showView('planner')" aria-label="Retour">
+                        <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                    </button>
+                    <h3>${escHtml(m.name)}</h3>
+                    <button class="btn btn-icon" onclick="startPerformance(state.messes[${idx}].songs)" title="Lancer la messe" aria-label="Lancer la messe">
+                        <svg class="icon"><use href="#ico-play"/></svg>
+                    </button>
+                    <button class="btn btn-icon danger" onclick="deleteMesse(${idx})" title="Supprimer" aria-label="Supprimer">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
+                    </button>
                 </div>
-                <div class="editor-col">
-                    <div class="col-header">Ordre de passage</div>
-                    <div class="aelf-panel">
-                        <div class="aelf-panel-title">Lectures du jour (AELF)</div>
-                        <div id="aelf-readings">${renderAelfPanel(m)}</div>
-                    </div>
-                    <div class="note-form">
-                        <input type="text" id="note-title" class="input-field" placeholder="TITRE (ex: PREMIÈRE LECTURE)">
-                        <textarea id="note-content" class="input-field" placeholder="Texte, accords…"></textarea>
-                        <button class="btn btn-primary" style="width:100%" onclick="addNote()">
-                            <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-                            Ajouter la note
-                        </button>
-                    </div>
-                    <div id="messe-sortable" class="col-body">
-                        ${m.songs.length === 0
-                            ? `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">Glissez les chants ici.</p></div>`
-                            : m.songs.map((s, i) => edItem(s, i)).join('')
-                        }
-                    </div>
+                <div class="coll-section-title"><span>Déroulé</span><span id="coll-list-count"></span></div>
+                <div id="coll-list" class="coll-list"></div>
+                <div class="coll-add-bar">
+                    <button class="btn btn-primary" onclick="openSongPicker()">
+                        <svg class="icon"><use href="#ico-plus"/></svg>
+                        Ajouter des chants
+                    </button>
+                    <button class="btn btn-ghost" onclick="openNoteSheet()">
+                        <svg class="icon"><use href="#ico-note"/></svg>
+                        Note / lecture
+                    </button>
                 </div>
             </div>`;
 
-        new Sortable(document.getElementById('messe-sortable'), {
-            animation: 150,
-            handle: '.drag-handle',
-            onEnd: e => {
-                const songs = state.messes[state.currentMesseIdx].songs;
-                songs.splice(e.newIndex, 0, songs.splice(e.oldIndex, 1)[0]);
-                saveMesses();
-                editMesse(state.currentMesseIdx);
-            }
-        });
-
-        loadAelfPanel(m);
-    }
-
-    function edItem(s, i) {
-        const isNote = s.type === 'note';
-        const ico   = isNote ? '#ico-note' : '#ico-file';
-        return `
-            <div class="ed-item ${isNote ? 'is-note' : ''}" data-id="${i}">
-                <svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>
-                <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="${ico}"/></svg>
-                <span class="ed-name">${escHtml(s.name)}</span>
-                <button class="btn btn-icon danger" onclick="removeSongFromMesse(${i})" aria-label="Supprimer">
-                    <svg class="icon icon-sm"><use href="#ico-x"/></svg>
-                </button>
-            </div>`;
-    }
-
-    function renderEditorList(list) {
-        if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
-        return list.map(s => `
-            <div class="ed-item ed-item--add" onclick="addSongToMesse('${s.id}')">
-                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-                <span class="ed-name">${escHtml(s.name)}</span>
-            </div>`).join('');
-    }
-
-    function filterEditor(query) {
-        const q = normalizeSearch(query);
-        document.getElementById('editor-lib').innerHTML = renderEditorList(
-            state.songs.filter(s => normalizeSearch(s.name).includes(q))
-        );
-    }
-
-    function addSongToMesse(id) {
-        const src = state.songs.find(x => x.id === id);
-        if (!src) return;
-        state.messes[state.currentMesseIdx].songs.push({ ...src });
-        saveMesses();
-        editMesse(state.currentMesseIdx);
-        showToast(src.name + " ajouté");
-    }
-
-    function addNote() {
-        const title   = document.getElementById('note-title').value.trim();
-        const content = document.getElementById('note-content').value.trim();
-        if (!title) { alert('Donnez un titre à votre note.'); return; }
-        state.messes[state.currentMesseIdx].songs.push({
-            type: 'note',
-            name: title.toUpperCase(),
-            content
-        });
-        saveMesses();
-        editMesse(state.currentMesseIdx);
-    }
-
-    function removeSongFromMesse(i) {
-        state.messes[state.currentMesseIdx].songs.splice(i, 1);
-        saveMesses();
-        editMesse(state.currentMesseIdx);
+        mountCollEditor();
     }
 
     function saveMesses() {
@@ -5270,41 +6531,36 @@
         return data;
     }
 
-    function renderAelfPanel(m) {
-        if (!m.date) return `<p class="settings-note">Messe sans date associée (créée avant cette fonctionnalité) : pas de lectures automatiques.</p>`;
-        return `<p class="settings-note">Chargement des lectures du jour…</p>`;
-    }
-
-    async function loadAelfPanel(m) {
-        if (!m.date) return;
+    // Liste les lectures du jour dans la popup « Note ou lecture » (voir openNoteSheet), chacune
+    // ajoutable en un geste au déroulé en cours d'édition (messe locale ou publique).
+    async function loadAelfReadingsInto(dateStr) {
         const el = document.getElementById('aelf-readings');
         if (!el) return;
         try {
-            const data = await fetchAelfReadings(m.date);
+            const data = await fetchAelfReadings(dateStr);
             const messeData = data.messes && data.messes[0];
             const lectures = messeData ? messeData.lectures : [];
             if (!lectures.length) {
-                el.innerHTML = `<p class="settings-note">Aucune lecture trouvée pour cette date sur AELF.</p>`;
+                el.innerHTML = `<p class="settings-note" style="margin:0;">Aucune lecture trouvée pour cette date sur AELF.</p>`;
                 return;
             }
             el.innerHTML = lectures.map((lec, i) => {
                 const label = AELF_TYPE_LABELS[lec.type] || lec.titre || lec.type;
                 return `
-                <button class="btn btn-ghost aelf-add-btn" onclick="addAelfReading(${i})">
+                <button class="btn btn-ghost aelf-add-btn" onclick="addAelfReading('${dateStr}', ${i})">
                     <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-                    ${escHtml(label)}
+                    ${escHtml(label)}${lec.ref ? ` <span style="color:var(--text-3); font-weight:500;">· ${escHtml(lec.ref)}</span>` : ''}
                 </button>`;
             }).join('');
         } catch (e) {
-            el.innerHTML = `<p class="settings-note">Lectures AELF indisponibles pour l'instant (hors-ligne ou service momentanément inaccessible).</p>`;
+            el.innerHTML = `<p class="settings-note" style="margin:0;">Lectures AELF indisponibles pour l'instant (hors-ligne ou service momentanément inaccessible).</p>`;
         }
     }
 
-    async function addAelfReading(idx) {
-        const m = state.messes[state.currentMesseIdx];
-        if (!m || !m.date) return;
+    async function addAelfReading(dateStr, idx) {
+        if (!collEd) return;
         try {
-            const data = await fetchAelfReadings(m.date);
+            const data = await fetchAelfReadings(dateStr);
             const messeData = data.messes && data.messes[0];
             const lec = messeData && messeData.lectures[idx];
             if (!lec) return;
@@ -5318,9 +6574,10 @@
 
             // Titre (doré) / référence biblique / texte : affichés séparément en mode lecture
             // (voir loadItem()), plutôt que tout mélangé dans un seul bloc de texte.
-            m.songs.push({ type: 'note', name: label.toUpperCase(), ref: lec.ref || '', content: content.trim() });
-            saveMesses();
-            editMesse(state.currentMesseIdx);
+            collEd.items.push({ type: 'note', name: label.toUpperCase(), ref: lec.ref || '', content: content.trim() });
+            collEd.onChange();
+            refreshCollList();
+            closeNoteSheet();
             showToast(`"${label}" ajoutée.`);
         } catch (e) {
             showToast("Échec de l'ajout de la lecture.");
@@ -5589,6 +6846,12 @@
         if (liveScreen === 'connected') {
             const isMainHost = liveRole === 'host';
             const canManage = liveAmILeader();
+            // L'écran est redessiné à chaque changement de la file (ajout, retrait, état reçu de
+            // l'hôte…) : on garde la position de défilement de la page et de la colonne d'ajout,
+            // sinon chaque ajout renverrait tout en haut de la bibliothèque.
+            const prevLib = document.getElementById('live-lib-list');
+            const prevLibScroll = prevLib ? prevLib.scrollTop : 0;
+            const prevContentScroll = prevLib ? c.scrollTop : 0;
 
             c.innerHTML = `
                 <div class="live-topbar">
@@ -5630,8 +6893,9 @@
                 <div class="editor-grid live-editor-grid" style="${canManage ? '' : 'grid-template-columns: 1fr;'}">
                     ${canManage ? `
                     <div class="editor-col">
-                        <div class="col-header">Bibliothèque</div>
-                        <div class="search-wrap" style="padding:8px 8px 0">
+                        <div class="col-header">Ajouter à la file</div>
+                        ${renderLiveSourceChips()}
+                        <div class="search-wrap" style="padding:8px 8px 0; margin:0; position:static;">
                             <div class="search-field">
                                 <svg class="icon"><use href="#ico-search"/></svg>
                                 <input type="text" class="search-input" style="margin:0" placeholder="Chercher un chant…" value="${escHtml(liveLibSearchQuery)}" oninput="filterLiveLibrary(this.value)">
@@ -5645,6 +6909,11 @@
                     </div>
                 </div>`;
             mountLiveQueueSortable();
+            if (prevLib) {
+                const libEl = document.getElementById('live-lib-list');
+                if (libEl) libEl.scrollTop = prevLibScroll;
+                c.scrollTop = prevContentScroll;
+            }
             return;
         }
     }
@@ -5961,6 +7230,9 @@
     function liveActionAddSong(songId) {
         if (liveRole === 'host') { liveAddSong(songId); broadcastLiveState(); renderLiveView(); }
         else sendToHost({ type: 'requestAdd', songId });
+        // Sur téléphone, la file est sous la colonne d'ajout (hors écran) : confirmation visible.
+        const song = state.songs.find(s => s.id === songId);
+        if (song) showToast(`« ${song.name} » ajouté à la file`);
     }
 
     function liveActionRemoveSong(qid) {
@@ -5999,18 +7271,72 @@
         startPerformance([liveItemToSong(item)]);
     }
 
+    /* ─── RACCOURCIS PLAYLISTS ───
+       La colonne d'ajout peut piocher dans toute la bibliothèque ou dans une seule playlist de
+       cet appareil (pastilles en haut de colonne) : on ne voit alors que ses chants, divisés par
+       catégorie si la playlist est réglée ainsi. */
+    let liveLibSource = 'all'; // 'all' ou index (en texte) d'une playlist de state.playlists
+
+    function liveSourcePlaylist() {
+        if (liveLibSource === 'all') return null;
+        return state.playlists[Number(liveLibSource)] || null;
+    }
+
+    function renderLiveSourceChips() {
+        if (!state.playlists.length) return '';
+        if (!liveSourcePlaylist()) liveLibSource = 'all';
+        const chip = (value, label, icon) => `
+            <button class="chip ${liveLibSource === value ? 'active' : ''}" onclick="setLiveLibSource('${value}')" title="${escHtml(label)}">
+                <svg class="icon icon-sm"><use href="#${icon}"/></svg>${escHtml(label)}
+            </button>`;
+        return `<div class="live-src-chips" id="live-src-chips">
+            ${chip('all', 'Toute la bibliothèque', 'ico-music')}
+            ${state.playlists.map((p, i) => chip(String(i), p.name, 'ico-list')).join('')}
+        </div>`;
+    }
+
+    function setLiveLibSource(value) {
+        liveLibSource = value;
+        const chips = document.getElementById('live-src-chips');
+        if (chips) chips.outerHTML = renderLiveSourceChips();
+        const el = document.getElementById('live-lib-list');
+        if (el) {
+            el.innerHTML = renderLiveLibraryList(liveFilteredLibrary());
+            el.scrollTop = 0;
+        }
+    }
+
     function liveFilteredLibrary() {
+        const pl = liveSourcePlaylist();
+        // Chants d'une playlist : version actuelle de la bibliothèque (pour l'id et la partition),
+        // mais sous le nom affiché dans la playlist (nom propre à une playlist publique, par ex.).
+        const base = pl
+            ? pl.songs.filter(s => s.type !== 'note').map(s => {
+                const src = state.songs.find(x => x.id === s.id);
+                return src ? { ...src, name: s.name || src.name } : s;
+            })
+            : state.songs;
         const q = normalizeSearch(liveLibSearchQuery);
-        return q ? state.songs.filter(s => normalizeSearch(s.name).includes(q)) : state.songs;
+        return q ? base.filter(s => normalizeSearch(s.name).includes(q)) : base;
     }
 
     function renderLiveLibraryList(list) {
-        if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
-        return list.map(s => `
-            <div class="ed-item ed-item--add" onclick="liveActionAddSong('${s.id}')">
-                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
+        const pl = liveSourcePlaylist();
+        if (list.length === 0) {
+            return `<div class="empty-state"><p>${pl && !liveLibSearchQuery.trim() ? 'Cette playlist est vide.' : 'Aucun chant disponible.'}</p></div>`;
+        }
+        const row = s => `
+            <div class="ed-item ed-item--add live-lib-row" onclick="liveActionAddSong('${s.id}')">
                 <span class="ed-name">${escHtml(s.name)}</span>
-            </div>`).join('');
+                <span class="live-add-ico"><svg class="icon icon-sm"><use href="#ico-plus"/></svg></span>
+            </div>`;
+        // Sans recherche : toute la bibliothèque est rangée par catégorie, une playlist seulement
+        // si elle est réglée « divisée par catégorie » (sinon dans son ordre à elle).
+        const grouped = !liveLibSearchQuery.trim() && (!pl || pl.splitByCategory);
+        if (!grouped) return list.map(row).join('');
+        return groupSongsByCategory(list).map(g => `
+            <div class="group-title">${escHtml(g.label)}<span class="cat-group-count">${g.items.length}</span></div>
+            ${g.items.map(x => row(x.song)).join('')}`).join('');
     }
 
     function filterLiveLibrary(query) {
@@ -6345,19 +7671,21 @@
     /* ══════════════════════════════════════════
        PLAYLISTS
     ══════════════════════════════════════════ */
+    function playlistCoverHtml(p, iconSize) {
+        return p.cover
+            ? `<img src="${escHtml(p.cover)}" alt="" loading="lazy">`
+            : `<svg class="icon" style="width:${iconSize}px;height:${iconSize}px;color:var(--text-3)"><use href="#ico-list"/></svg>`;
+    }
+
     function renderPlaylists() {
-        if (state.playlists.length === 0) return emptyState('ico-list', 'Aucune playlist. Créez-en une pour commencer.');
-        return state.playlists.map((p, i) => {
-            const coverHtml = p.cover
-                ? `<img src="${p.cover}" alt="cover">`
-                : `<svg class="icon" style="width:24px;height:24px;color:var(--text-3)"><use href="#ico-list"/></svg>`;
-            return `
+        if (state.playlists.length === 0) return emptyState('ico-list', 'Aucune playlist. Créez-en une, ou importez une playlist publique avec le bouton « Importer ».');
+        return state.playlists.map((p, i) => `
             <div class="playlist-card" onclick="viewPlaylist(${i})">
-                <div class="playlist-cover">${coverHtml}</div>
+                <div class="playlist-cover">${playlistCoverHtml(p, 24)}</div>
                 <div class="playlist-info">
                     <div class="playlist-name">${escHtml(p.name)}</div>
                     ${p.description ? `<div class="playlist-desc">${escHtml(p.description)}</div>` : ''}
-                    <div class="playlist-meta">${p.songs.length} chant${p.songs.length !== 1 ? 's' : ''}</div>
+                    <div class="playlist-meta">${p.songs.length} chant${p.songs.length !== 1 ? 's' : ''}${p.splitByCategory ? ' · par catégorie' : ''}</div>
                 </div>
                 <div class="playlist-actions" onclick="event.stopPropagation()">
                     ${settings.offlineMode ? `
@@ -6375,17 +7703,24 @@
                         Ouvrir
                     </button>
                 </div>
-            </div>`;
-        }).join('');
+            </div>`).join('');
+    }
+
+    // Chants d'une playlist, divisés par catégorie (titres de section) si la playlist le demande
+    // (option « Diviser la playlist par catégorie »), sinon dans l'ordre choisi.
+    function renderPlaylistSongs(p) {
+        if (!p.splitByCategory || p.songs.length === 0) {
+            return renderList(p.songs, 'ico-music', 'Cette playlist est vide.');
+        }
+        return groupSongsByCategory(p.songs).map(g => `
+            <div class="group-title">${escHtml(g.label)}<span class="cat-group-count">${g.items.length}</span></div>
+            ${renderList(g.items.map(x => x.song), 'ico-music', '')}`).join('');
     }
 
     function viewPlaylist(idx) {
         state.currentPlaylistIdx = idx;
         const p = state.playlists[idx];
-
-        const coverHtml = p.cover
-            ? `<img src="${p.cover}" alt="cover" style="width:100%;height:100%;object-fit:cover;">`
-            : `<svg class="icon" style="width:32px;height:32px;color:var(--text-3)"><use href="#ico-list"/></svg>`;
+        if (!p) { showView('playlist'); return; }
 
         document.getElementById('content').innerHTML = `
             <div class="editor-head">
@@ -6393,30 +7728,50 @@
                     <svg class="icon"><use href="#ico-arrow-left"/></svg>
                 </button>
                 <h3>${escHtml(p.name)}</h3>
+                <button class="btn btn-icon" onclick="editPlaylist(${idx})" title="Modifier" aria-label="Modifier la playlist">
+                    <svg class="icon"><use href="#ico-edit"/></svg>
+                </button>
             </div>
 
             <div class="playlist-card" style="margin-bottom: var(--sp-lg); cursor: default; border-color: var(--border); padding: var(--sp-md);">
-                <div class="playlist-cover" style="width: 80px; height: 80px;">${coverHtml}</div>
+                <div class="playlist-cover" style="width: 80px; height: 80px;">${playlistCoverHtml(p, 32)}</div>
                 <div class="playlist-info">
                     <div class="playlist-name" style="font-size: 18px;">${escHtml(p.name)}</div>
                     ${p.description ? `<div class="playlist-desc" style="font-size: 13px; margin-top: 4px;">${escHtml(p.description)}</div>` : ''}
-                    <div class="playlist-meta" style="margin-top: 8px;">${p.songs.length} chant${p.songs.length > 1 ? 's' : ''}</div>
+                    <div class="playlist-meta" style="margin-top: 8px;">${p.songs.length} chant${p.songs.length > 1 ? 's' : ''}${p.splitByCategory ? ' · divisée par catégorie' : ''}</div>
                 </div>
             </div>
 
-            <div id="pl-songs-list">
-                ${renderList(p.songs, 'ico-music', 'Cette playlist est vide.')}
-            </div>
+            <div id="pl-songs-list">${renderPlaylistSongs(p)}</div>
         `;
     }
 
     function newPlaylist() {
-        const n = prompt('Nom de la playlist (ex: Louange Été) :');
-        if (n) {
-            state.playlists.push({ name: n, description: '', cover: null, songs: [], isPlaylist: true });
-            savePlaylists();
-            showView('playlist');
+        document.getElementById('new-playlist-name').value = '';
+        document.getElementById('new-playlist-split').checked = false;
+        document.getElementById('new-playlist-error').style.display = 'none';
+        document.getElementById('new-playlist-modal').classList.add('open');
+        setTimeout(() => document.getElementById('new-playlist-name').focus(), 50);
+    }
+
+    function closeNewPlaylistModal() {
+        document.getElementById('new-playlist-modal').classList.remove('open');
+    }
+
+    function confirmNewPlaylist() {
+        const name = document.getElementById('new-playlist-name').value.trim();
+        if (!name) {
+            const err = document.getElementById('new-playlist-error');
+            err.textContent = 'Donnez un nom à la playlist.';
+            err.style.display = 'block';
+            return;
         }
+        const splitByCategory = document.getElementById('new-playlist-split').checked;
+        state.playlists.push({ name, description: '', cover: null, splitByCategory, songs: [], isPlaylist: true });
+        savePlaylists();
+        closeNewPlaylistModal();
+        showView('playlist');
+        editPlaylist(state.playlists.length - 1);
     }
 
     function savePlaylists() {
@@ -6436,68 +7791,73 @@
         showView('playlist');
     }
 
+    // Éditeur d'une playlist locale : propriétés (couverture, nom, description, division par
+    // catégorie) puis liste des chants, gérée par l'éditeur de déroulé partagé (collEd).
     function editPlaylist(idx) {
         state.currentPlaylistIdx = idx;
         const p = state.playlists[idx];
+        if (!p) { showView('playlist'); return; }
+
+        collEd = {
+            items: p.songs,
+            listId: 'coll-list',
+            allowDuplicates: false,
+            renameable: false,
+            date: () => null,
+            makeSongItem: src => ({ ...src }),
+            onChange: savePlaylists,
+            pickerTitle: () => p.name
+        };
 
         document.getElementById('content').innerHTML = `
-            <div class="editor-head">
-                <button class="btn btn-icon" onclick="showView('playlist')" aria-label="Retour">
-                    <svg class="icon"><use href="#ico-arrow-left"/></svg>
-                </button>
-                <h3>${escHtml(p.name)}</h3>
-                <button class="btn btn-icon danger" onclick="deletePlaylist(${idx})" title="Supprimer" aria-label="Supprimer">
-                    <svg class="icon"><use href="#ico-trash"/></svg>
-                </button>
-            </div>
-
-            <div class="playlist-props-header">
-                <label class="cover-upload-btn" title="Modifier la couverture">
-                    ${p.cover ? `<img src="${p.cover}" alt="Cover">` : ''}
-                    <svg class="icon"><use href="#ico-image"/></svg>
-                    <span style="font-size:10px;">Couverture</span>
-                    <input type="file" accept="image/*" style="display:none" onchange="handlePlaylistCover(event)">
-                </label>
-                <div class="playlist-props-inputs">
-                    <input type="text" id="pl-name" class="input-field" value="${escHtml(p.name)}" placeholder="Nom de la playlist" onchange="updatePlaylistProps()">
-                    <textarea id="pl-desc" class="input-field" placeholder="Description courte" onchange="updatePlaylistProps()" style="flex:1; resize:none;">${escHtml(p.description || '')}</textarea>
+            <div class="coll-editor">
+                <div class="editor-head">
+                    <button class="btn btn-icon" onclick="viewPlaylist(${idx})" aria-label="Retour">
+                        <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                    </button>
+                    <h3>${escHtml(p.name)}</h3>
+                    <button class="btn btn-icon danger" onclick="deletePlaylist(${idx})" title="Supprimer" aria-label="Supprimer">
+                        <svg class="icon"><use href="#ico-trash"/></svg>
+                    </button>
                 </div>
-            </div>
 
-            <div class="editor-grid" style="height: calc(100dvh - 360px); min-height: 300px;">
-                <div class="editor-col">
-                    <div class="col-header">Bibliothèque</div>
-                    <div class="search-wrap" style="padding:8px 8px 0; margin-bottom:0;">
-                        <div class="search-field">
-                            <svg class="icon"><use href="#ico-search"/></svg>
-                            <input type="text" class="search-input" style="margin:0"
-                                   placeholder="Ajouter un chant…"
-                                   oninput="filterPlaylistEditor(this.value)">
-                        </div>
+                <div class="playlist-props-header">
+                    <label class="cover-upload-btn" title="Modifier la couverture">
+                        ${p.cover ? `<img src="${escHtml(p.cover)}" alt="Couverture">` : ''}
+                        <svg class="icon"><use href="#ico-image"/></svg>
+                        <span style="font-size:10px;">Couverture</span>
+                        <input type="file" accept="image/*" style="display:none" onchange="handlePlaylistCover(event)">
+                    </label>
+                    <div class="playlist-props-inputs">
+                        <input type="text" id="pl-name" class="input-field" value="${escHtml(p.name)}" placeholder="Nom de la playlist" onchange="updatePlaylistProps()">
+                        <textarea id="pl-desc" class="input-field" placeholder="Description courte" onchange="updatePlaylistProps()" style="flex:1; resize:none;">${escHtml(p.description || '')}</textarea>
                     </div>
-                    <div id="editor-lib-pl" class="col-body">${renderEditorListForPlaylist(state.songs)}</div>
                 </div>
-                <div class="editor-col">
-                    <div class="col-header">Chants (${p.songs.length})</div>
-                    <div id="playlist-sortable" class="col-body">
-                        ${p.songs.length === 0
-                            ? `<div class="empty-state" style="padding:20px"><p style="font-size:12px;color:var(--text-3)">Ajoutez des chants depuis la bibliothèque.</p></div>`
-                            : p.songs.map((s, i) => edItemPlaylist(s, i)).join('')
-                        }
-                    </div>
+
+                <div class="settings-section coll-options">
+                    ${toggleRowHtml('Diviser la playlist par catégorie',
+                        'Regroupe les chants par catégorie dans la playlist et dans les raccourcis du Mode Live.',
+                        !!p.splitByCategory, `setPlaylistSplit(${idx}, this.checked)`)}
+                </div>
+
+                <div class="coll-section-title"><span>Chants</span><span id="coll-list-count"></span></div>
+                <div id="coll-list" class="coll-list"></div>
+                <div class="coll-add-bar">
+                    <button class="btn btn-primary" onclick="openSongPicker()">
+                        <svg class="icon"><use href="#ico-plus"/></svg>
+                        Ajouter des chants
+                    </button>
                 </div>
             </div>`;
 
-        new Sortable(document.getElementById('playlist-sortable'), {
-            animation: 150,
-            handle: '.drag-handle',
-            onEnd: e => {
-                const songs = state.playlists[state.currentPlaylistIdx].songs;
-                songs.splice(e.newIndex, 0, songs.splice(e.oldIndex, 1)[0]);
-                savePlaylists();
-                editPlaylist(state.currentPlaylistIdx);
-            }
-        });
+        mountCollEditor();
+    }
+
+    function setPlaylistSplit(idx, enabled) {
+        const p = state.playlists[idx];
+        if (!p) return;
+        p.splitByCategory = enabled;
+        savePlaylists();
     }
 
     function updatePlaylistProps() {
@@ -6540,51 +7900,6 @@
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
-    }
-
-    function renderEditorListForPlaylist(list) {
-        if (list.length === 0) return `<div class="empty-state"><p>Aucun chant disponible.</p></div>`;
-        return list.map(s => `
-            <div class="ed-item ed-item--add" onclick="addSongToPlaylist('${s.id}')">
-                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>
-                <span class="ed-name">${escHtml(s.name)}</span>
-            </div>`).join('');
-    }
-
-    function filterPlaylistEditor(query) {
-        const q = normalizeSearch(query);
-        document.getElementById('editor-lib-pl').innerHTML = renderEditorListForPlaylist(
-            state.songs.filter(s => normalizeSearch(s.name).includes(q))
-        );
-    }
-
-    function addSongToPlaylist(id) {
-        const src = state.songs.find(x => x.id === id);
-        if (!src) return;
-        state.playlists[state.currentPlaylistIdx].songs.push({ ...src });
-        savePlaylists();
-        editPlaylist(state.currentPlaylistIdx);
-        showToast(src.name + " ajouté");
-    }
-
-    function removeSongFromPlaylist(i) {
-        state.playlists[state.currentPlaylistIdx].songs.splice(i, 1);
-        savePlaylists();
-        editPlaylist(state.currentPlaylistIdx);
-    }
-
-    function edItemPlaylist(s, i) {
-        const isNote = s.type === 'note';
-        const ico   = isNote ? '#ico-note' : '#ico-file';
-        return `
-            <div class="ed-item ${isNote ? 'is-note' : ''}" data-id="${i}">
-                <svg class="icon icon-sm drag-handle"><use href="#ico-grip"/></svg>
-                <svg class="icon icon-sm" style="color:var(--text-3);flex-shrink:0"><use href="${ico}"/></svg>
-                <span class="ed-name">${escHtml(s.name)}</span>
-                <button class="btn btn-icon danger" onclick="removeSongFromPlaylist(${i})" aria-label="Supprimer">
-                    <svg class="icon icon-sm"><use href="#ico-x"/></svg>
-                </button>
-            </div>`;
     }
 
     function openExportPlaylistModal(idx) {
