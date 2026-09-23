@@ -32,8 +32,8 @@
     "key": "paje",
     "label": "PAJE",
     "code": "68539656",
-    "cover": "covers/playlists/paje-1a0cf481eb0.jpg",
-    "coverUrl": null,
+    "cover": "covers/playlists/paje-muedeazw.jpg",
+    "coverUrl": "https://raw.githubusercontent.com/Cyprdu/cantus/a3e63620985b2bd1bdce27b9b7884dd23853d6e1/covers/playlists/paje-muedeazw.jpg",
     "splitByCategory": true,
     "songIds": [
       "bed46bffc4394c171a16e5dddee2bee4eab3a776",
