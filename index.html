@@ -908,6 +908,30 @@
         }
         @media (max-width: 480px) { header { padding: 0 var(--sp-md); } main { padding: var(--sp-sm); } }
         @supports (padding: env(safe-area-inset-top)) { header { padding-top: env(safe-area-inset-top); } main   { padding-bottom: env(safe-area-inset-bottom); } }
+
+        /* ─── ANNOTATIONS AU STYLET (toujours sombre, comme le mode performance) ─── */
+        .btn-icon.has-annot { color: var(--accent); }
+        #annot-editor { position: fixed; inset: 0; z-index: 10000; background: #141414; color: #eee; display: none; flex-direction: column; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        #annot-editor.open { display: flex; }
+        .annot-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); background: #1f1f1f; border-bottom: 1px solid #333; overflow-x: auto; flex-shrink: 0; }
+        .annot-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22vw; }
+        .annot-group { display: flex; align-items: center; gap: 4px; padding: 0 6px; border-left: 1px solid #333; flex-shrink: 0; }
+        .annot-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 48px; min-height: 44px; padding: 4px 8px; border: none; border-radius: 10px; background: transparent; color: #ccc; font: inherit; font-size: 10px; cursor: pointer; }
+        .annot-btn .icon { width: 20px; height: 20px; }
+        .annot-btn:hover { background: #2c2c2c; }
+        .annot-btn.active { background: #3a3a3a; color: var(--accent); }
+        .annot-btn:disabled { opacity: .35; cursor: default; }
+        .annot-done { flex-direction: row; gap: 6px; font-size: 14px; font-weight: 600; background: var(--accent); color: #111; padding: 0 14px; flex-shrink: 0; }
+        .annot-done:hover { background: var(--accent); filter: brightness(1.08); }
+        .annot-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #555; cursor: pointer; padding: 0; flex-shrink: 0; }
+        .annot-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+        .annot-size { width: 34px; height: 34px; border-radius: 8px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .annot-size span { display: block; border-radius: 50%; background: #ddd; }
+        .annot-size.active { background: #3a3a3a; }
+        .annot-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        #annot-canvas { display: block; background: #fff; touch-action: none; box-shadow: 0 4px 24px rgba(0,0,0,.5); cursor: crosshair; }
+        .annot-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 14px; pointer-events: none; }
+        .annot-pager { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); background: #1f1f1f; border-top: 1px solid #333; flex-shrink: 0; font-size: 14px; }
     </style>
 </head>
 <body onclick="handleCenterTap(event)">
@@ -930,6 +954,12 @@
         <symbol id="ico-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
         <symbol id="ico-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
         <symbol id="ico-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></symbol>
+        <symbol id="ico-stylus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></symbol>
+        <symbol id="ico-highlighter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l-6 6v3h9l3-3"></path><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></symbol>
+        <symbol id="ico-underline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"></path><line x1="4" y1="20" x2="20" y2="20"></line></symbol>
+        <symbol id="ico-mask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"></rect><line x1="7" y1="12" x2="17" y2="12" stroke-dasharray="2 2"></line></symbol>
+        <symbol id="ico-eraser" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16a2 2 0 0 1 0-2.8L13.2 3a2 2 0 0 1 2.8 0L21 8a2 2 0 0 1 0 2.8L11 20"></path><line x1="6" y1="11" x2="13" y2="18"></line></symbol>
+        <symbol id="ico-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></symbol>
         <symbol id="ico-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
         <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="ico-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></symbol>
@@ -1508,6 +1538,35 @@
     <button class="dl-pill-toggle" id="dl-pill-toggle" onclick="toggleDownloadPause(event)" aria-label="Mettre en pause">
         <svg class="icon"><use href="#ico-pause" id="dl-pill-toggle-icon"></use></svg>
     </button>
+</div>
+
+<div id="annot-editor" aria-hidden="true">
+    <div class="annot-bar">
+        <button class="annot-btn annot-done" onclick="closeAnnotEditor()"><svg class="icon"><use href="#ico-check"></use></svg>Terminé</button>
+        <div class="annot-title" id="annot-title"></div>
+        <div class="annot-group" id="annot-tools">
+            <button class="annot-btn" data-tool="pen" onclick="setAnnotTool('pen')"><svg class="icon"><use href="#ico-stylus"></use></svg>Écrire</button>
+            <button class="annot-btn" data-tool="highlight" onclick="setAnnotTool('highlight')"><svg class="icon"><use href="#ico-highlighter"></use></svg>Surligner</button>
+            <button class="annot-btn" data-tool="underline" onclick="setAnnotTool('underline')"><svg class="icon"><use href="#ico-underline"></use></svg>Souligner</button>
+            <button class="annot-btn" data-tool="mask" onclick="setAnnotTool('mask')"><svg class="icon"><use href="#ico-mask"></use></svg>Cacher</button>
+            <button class="annot-btn" data-tool="eraser" onclick="setAnnotTool('eraser')"><svg class="icon"><use href="#ico-eraser"></use></svg>Gomme</button>
+        </div>
+        <div class="annot-group" id="annot-colors"></div>
+        <div class="annot-group" id="annot-sizes"></div>
+        <div class="annot-group">
+            <button class="annot-btn" id="annot-undo-btn" onclick="undoAnnot()"><svg class="icon"><use href="#ico-undo"></use></svg>Annuler</button>
+            <button class="annot-btn" onclick="clearAnnotPage()"><svg class="icon"><use href="#ico-trash"></use></svg>Effacer</button>
+        </div>
+    </div>
+    <div class="annot-stage" id="annot-stage">
+        <canvas id="annot-canvas"></canvas>
+        <div class="annot-loading" id="annot-loading">Chargement…</div>
+    </div>
+    <div class="annot-pager" id="annot-pager">
+        <button class="annot-btn" id="annot-prev" onclick="annotGoPage(-1)"><svg class="icon"><use href="#ico-arrow-left"></use></svg></button>
+        <span id="annot-page-label">1 / 1</span>
+        <button class="annot-btn" id="annot-next" onclick="annotGoPage(1)"><svg class="icon" style="transform: scaleX(-1);"><use href="#ico-arrow-left"></use></svg></button>
+    </div>
 </div>
 
 <div id="performance-mode" style="display: none;">
@@ -5573,6 +5632,10 @@
                     <button class="btn btn-icon card-edit-btn" onclick="openEditSongModal('${s.id}', event)" title="Modifier" aria-label="Modifier">
                         <svg class="icon"><use href="#ico-edit"/></svg>
                     </button>` : ''}
+                    ${s.type === 'song' ? `
+                    <button class="btn btn-icon ${songHasAnnotations(s.id) ? 'has-annot' : ''}" data-annot-id="${s.id}" onclick="openAnnotEditor('${s.id}', event)" title="Annoter au stylet" aria-label="Annoter">
+                        <svg class="icon"><use href="#ico-stylus"/></svg>
+                    </button>` : ''}
                     <button class="btn btn-icon" style="${favColor}" onclick="toggleFavorite('${s.id}', event)" title="Favori" aria-label="Favori">
                         <svg class="icon"><use href="${favIco}"/></svg>
                     </button>
@@ -6349,6 +6412,11 @@
         canvas.style.height = (fitScale * vp0.height) + 'px';
 
         await page.render({ canvasContext: ctx, viewport }).promise;
+
+        // Annotations au stylet de ce chant (écrit, surligné, caché…), dessinées par-dessus la page
+        // dans le même canvas : elles suivent ainsi le zoom et le mode page double sans rien d'autre.
+        const item = state.activeSet[state.currentIdx];
+        if (item) drawAnnotStrokes(ctx, annotationsForPage(item.id, pageNum), canvas.width, canvas.height);
     }
 
     async function renderPage() {
@@ -8200,6 +8268,430 @@
             level:   'L'
         });
     }
+
+    /* ══════════════════════════════════════════
+       ANNOTATIONS AU STYLET
+    ══════════════════════════════════════════ */
+    // Stockées sur l'appareil uniquement : { idChant: { numPage: [traits] } }. Les coordonnées
+    // sont relatives à la page (0..1), pour s'afficher au bon endroit quelle que soit la taille
+    // d'écran. L'id d'un chant étant le sha du PDF, les annotations suivent un renommage ou un
+    // déplacement de catégorie, mais pas un remplacement du fichier (dont la mise en page change).
+    // Types de traits : 'pen' (écriture libre), 'hl' (surligneur), 'line' (soulignement droit),
+    // 'rect' (rectangle blanc qui cache une zone).
+    const ANNOT_STORAGE_KEY = 'cantus_annotations';
+    const ANNOT_PREFS_KEY   = 'cantus_annot_prefs';
+    const ANNOT_COLORS = {
+        pen:       ['#111111', '#d32f2f', '#1565c0', '#2e7d32', '#ffffff'],
+        highlight: ['#ffeb3b', '#76ff03', '#ff80ab', '#40c4ff'],
+        underline: ['#d32f2f', '#111111', '#1565c0', '#2e7d32']
+    };
+    // Épaisseurs relatives à la largeur de la page
+    const ANNOT_SIZES = {
+        pen:       [0.002, 0.004, 0.008, 0.02],
+        highlight: [0.015, 0.025, 0.04],
+        underline: [0.002, 0.004, 0.007]
+    };
+
+    let annotStore = (() => {
+        try { return JSON.parse(localStorage.getItem(ANNOT_STORAGE_KEY)) || {}; }
+        catch (e) { return {}; }
+    })();
+
+    function songHasAnnotations(id) {
+        const pages = annotStore[id];
+        return !!pages && Object.values(pages).some(p => p && p.length);
+    }
+
+    function annotationsForPage(id, pageNum) {
+        return (annotStore[id] && annotStore[id][pageNum]) || [];
+    }
+
+    function drawAnnotStrokes(ctx, strokes, W, H) {
+        for (const s of strokes) {
+            ctx.save();
+            if (s.t === 'rect') {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(s.x * W, s.y * H, s.w * W, s.h * H);
+            } else if (s.pts && s.pts.length) {
+                ctx.lineCap = s.t === 'hl' ? 'square' : 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = s.c;
+                ctx.lineWidth = Math.max(1, s.s * W);
+                if (s.t === 'hl') {
+                    // Surligneur : semi-transparent et en mode "multiply" pour laisser lisibles
+                    // les notes et paroles en dessous.
+                    ctx.globalAlpha = 0.45;
+                    ctx.globalCompositeOperation = 'multiply';
+                }
+                const pts = s.pts;
+                ctx.beginPath();
+                ctx.moveTo(pts[0][0] * W, pts[0][1] * H);
+                if (pts.length === 1) {
+                    ctx.lineTo(pts[0][0] * W + 0.01, pts[0][1] * H); // simple point
+                } else {
+                    // Lissage : courbes quadratiques passant par le milieu de chaque segment
+                    for (let i = 1; i < pts.length - 1; i++) {
+                        const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+                        ctx.quadraticCurveTo(pts[i][0] * W, pts[i][1] * H, mx * W, my * H);
+                    }
+                    const last = pts[pts.length - 1];
+                    ctx.lineTo(last[0] * W, last[1] * H);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    }
+
+    const annot = {
+        song: null, pdf: null, page: 1, total: 1,
+        pages: {},          // copie de travail des annotations du chant ouvert
+        bg: null,           // canvas hors écran contenant le rendu PDF de la page
+        drawing: null,      // trait en cours
+        penSeen: false,     // un stylet a été détecté : le doigt/la paume ne dessinent plus
+        renderToken: 0,
+        rafPending: false,
+        tool: 'pen',
+        color: { pen: ANNOT_COLORS.pen[0], highlight: ANNOT_COLORS.highlight[0], underline: ANNOT_COLORS.underline[0] },
+        size:  { pen: ANNOT_SIZES.pen[1], highlight: ANNOT_SIZES.highlight[1], underline: ANNOT_SIZES.underline[1] }
+    };
+    try {
+        const p = JSON.parse(localStorage.getItem(ANNOT_PREFS_KEY));
+        if (p) {
+            if (p.tool) annot.tool = p.tool;
+            Object.assign(annot.color, p.color || {});
+            Object.assign(annot.size, p.size || {});
+        }
+    } catch (e) {}
+
+    function saveAnnotPrefs() {
+        try { localStorage.setItem(ANNOT_PREFS_KEY, JSON.stringify({ tool: annot.tool, color: annot.color, size: annot.size })); } catch (e) {}
+    }
+
+    function isAnnotEditorOpen() {
+        return document.getElementById('annot-editor').classList.contains('open');
+    }
+
+    async function openAnnotEditor(id, event) {
+        if (event) event.stopPropagation();
+        const song = state.songs.find(s => s.id === id);
+        if (!song || !song.url) { showToast('Partition introuvable.'); return; }
+
+        annot.song = song;
+        annot.pages = JSON.parse(JSON.stringify(annotStore[id] || {}));
+        annot.page = 1;
+        annot.total = 1;
+        annot.drawing = null;
+        annot.bg = null;
+
+        const editor = document.getElementById('annot-editor');
+        editor.classList.add('open');
+        editor.setAttribute('aria-hidden', 'false');
+        document.getElementById('annot-title').textContent = song.name;
+        document.getElementById('annot-loading').style.display = 'flex';
+        document.getElementById('annot-loading').textContent = 'Chargement…';
+        const canvas = document.getElementById('annot-canvas');
+        canvas.style.visibility = 'hidden';
+        renderAnnotToolbar();
+        updateAnnotPager();
+
+        try {
+            await dlFetchPriority(song);
+            const pdf = await pdfjsLib.getDocument(song.url).promise;
+            if (annot.song !== song || !isAnnotEditorOpen()) { pdf.destroy(); return; }
+            annot.pdf = pdf;
+            annot.total = pdf.numPages;
+            await renderAnnotPage();
+        } catch (err) {
+            console.error('Échec du chargement de la partition à annoter :', err);
+            showToast(`Impossible de charger "${song.name}" — vérifiez la connexion.`);
+            closeAnnotEditor();
+        }
+    }
+
+    function closeAnnotEditor() {
+        commitAnnotStroke();
+        const editor = document.getElementById('annot-editor');
+        editor.classList.remove('open');
+        editor.setAttribute('aria-hidden', 'true');
+        if (annot.pdf) { try { annot.pdf.destroy(); } catch (e) {} }
+        annot.pdf = null;
+        annot.bg = null;
+        if (annot.song) {
+            const has = songHasAnnotations(annot.song.id);
+            document.querySelectorAll(`[data-annot-id="${annot.song.id}"]`).forEach(b => b.classList.toggle('has-annot', has));
+        }
+        annot.song = null;
+    }
+
+    async function renderAnnotPage() {
+        if (!annot.pdf) return;
+        const token = ++annot.renderToken;
+        const page = await annot.pdf.getPage(annot.page);
+        if (token !== annot.renderToken) return;
+
+        const stage = document.getElementById('annot-stage');
+        const vp0 = page.getViewport({ scale: 1 });
+        const fitScale = Math.min((stage.clientWidth - 16) / vp0.width, (stage.clientHeight - 16) / vp0.height);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const viewport = page.getViewport({ scale: fitScale * dpr });
+
+        const bg = document.createElement('canvas');
+        bg.width = Math.round(viewport.width);
+        bg.height = Math.round(viewport.height);
+        await page.render({ canvasContext: bg.getContext('2d'), viewport }).promise;
+        if (token !== annot.renderToken) return;
+
+        annot.bg = bg;
+        const canvas = document.getElementById('annot-canvas');
+        canvas.width = bg.width;
+        canvas.height = bg.height;
+        canvas.style.width = (fitScale * vp0.width) + 'px';
+        canvas.style.height = (fitScale * vp0.height) + 'px';
+        canvas.style.visibility = 'visible';
+        document.getElementById('annot-loading').style.display = 'none';
+        updateAnnotPager();
+        redrawAnnot();
+    }
+
+    function currentAnnotStrokes() {
+        return annot.pages[annot.page] || [];
+    }
+
+    function redrawAnnot() {
+        annot.rafPending = false;
+        if (!annot.bg) return;
+        const canvas = document.getElementById('annot-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(annot.bg, 0, 0);
+        const strokes = annot.drawing && !annot.drawing.eraser
+            ? [...currentAnnotStrokes(), annot.drawing.stroke]
+            : currentAnnotStrokes();
+        drawAnnotStrokes(ctx, strokes, canvas.width, canvas.height);
+    }
+
+    function scheduleAnnotRedraw() {
+        if (annot.rafPending) return;
+        annot.rafPending = true;
+        requestAnimationFrame(redrawAnnot);
+    }
+
+    function updateAnnotPager() {
+        document.getElementById('annot-pager').style.visibility = annot.total > 1 ? 'visible' : 'hidden';
+        document.getElementById('annot-page-label').textContent = `${annot.page} / ${annot.total}`;
+        document.getElementById('annot-prev').disabled = annot.page <= 1;
+        document.getElementById('annot-next').disabled = annot.page >= annot.total;
+        document.getElementById('annot-undo-btn').disabled = currentAnnotStrokes().length === 0;
+    }
+
+    function annotGoPage(delta) {
+        const target = annot.page + delta;
+        if (!annot.pdf || target < 1 || target > annot.total) return;
+        commitAnnotStroke();
+        annot.page = target;
+        renderAnnotPage();
+    }
+
+    function setAnnotTool(tool) {
+        annot.tool = tool;
+        saveAnnotPrefs();
+        renderAnnotToolbar();
+    }
+
+    function setAnnotColor(c) {
+        annot.color[annot.tool] = c;
+        saveAnnotPrefs();
+        renderAnnotToolbar();
+    }
+
+    function setAnnotSize(s) {
+        annot.size[annot.tool] = s;
+        saveAnnotPrefs();
+        renderAnnotToolbar();
+    }
+
+    function renderAnnotToolbar() {
+        document.querySelectorAll('#annot-tools .annot-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === annot.tool));
+        const colors = ANNOT_COLORS[annot.tool];
+        const sizes = ANNOT_SIZES[annot.tool];
+        const colorsEl = document.getElementById('annot-colors');
+        const sizesEl = document.getElementById('annot-sizes');
+        colorsEl.style.display = colors ? 'flex' : 'none';
+        sizesEl.style.display = sizes ? 'flex' : 'none';
+        if (colors) {
+            colorsEl.innerHTML = colors.map(c =>
+                `<button class="annot-swatch ${annot.color[annot.tool] === c ? 'active' : ''}" style="background:${c};" onclick="setAnnotColor('${c}')" aria-label="Couleur ${c}"></button>`
+            ).join('');
+        }
+        if (sizes) {
+            sizesEl.innerHTML = sizes.map((s, i) => {
+                const dot = 4 + i * 5;
+                return `<button class="annot-size ${annot.size[annot.tool] === s ? 'active' : ''}" onclick="setAnnotSize(${s})" aria-label="Épaisseur ${i + 1}"><span style="width:${dot}px;height:${dot}px;"></span></button>`;
+            }).join('');
+        }
+    }
+
+    function persistAnnot() {
+        if (!annot.song) return;
+        const clean = {};
+        Object.keys(annot.pages).forEach(p => { if (annot.pages[p] && annot.pages[p].length) clean[p] = annot.pages[p]; });
+        if (Object.keys(clean).length) annotStore[annot.song.id] = clean;
+        else delete annotStore[annot.song.id];
+        try {
+            localStorage.setItem(ANNOT_STORAGE_KEY, JSON.stringify(annotStore));
+        } catch (e) {
+            showToast('Stockage plein : annotations non enregistrées.');
+        }
+        updateAnnotPager();
+    }
+
+    function annotPoint(e) {
+        const r = document.getElementById('annot-canvas').getBoundingClientRect();
+        const round = v => Math.round(Math.min(1, Math.max(0, v)) * 10000) / 10000;
+        return [round((e.clientX - r.left) / r.width), round((e.clientY - r.top) / r.height)];
+    }
+
+    // Distance (en pixels du canvas) d'un point à un segment
+    function annotSegDist(p, a, b, W, H) {
+        const px = p[0] * W, py = p[1] * H, ax = a[0] * W, ay = a[1] * H, bx = b[0] * W, by = b[1] * H;
+        const dx = bx - ax, dy = by - ay;
+        const len2 = dx * dx + dy * dy;
+        const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0;
+        return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+
+    function annotEraseAt(p) {
+        const strokes = currentAnnotStrokes();
+        if (!strokes.length || !annot.bg) return;
+        const W = annot.bg.width, H = annot.bg.height;
+        const radius = 0.012 * W;
+        const kept = strokes.filter(s => {
+            if (s.t === 'rect') return !(p[0] >= s.x && p[0] <= s.x + s.w && p[1] >= s.y && p[1] <= s.y + s.h);
+            const tol = radius + (s.s * W) / 2;
+            const pts = s.pts;
+            if (pts.length === 1) return annotSegDist(p, pts[0], pts[0], W, H) > tol;
+            for (let i = 1; i < pts.length; i++) if (annotSegDist(p, pts[i - 1], pts[i], W, H) <= tol) return false;
+            return true;
+        });
+        if (kept.length !== strokes.length) {
+            annot.pages[annot.page] = kept;
+            annot.drawing.erased = true;
+            scheduleAnnotRedraw();
+        }
+    }
+
+    function commitAnnotStroke() {
+        const d = annot.drawing;
+        annot.drawing = null;
+        if (!d) return;
+        if (d.eraser) { if (d.erased) persistAnnot(); return; }
+        const s = d.stroke;
+        if (s.t === 'rect') {
+            if (s.w < 0) { s.x += s.w; s.w = -s.w; }
+            if (s.h < 0) { s.y += s.h; s.h = -s.h; }
+            if (s.w < 0.005 || s.h < 0.003) { scheduleAnnotRedraw(); return; }
+        } else if (s.t === 'line') {
+            const [a, b] = s.pts;
+            if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.005) { scheduleAnnotRedraw(); return; }
+        }
+        if (!annot.pages[annot.page]) annot.pages[annot.page] = [];
+        annot.pages[annot.page].push(s);
+        persistAnnot();
+        scheduleAnnotRedraw();
+    }
+
+    function undoAnnot() {
+        const strokes = currentAnnotStrokes();
+        if (!strokes.length) return;
+        strokes.pop();
+        persistAnnot();
+        redrawAnnot();
+    }
+
+    function clearAnnotPage() {
+        if (!currentAnnotStrokes().length) return;
+        if (!confirm('Effacer toutes les annotations de cette page ?')) return;
+        annot.pages[annot.page] = [];
+        persistAnnot();
+        redrawAnnot();
+    }
+
+    (function setupAnnotCanvas() {
+        const canvas = document.getElementById('annot-canvas');
+
+        canvas.addEventListener('pointerdown', e => {
+            // Anti-appui de la paume : dès qu'un stylet a été utilisé, le doigt ne dessine plus.
+            if (e.pointerType === 'pen') annot.penSeen = true;
+            else if (e.pointerType === 'touch' && annot.penSeen) return;
+            if (annot.drawing || !annot.bg) return;
+            e.preventDefault();
+            try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+
+            const p = annotPoint(e);
+            const tool = annot.tool;
+            if (tool === 'eraser') {
+                annot.drawing = { eraser: true, pid: e.pointerId };
+                annotEraseAt(p);
+                return;
+            }
+            let stroke;
+            if (tool === 'mask') stroke = { t: 'rect', x: p[0], y: p[1], w: 0, h: 0 };
+            else if (tool === 'underline') stroke = { t: 'line', c: annot.color.underline, s: annot.size.underline, pts: [p, p] };
+            else if (tool === 'highlight') stroke = { t: 'hl', c: annot.color.highlight, s: annot.size.highlight, pts: [p] };
+            else stroke = { t: 'pen', c: annot.color.pen, s: annot.size.pen, pts: [p] };
+            annot.drawing = { pid: e.pointerId, stroke, origin: p };
+            scheduleAnnotRedraw();
+        });
+
+        canvas.addEventListener('pointermove', e => {
+            const d = annot.drawing;
+            if (!d || e.pointerId !== d.pid) return;
+            e.preventDefault();
+            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            const list = events.length ? events : [e];
+            if (d.eraser) { list.forEach(ev => annotEraseAt(annotPoint(ev))); return; }
+
+            const s = d.stroke;
+            const W = annot.bg.width, H = annot.bg.height;
+            if (s.t === 'rect') {
+                const p = annotPoint(e);
+                s.w = p[0] - d.origin[0];
+                s.h = p[1] - d.origin[1];
+            } else if (s.t === 'line') {
+                const p = annotPoint(e);
+                // Aimante à l'horizontale un trait presque horizontal (cas typique du soulignement)
+                if (Math.abs((p[1] - d.origin[1]) * H) < 0.12 * Math.abs((p[0] - d.origin[0]) * W)) p[1] = d.origin[1];
+                s.pts[1] = p;
+            } else {
+                list.forEach(ev => {
+                    const p = annotPoint(ev);
+                    const last = s.pts[s.pts.length - 1];
+                    if (Math.hypot((p[0] - last[0]) * W, (p[1] - last[1]) * H) >= 1.5) s.pts.push(p);
+                });
+            }
+            scheduleAnnotRedraw();
+        });
+
+        const end = e => {
+            if (!annot.drawing || e.pointerId !== annot.drawing.pid) return;
+            commitAnnotStroke();
+        };
+        canvas.addEventListener('pointerup', end);
+        canvas.addEventListener('pointercancel', end);
+        // Empêche le menu contextuel / la loupe iOS lors d'un appui long au stylet
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+    })();
+
+    document.addEventListener('keydown', e => {
+        if (!isAnnotEditorOpen()) return;
+        if (e.key === 'Escape') { e.stopImmediatePropagation(); closeAnnotEditor(); }
+        else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undoAnnot(); }
+    }, true);
+
+    window.addEventListener('resize', () => {
+        if (isAnnotEditorOpen() && annot.pdf) renderAnnotPage();
+    });
 
     init();
 </script>
