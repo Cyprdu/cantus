@@ -64,6 +64,18 @@
     "code": "44011059",
     "items": [
       {
+        "type": "song",
+        "id": "a5536beb9587b3f88483aa1e9dff1ed6862131e0"
+      },
+      {
+        "type": "song",
+        "id": "8d52b1e7b12af7b41d7f21657c639c5b3433457d"
+      },
+      {
+        "type": "song",
+        "id": "0b284fb7189009e4c1621aba5b8e2c900700b4d4"
+      },
+      {
         "type": "note",
         "name": "PREMIÈRE LECTURE",
         "ref": "Is 5, 1-7",
@@ -82,10 +94,42 @@
         "content": "Frères, ne soyez inquiets de rien, mais, en toute circonstance, priez et suppliez, tout en rendant grâce, pour faire connaître à Dieu vos demandes. Et la paix de Dieu, qui dépasse tout ce qu’on peut concevoir, gardera vos cœurs et vos pensées dans le Christ Jésus. Enfin, mes frères, tout ce qui est vrai et noble, tout ce qui est juste et pur, tout ce qui est digne d’être aimé et honoré, tout ce qui s’appelle vertu et qui mérite des éloges, tout cela, prenez-le en compte. Ce que vous avez appris et reçu, ce que vous avez vu et entendu de moi, mettez-le en pratique. Et le Dieu de la paix sera avec vous.\n\n– Parole du Seigneur."
       },
       {
+        "type": "song",
+        "id": "bdd59832258c1ff7bfb9de99680399d3f72d38a9"
+      },
+      {
         "type": "note",
         "name": "ÉVANGILE",
         "ref": "Mt 21, 33-43",
         "content": "En ce temps-là, Jésus disait aux grands prêtres et aux anciens du peuple : « Écoutez cette parabole : Un homme était propriétaire d’un domaine ; il planta une vigne, l’entoura d’une clôture, y creusa un pressoir et bâtit une tour de garde. Puis il loua cette vigne à des vignerons, et partit en voyage. Quand arriva le temps des fruits, il envoya ses serviteurs auprès des vignerons pour se faire remettre le produit de sa vigne. Mais les vignerons se saisirent des serviteurs, frappèrent l’un, tuèrent l’autre, lapidèrent le troisième. De nouveau, le propriétaire envoya d’autres serviteurs plus nombreux que les premiers ; mais on les traita de la même façon. Finalement, il leur envoya son fils, en se disant : ‘Ils respecteront mon fils.’ Mais, voyant le fils, les vignerons se dirent entre eux : ‘Voici l’héritier : venez ! tuons-le, nous aurons son héritage !’ Ils se saisirent de lui, le jetèrent hors de la vigne et le tuèrent. Eh bien ! quand le maître de la vigne viendra, que fera-t-il à ces vignerons ? » On lui répond : « Ces misérables, il les fera périr misérablement. Il louera la vigne à d’autres vignerons, qui lui en remettront le produit en temps voulu. » Jésus leur dit : « N’avez-vous jamais lu dans les Écritures : La pierre qu’ont rejetée les bâtisseurs est devenue la pierre d’angle : c’est là l’œuvre du Seigneur, la merveille devant nos yeux ! Aussi, je vous le dis : Le royaume de Dieu vous sera enlevé pour être donné à une nation qui lui fera produire ses fruits. »\n\n– Acclamons la Parole de Dieu."
+      },
+      {
+        "type": "song",
+        "id": "6119ffdc55980bc0afa22aeb08a8eafa35b9546a"
+      },
+      {
+        "type": "song",
+        "id": "77c8e0c2d1a0c00949f275f68353e3ca4c1fd1c8"
+      },
+      {
+        "type": "song",
+        "id": "d7f31db59f9d9c6e0e38d479661ebcb56899ec01"
+      },
+      {
+        "type": "song",
+        "id": "a4cc9aab0f8fb5c6d74bffbb0d026fecfd3f1eeb"
+      },
+      {
+        "type": "song",
+        "id": "566e65bcb807eef2719068e340b818465f23a8c5"
+      },
+      {
+        "type": "song",
+        "id": "367e495f6ca4756569b42846156dde5883529c32"
+      },
+      {
+        "type": "song",
+        "id": "7dab57e934a8fbdc44a5de964e99eb75d49ceb36"
       }
     ]
   }
