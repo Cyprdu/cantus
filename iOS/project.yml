@@ -21,7 +21,7 @@ targets:
         buildPhase: resources
       - path: Cantus/skin.css
         buildPhase: resources
-      - path: Cantus/fonts/Newsreader.woff2
+      - path: Cantus/fonts/Gloock.woff2
         buildPhase: resources
       - path: Cantus/fonts/DMSans.woff2
         buildPhase: resources

@@ -160,6 +160,19 @@
         });
     }
 
+    // Recherche collée sous la barre native : on le signale à la CSS (fond plein au-dessus).
+    let scrollPending = false;
+    function checkStuck() {
+        scrollPending = false;
+        const wrap = document.querySelector('#content .search-wrap');
+        if (!wrap) return;
+        const top = parseFloat(getComputedStyle(wrap).top) || 0;
+        wrap.classList.toggle('ios-stuck', window.scrollY > 0 && wrap.getBoundingClientRect().top <= top + 1);
+    }
+    window.addEventListener('scroll', () => {
+        if (!scrollPending) { scrollPending = true; requestAnimationFrame(checkStuck); }
+    }, { passive: true });
+
     function init() {
         // Plein écran bord à bord : la page gère déjà env(safe-area-inset-*).
         const vp = document.querySelector('meta[name="viewport"]');
