@@ -1,6 +1,6 @@
 # Compile l'app iOS (dossier iOS/) sur un Mac de GitHub et publie un .ipa non signé.
 # Ne se déclenche que sur les changements de iOS/ : les commits du mode admin (partitions,
-# paroles, JSON) ne relancent pas de build.
+# paroles, JSON) ne relancent pas de build. Xcode 26 est requis pour le Liquid Glass.
 name: iOS (.ipa)
 
 on:
@@ -18,9 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Générer le projet Xcode
+      - name: Choisir Xcode 26 et générer le projet
         working-directory: iOS
         run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          xcodebuild -version
           brew install xcodegen
           xcodegen generate
 
@@ -45,6 +47,7 @@ jobs:
           path: iOS/Cantus.ipa
 
       - name: Publier dans la release « ios-latest »
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -52,3 +55,59 @@ jobs:
             gh release create ios-latest --prerelease --title "Cantus iOS (dernière version)" \
               --notes "Fichier .ipa non signé, à installer avec AltStore ou Sideloadly (voir iOS/README.md)."
           gh release upload ios-latest iOS/Cantus.ipa --clobber
+
+  # Captures d'écran dans le simulateur iPhone, pour vérifier le design sans Mac (lancement manuel).
+  screenshots:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compiler pour le simulateur
+        working-directory: iOS
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild -project Cantus.xcodeproj -scheme Cantus -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build
+
+      - name: Lancer et capturer chaque onglet
+        working-directory: iOS
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          ios = sorted((k for k in d if "iOS-26" in k), reverse=True)
+          phones = [x for k in ios for x in d[k] if x["name"].startswith("iPhone") and "Pro" in x["name"]]
+          print(phones[0]["udid"])')
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID"
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Cantus.app
+          mkdir shots
+          # Diagnostic réseau : résultat des appels GitHub affiché en clair dans la capture.
+          xcrun simctl launch "$UDID" fr.cantus-app.cantus -CantusEval "Promise.all([fetch('https://api.github.com/rate_limit').then(r=>'api '+r.status+' reste '+r.headers.get('x-ratelimit-remaining')),fetch('https://raw.githubusercontent.com/Cyprdu/cantus/main/categories.json').then(r=>'raw '+r.status)].map(p=>p.catch(e=>'ERR '+e))).then(t=>document.body.insertAdjacentHTML('beforeend','<div style=\"position:fixed;top:40%;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:20px sans-serif;padding:16px\">'+t.join('<br>')+'</div>'))"
+          sleep 20
+          xcrun simctl io "$UDID" screenshot shots/diag.png
+          xcrun simctl terminate "$UDID" fr.cantus-app.cantus
+          for TAB in library playlist planner favorites live; do
+            xcrun simctl launch "$UDID" fr.cantus-app.cantus -CantusTab "$TAB" \
+              -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open')"
+            sleep 25
+            xcrun simctl io "$UDID" screenshot "shots/$TAB.png"
+            xcrun simctl terminate "$UDID" fr.cantus-app.cantus
+          done
+          xcrun simctl launch "$UDID" fr.cantus-app.cantus -CantusTab library \
+            -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open');toggleLibCategory(CATEGORIES[0].key);setTimeout(()=>window.scrollTo(0,500),800)"
+          sleep 25
+          xcrun simctl io "$UDID" screenshot shots/library-scrolled.png
+          xcrun simctl launch --terminate-running-process "$UDID" fr.cantus-app.cantus -CantusTab library \
+            -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open');openSettings()"
+          sleep 25
+          xcrun simctl io "$UDID" screenshot shots/settings.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: iOS/shots

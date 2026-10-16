@@ -10,72 +10,260 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
         guard let scene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: scene)
-        window.rootViewController = WebViewController()
+        window.tintColor = .cantusGold
+        window.overrideUserInterfaceStyle = .dark // suivi ensuite du thème choisi dans l'app
+        window.rootViewController = MainController()
         window.makeKeyAndVisible()
         self.window = window
     }
 }
 
-/// L'app est la PWA de cantus-app.fr dans un WKWebView natif : même code, même dépôt GitHub,
-/// mêmes mises à jour (version.json). Le natif ajoute haptique, barre d'état, zones sûres,
-/// maintien de l'écran allumé, téléchargements et un écran hors-ligne au premier lancement.
-final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, WKDownloadDelegate {
+extension UIColor {
+    static let cantusGold = UIColor { $0.userInterfaceStyle == .dark
+        ? UIColor(red: 214/255, green: 165/255, blue: 124/255, alpha: 1)
+        : UIColor(red: 168/255, green: 105/255, blue: 63/255, alpha: 1) }
+    static let cantusBackground = UIColor { $0.userInterfaceStyle == .dark
+        ? .black
+        : UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1) }
+}
+
+/// Un onglet. Tous partagent le même WKWebView, déplacé dans l'onglet affiché.
+final class PageController: UIViewController {
+    let key: String
+    let pageTitle: String
+
+    init(key: String, title: String) {
+        self.key = key
+        self.pageTitle = title
+        super.init(nibName: nil, bundle: nil)
+        navigationItem.largeTitleDisplayMode = .never
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .cantusBackground
+    }
+}
+
+/// L'app est la PWA de cantus-app.fr dans un WKWebView : même code, même dépôt GitHub, mêmes
+/// mises à jour (version.json), mode Live compatible. Le natif fournit la barre d'onglets et les
+/// barres de navigation Liquid Glass, l'habillage iOS (skin.css), l'haptique, l'écran allumé,
+/// les téléchargements et un écran hors-ligne au premier lancement.
+final class MainController: UITabBarController, UITabBarControllerDelegate, WKNavigationDelegate, WKUIDelegate,
+                            WKScriptMessageHandler, WKDownloadDelegate {
     static let home = URL(string: "https://cantus-app.fr/")!
+    static let tabs = [
+        (key: "library", title: "Bibliothèque", symbol: "music.note.list"),
+        (key: "playlist", title: "Playlists", symbol: "rectangle.stack"),
+        (key: "planner", title: "Messes", symbol: "calendar"),
+        (key: "favorites", title: "Favoris", symbol: "heart"),
+        (key: "live", title: "Live", symbol: "dot.radiowaves.left.and.right"),
+    ]
 
     private var webView: WKWebView!
+    private var pages: [PageController] = []
     private let lightTap = UIImpactFeedbackGenerator(style: .light)
     private let mediumTap = UIImpactFeedbackGenerator(style: .medium)
+    private let selection = UISelectionFeedbackGenerator()
     private let success = UINotificationFeedbackGenerator()
-    private var statusStyle: UIStatusBarStyle = .lightContent
     private var downloads: [WKDownload: URL] = [:]
+    private var offsetObservation: NSKeyValueObservation?
     private lazy var offlineView = makeOfflineView()
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { statusStyle }
+    private var overlayOpen = false
+    private var immersive = false
+    private var titleShown = false
+    private var isAdmin = false
+    private var isOffline = false
+    private var lastInsets = UIEdgeInsets(top: -1, left: 0, bottom: -1, right: 0)
 
-    override func loadView() {
+    private var page: PageController { pages[selectedIndex] }
+
+    override var childForStatusBarHidden: UIViewController? { nil }
+    override var childForStatusBarStyle: UIViewController? { nil }
+    override var prefersStatusBarHidden: Bool { immersive }
+    override var prefersHomeIndicatorAutoHidden: Bool { immersive }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        delegate = self
+        view.backgroundColor = .cantusBackground
+        setUpWebView()
+
+        pages = Self.tabs.map { PageController(key: $0.key, title: $0.title) }
+        viewControllers = zip(pages, Self.tabs).map { page, tab in
+            let nav = UINavigationController(rootViewController: page)
+            nav.tabBarItem = UITabBarItem(title: tab.title, image: UIImage(systemName: tab.symbol), tag: 0)
+            return nav
+        }
+        attachWebView()
+        updateBarItems()
+
+        lightTap.prepare()
+        webView.load(URLRequest(url: Self.home))
+    }
+
+    private func setUpWebView() {
         let config = WKWebViewConfiguration()
-        config.limitsNavigationsToAppBoundDomains = true // requis pour le service worker
+        config.limitsNavigationsToAppBoundDomains = true // requis pour le service worker (hors-ligne)
         config.websiteDataStore = .default()             // cache persistant (PDF, paroles, réglages)
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
         config.applicationNameForUserAgent = "Mobile/15E148 CantusApp"
+
+        let content = config.userContentController
+        if let url = Bundle.main.url(forResource: "skin", withExtension: "css"),
+           let css = try? String(contentsOf: url, encoding: .utf8),
+           let json = try? JSONSerialization.data(withJSONObject: css, options: .fragmentsAllowed),
+           let literal = String(data: json, encoding: .utf8) {
+            content.addUserScript(WKUserScript(source: "window.__cantusCSS = \(literal);",
+                                               injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
         if let url = Bundle.main.url(forResource: "bridge", withExtension: "js"),
            let js = try? String(contentsOf: url, encoding: .utf8) {
-            config.userContentController.addUserScript(
-                WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            content.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
+        if let tab = UserDefaults.standard.string(forKey: "CantusTab") { // CI : onglet de départ imposé
+            content.addUserScript(WKUserScript(source: "window.__cantusTab = '\(tab)';",
+                                               injectionTime: .atDocumentStart, forMainFrameOnly: true))
         }
         // ponytail: le contrôleur vit autant que l'app, la référence forte du handler est sans conséquence.
-        config.userContentController.add(self, name: "cantus")
+        content.add(self, name: "cantus")
 
-        let bg = UIColor(red: 9/255, green: 9/255, blue: 9/255, alpha: 1)
         webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
-        webView.backgroundColor = bg
-        webView.scrollView.backgroundColor = bg
-        webView.scrollView.contentInsetAdjustmentBehavior = .never // la page gère env(safe-area-inset-*)
-        webView.scrollView.bounces = false
+        webView.backgroundColor = .cantusBackground
+        webView.scrollView.backgroundColor = .cantusBackground
+        webView.scrollView.contentInsetAdjustmentBehavior = .never // insets passés à la page (--ios-top/bottom)
+        webView.scrollView.keyboardDismissMode = .interactive
         webView.allowsLinkPreview = false
-        webView.allowsBackForwardNavigationGestures = false
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.alpha = 0 // révélé en fondu une fois la page prête : pas de flash blanc au démarrage
+        webView.alpha = 0 // révélé en fondu une fois la page prête : pas de flash au démarrage
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-        view = UIView()
-        view.backgroundColor = bg
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(webView)
-        NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: view.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-        ])
+        offsetObservation = webView.scrollView.observe(\.contentOffset, options: .new) { [weak self] scroll, _ in
+            self?.setTitleShown(scroll.contentOffset.y > 44, animated: true)
+        }
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        lightTap.prepare()
-        webView.load(URLRequest(url: Self.home))
+    // MARK: Onglets et barres natives
+
+    /// Place l'unique WKWebView sous les barres de l'onglet affiché.
+    private func attachWebView() {
+        let page = self.page
+        guard webView.superview !== page.view else { return }
+        page.loadViewIfNeeded()
+        webView.frame = page.view.bounds
+        page.view.insertSubview(webView, at: 0)
+        page.setContentScrollView(webView.scrollView, for: .all)
+        setTitleShown(webView.scrollView.contentOffset.y > 44, animated: false)
+    }
+
+    func tabBarController(_ controller: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        if viewController === selectedViewController { // second appui : remonter en haut, comme partout sur iOS
+            webView.scrollView.setContentOffset(.zero, animated: true)
+        }
+        return true
+    }
+
+    func tabBarController(_ controller: UITabBarController, didSelect viewController: UIViewController) {
+        selection.selectionChanged()
+        attachWebView()
+        js("showView('\(page.key)', 'native')")
+    }
+
+    private func showTab(for view: String) {
+        let key = view == "history" ? "favorites" : view
+        guard let index = Self.tabs.firstIndex(where: { $0.key == key }), index != selectedIndex else { return }
+        selectedIndex = index
+        attachWebView()
+    }
+
+    private func updateBarItems() {
+        for page in pages {
+            var right = [UIBarButtonItem(image: UIImage(systemName: "gearshape"), primaryAction: UIAction { [weak self] _ in
+                self?.js("openSettings()")
+            })]
+            switch page.key {
+            case "playlist": right.append(addMenu(new: "Nouvelle playlist", newJS: "newPlaylist()", kind: "playlist"))
+            case "planner": right.append(addMenu(new: "Nouvelle messe", newJS: "newMesse()", kind: "messe"))
+            default: break
+            }
+            if isAdmin {
+                right.append(UIBarButtonItem(image: UIImage(systemName: "square.grid.2x2"), primaryAction: UIAction { [weak self] _ in
+                    self?.js("openAdminDashboard()")
+                }))
+            }
+            page.navigationItem.rightBarButtonItems = right
+            page.navigationItem.leftBarButtonItem = isOffline
+                ? UIBarButtonItem(image: UIImage(systemName: "icloud.slash"), primaryAction: UIAction { [weak self] _ in
+                    self?.js("showToast('Hors-ligne : les partitions téléchargées restent disponibles')")
+                })
+                : nil
+        }
+    }
+
+    private func addMenu(new title: String, newJS: String, kind: String) -> UIBarButtonItem {
+        UIBarButtonItem(image: UIImage(systemName: "plus"), menu: UIMenu(children: [
+            UIAction(title: title, image: UIImage(systemName: "plus")) { [weak self] _ in self?.js(newJS) },
+            UIAction(title: "Importer", image: UIImage(systemName: "square.and.arrow.down")) { [weak self] _ in
+                self?.js("openCollectionImport('\(kind)')")
+            },
+        ]))
+    }
+
+    /// Le grand titre est dans la page ; le titre de la barre apparaît quand il passe dessous.
+    private func setTitleShown(_ shown: Bool, animated: Bool) {
+        guard shown != titleShown || !animated else { return }
+        titleShown = shown
+        let page = self.page
+        let apply = { page.navigationItem.title = shown ? page.pageTitle : nil }
+        guard animated, let bar = page.navigationController?.navigationBar else { return apply() }
+        UIView.transition(with: bar, duration: 0.2, options: .transitionCrossDissolve, animations: apply)
+    }
+
+    /// Hauteur des barres (verre) transmise à la page, qui défile dessous.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        pushInsets()
+    }
+
+    private func pushInsets(force: Bool = false) {
+        guard !overlayOpen, let bar = page.navigationController?.navigationBar, !bar.isHidden else { return }
+        let top = bar.convert(bar.bounds, to: view).maxY
+        let bottom = tabBar.frame.minY > view.bounds.midY ? view.bounds.height - tabBar.frame.minY : view.safeAreaInsets.bottom
+        let insets = UIEdgeInsets(top: top, left: 0, bottom: bottom, right: 0)
+        guard force || insets != lastInsets else { return }
+        lastInsets = insets
+        js("document.documentElement.style.setProperty('--ios-top','\(top)px');" +
+           "document.documentElement.style.setProperty('--ios-bottom','\(bottom)px')")
+    }
+
+    /// Visionneuse, feuilles et modales de la page couvrent tout l'écran : on retire les barres.
+    private func setOverlay(_ open: Bool, immersive: Bool) {
+        if immersive != self.immersive {
+            self.immersive = immersive
+            UIView.animate(withDuration: 0.25) {
+                self.setNeedsStatusBarAppearanceUpdate()
+                self.setNeedsUpdateOfHomeIndicatorAutoHidden()
+            }
+        }
+        guard open != overlayOpen else { return }
+        overlayOpen = open
+        webView.scrollView.isScrollEnabled = !open
+        page.navigationController?.setNavigationBarHidden(open, animated: true)
+        if #available(iOS 18.0, *) {
+            setTabBarHidden(open, animated: true)
+        } else {
+            UIView.transition(with: tabBar, duration: 0.25, options: .transitionCrossDissolve) { self.tabBar.isHidden = open }
+        }
+    }
+
+    private func js(_ source: String) {
+        webView.evaluateJavaScript(source)
     }
 
     // MARK: Pont JavaScript → natif (voir bridge.js)
@@ -93,17 +281,23 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
             else { lightTap.impactOccurred() }
         case "wake":
             UIApplication.shared.isIdleTimerDisabled = body["on"] as? Bool ?? false
+        case "view":
+            if let v = body["view"] as? String { showTab(for: v) }
+        case "overlay":
+            setOverlay(body["open"] as? Bool ?? false, immersive: body["immersive"] as? Bool ?? false)
         case "theme":
-            guard let hex = body["color"] as? String, let color = UIColor(hex: hex) else { return }
-            var white: CGFloat = 0
-            color.getWhite(&white, alpha: nil)
-            statusStyle = white < 0.5 ? .lightContent : .darkContent
-            UIView.animate(withDuration: 0.25) {
-                self.view.backgroundColor = color
-                self.webView.backgroundColor = color
-                self.webView.scrollView.backgroundColor = color
-                self.setNeedsStatusBarAppearanceUpdate()
+            let style: UIUserInterfaceStyle = body["dark"] as? Bool == false ? .light : .dark
+            guard let window = view.window, window.overrideUserInterfaceStyle != style else { return }
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) {
+                window.overrideUserInterfaceStyle = style
             }
+        case "chrome":
+            let admin = body["admin"] as? Bool ?? false
+            let offline = (body["status"] as? String ?? "").lowercased().contains("hors")
+            guard admin != isAdmin || offline != isOffline else { return }
+            isAdmin = admin
+            isOffline = offline
+            updateBarItems()
         default: break
         }
     }
@@ -130,8 +324,10 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         offlineView.removeFromSuperview()
+        pushInsets(force: true)
+        if let script = UserDefaults.standard.string(forKey: "CantusEval") { js(script) } // CI uniquement
         guard webView.alpha == 0 else { return }
-        UIView.animate(withDuration: 0.35, delay: 0, options: .curveEaseOut) { webView.alpha = 1 }
+        UIView.animate(withDuration: 0.35, delay: 0.05, options: .curveEaseOut) { webView.alpha = 1 }
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -141,7 +337,7 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        webView.reload() // iOS a tué le moteur web (mémoire) : on recharge sans écran blanc
+        webView.reload() // iOS a tué le moteur web (mémoire) : on recharge
     }
 
     func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
@@ -193,7 +389,6 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
     }
 
     private func makeOfflineView() -> UIView {
-        let gold = UIColor(red: 195/255, green: 147/255, blue: 106/255, alpha: 1)
         let logo = UIImageView(image: UIImage(named: "LaunchLogo"))
         logo.contentMode = .scaleAspectFit
         logo.heightAnchor.constraint(equalToConstant: 96).isActive = true
@@ -202,14 +397,13 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         label.text = "Pas de connexion.\nCantus doit être ouvert une première fois en ligne, ensuite tout fonctionne hors-ligne."
         label.numberOfLines = 0
         label.textAlignment = .center
-        label.textColor = UIColor(white: 0.85, alpha: 1)
+        label.textColor = .secondaryLabel
         label.font = .preferredFont(forTextStyle: .body)
 
-        var button = UIButton.Configuration.filled()
+        var button = UIButton.Configuration.glassIfAvailable()
         button.title = "Réessayer"
-        button.baseBackgroundColor = gold
-        button.baseForegroundColor = .black
         button.cornerStyle = .capsule
+        button.buttonSize = .large
         let retry = UIButton(configuration: button, primaryAction: UIAction { [weak self] _ in
             self?.lightTap.impactOccurred()
             self?.webView.load(URLRequest(url: Self.home))
@@ -222,7 +416,7 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         let container = UIView()
-        container.backgroundColor = view.backgroundColor
+        container.backgroundColor = .cantusBackground
         container.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
@@ -233,11 +427,10 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
     }
 }
 
-private extension UIColor {
-    convenience init?(hex: String) {
-        let s = hex.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "#", with: "")
-        guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
-        self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255,
-                  blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+private extension UIButton.Configuration {
+    /// Bouton Liquid Glass sur iOS 26, bouton plein doré avant.
+    static func glassIfAvailable() -> UIButton.Configuration {
+        if #available(iOS 26.0, *) { return .prominentGlass() }
+        return .filled()
     }
 }
