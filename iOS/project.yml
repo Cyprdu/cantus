@@ -21,7 +21,7 @@ targets:
         buildPhase: resources
       - path: Cantus/skin.css
         buildPhase: resources
-      - path: Cantus/fonts/LibreCaslon.woff2
+      - path: Cantus/fonts/Onest.woff2
         buildPhase: resources
       - path: Cantus/fonts/DMSans.woff2
         buildPhase: resources

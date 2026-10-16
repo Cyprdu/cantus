@@ -202,12 +202,12 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
         }
     }
 
-    /// Polices de la maquette (Libre Caslon, DM Sans) embarquées dans l'app : disponibles hors-ligne.
+    /// Polices de la maquette (Onest, DM Sans) embarquées dans l'app : disponibles hors-ligne.
     private static func fontFaces() -> String {
-        [("Libre Caslon Text", "LibreCaslon"), ("DM Sans", "DMSans")].compactMap { family, file in
+        [("Onest", "Onest"), ("DM Sans", "DMSans")].compactMap { family, file in
             guard let url = Bundle.main.url(forResource: file, withExtension: "woff2"),
                   let data = try? Data(contentsOf: url) else { return nil }
-            return "@font-face{font-family:'\(family)';font-weight:400 700;font-display:block;" +
+            return "@font-face{font-family:'\(family)';font-weight:400 800;font-display:block;" +
                    "src:url(data:font/woff2;base64,\(data.base64EncodedString())) format('woff2')}"
         }.joined()
     }

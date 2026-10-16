@@ -19,7 +19,7 @@ GitHub compile le `.ipa`, et vous l'installez depuis Windows.
     translucide classique avant) : Bibliothèque, Playlists, Messes, Favoris (avec Historique),
     Live ; boutons Réglages, « + » (nouvelle playlist/messe, importer) et Dashboard admin ;
   - habillage `Cantus/skin.css` d'après la maquette Figma « Cantus » : fond crème et vert
-    profond (thème sombre « forêt de nuit »), titres Libre Caslon et texte DM Sans (polices
+    profond (thème sombre « forêt de nuit »), titres Onest et texte DM Sans (polices
     embarquées dans `Cantus/fonts/`, licence SIL OFL), vignettes de couleur par catégorie,
     puces de catégories, réglages et dialogues en feuilles qui montent du bas ; le thème suit
     celui de l'iPhone au premier lancement ;

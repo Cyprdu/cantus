@@ -1,5 +1,5 @@
 /* Habillage iOS de Cantus, injecté uniquement dans l'app (voir bridge.js), d'après la maquette
-   Figma « Cantus » : fond crème, vert profond, titres Libre Caslon, texte DM Sans, cartes blanches.
+   Figma « Cantus » : fond crème, vert profond, titres Onest, texte DM Sans, cartes blanches.
    La PWA de cantus-app.fr n'est pas touchée : on ne fait que surcharger ses styles.
    L'en-tête et les onglets web sont remplacés par les barres natives Liquid Glass ;
    --ios-top / --ios-bottom sont la hauteur de ces barres, fournie par le natif.
@@ -10,7 +10,7 @@
     --ios-top: calc(env(safe-area-inset-top) + 54px);
     --ios-bottom: calc(env(safe-area-inset-bottom) + 64px);
     --gutter: 18px;
-    --serif: "Libre Caslon Text", "New York", Georgia, serif;
+    --title: "Onest", -apple-system, system-ui, sans-serif;
     --sans: "DM Sans", -apple-system, system-ui, sans-serif;
     --bg: #f7f7f2;
     --surface: #fff;
@@ -107,8 +107,8 @@ main {
 }
 .ios-large-title {
     margin: 0 2px 18px;
-    font: 700 36px/1.1 var(--serif);
-    letter-spacing: 0;
+    font: 800 36px/1.1 var(--title);
+    letter-spacing: -.02em;
     color: var(--text);
 }
 
@@ -416,7 +416,7 @@ select.search-input.ios-hidden { display: none !important; }
     background: var(--text-3);
 }
 .drawer-head { padding: 26px 22px 8px; border: 0; }
-.drawer-head h3 { font: 700 32px/1.1 var(--serif); }
+.drawer-head h3 { font: 800 32px/1.1 var(--title); }
 .drawer-head .btn-icon, .settings-head .btn-icon {
     min-width: 44px;
     min-height: 44px;
@@ -469,7 +469,7 @@ select.search-input.ios-hidden { display: none !important; }
     animation: iosSheetIn .5s var(--spring);
 }
 @keyframes iosSheetIn { from { transform: translateY(110%); } to { transform: none; } }
-:is(.modal-card, .settings-card, .cam-modal-card, .onboard-card, .dl-card) h3 { font: 700 26px/1.15 var(--serif); }
+:is(.modal-card, .settings-card, .cam-modal-card, .onboard-card, .dl-card) h3 { font: 800 26px/1.15 var(--title); }
 .settings-card .settings-section { background: var(--surface); border: 0; box-shadow: inset 0 0 0 .8px var(--border); border-radius: var(--r-xl); }
 .onboard-icon-wrap, .dl-icon-wrap, .cam-icon-wrap { border: 0; background: var(--accent-soft); color: var(--accent); }
 .onboard-dots span.active { background: var(--accent); }
@@ -486,24 +486,24 @@ select.search-input.ios-hidden { display: none !important; }
     -webkit-backdrop-filter: blur(30px) saturate(180%);
 }
 .picker-search { box-shadow: inset 0 -.8px 0 var(--border); }
-.picker-title h3 { font: 700 22px var(--serif); }
+.picker-title h3 { font: 800 22px var(--title); }
 .picker-body { padding: 16px; }
 .picker-row { min-height: 62px; padding: 8px 10px 8px 16px; }
 .picker-row.added { background: color-mix(in srgb, var(--accent) 8%, var(--surface)) !important; }
 .picker-add-btn { border: 0; background: var(--accent-soft); color: var(--accent); }
 .picker-add-btn.is-added { background: var(--accent-fill); color: var(--on-accent); }
-.adash-brand h2 { font: 700 24px var(--serif); }
+.adash-brand h2 { font: 800 24px var(--title); }
 .adash-brand-ico, .adash-row-thumb { background: var(--accent-soft); color: var(--accent); border: 0; }
 .adash-card, .adash-form, .adash-stat { border: 0; border-radius: var(--r-xl); background: var(--surface); box-shadow: 0 0 0 .8px var(--border); }
-.adash-stat-value { font-family: var(--serif); font-weight: 700; }
+.adash-stat-value { font-family: var(--title); font-weight: 800; }
 .adash-row { border-bottom: .8px solid var(--border); }
 .adash-nav { border: 0; background: transparent; }
 .adash-nav-btn { border-radius: 999px; }
 .adash-nav-btn.active { background: var(--accent-fill); color: var(--on-accent); }
-.adash-section-head h3, .adash-editor-head h3 { font-family: var(--serif); font-weight: 700; }
+.adash-section-head h3, .adash-editor-head h3 { font-family: var(--title); font-weight: 800; }
 
 /* Éditeurs de déroulé */
-.editor-head h3 { font: 700 26px var(--serif); }
+.editor-head h3 { font: 800 26px var(--title); }
 .coll-row { border: 0; border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 .8px var(--border); }
 .coll-row.is-note { box-shadow: inset 4px 0 0 var(--gold), 0 0 0 .8px var(--border); }
 .coll-add-bar { bottom: var(--ios-bottom); background: linear-gradient(to bottom, transparent, var(--bg) 30%); box-shadow: none; }
@@ -533,7 +533,7 @@ select.search-input.ios-hidden { display: none !important; }
     display: block;
     margin: 10px 0 14px;
     color: var(--text);
-    font: 700 36px/1.12 var(--serif);
+    font: 800 36px/1.12 var(--title);
     white-space: pre;
 }
 .live-choice .btn {
@@ -556,9 +556,9 @@ select.search-input.ios-hidden { display: none !important; }
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 15'%3E%3Cpath d='M1.5 1.5 7.5 7.5l-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .live-card { border: 0; border-radius: 28px; background: var(--surface); box-shadow: 0 0 0 .8px var(--border), var(--card-shadow); }
-.live-card h3 { font: 700 26px var(--serif); }
+.live-card h3 { font: 800 26px var(--title); }
 .live-now-card { border: 0; border-radius: var(--r-xl); background: var(--surface); box-shadow: inset 4px 0 0 var(--danger), 0 0 0 .8px var(--border); }
-.live-now-name { font: 700 22px var(--serif); }
+.live-now-name { font: 800 22px var(--title); }
 .live-code-big { font-size: 44px; letter-spacing: .22em; color: var(--accent); }
 .input-field.live-code-input { height: 64px; font-size: 26px; font-weight: 700; letter-spacing: .3em; text-align: center; border-radius: 18px; }
 .live-chat-fab { top: calc(var(--ios-top) + 8px); }
@@ -599,4 +599,4 @@ select.search-input.ios-hidden { display: none !important; }
 .nav-page-btn { width: 58px; height: 58px; }
 .nav-page-btn:active { background: rgba(63, 122, 98, .6); }
 #perf-hud-fill { background: #86c4a2; }
-#lyrics-title-display, .lyrics-heading, #note-title-display { color: #d6b46d; font-family: var(--serif); font-weight: 700; letter-spacing: .02em; }
+#lyrics-title-display, .lyrics-heading, #note-title-display { color: #d6b46d; font-family: var(--title); font-weight: 800; letter-spacing: .02em; }
