@@ -10,8 +10,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
         guard let scene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: scene)
-        window.tintColor = .cantusGold
-        window.overrideUserInterfaceStyle = .dark // suivi ensuite du thème choisi dans l'app
+        window.tintColor = .cantusTint // le thème clair/sombre suit ensuite celui choisi dans l'app
         window.rootViewController = MainController()
         window.makeKeyAndVisible()
         self.window = window
@@ -19,12 +18,13 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 
 extension UIColor {
-    static let cantusGold = UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 214/255, green: 165/255, blue: 124/255, alpha: 1)
-        : UIColor(red: 168/255, green: 105/255, blue: 63/255, alpha: 1) }
+    // Palette de la maquette Figma (voir skin.css) : vert profond, fond crème / forêt de nuit.
+    static let cantusTint = UIColor { $0.userInterfaceStyle == .dark
+        ? UIColor(red: 134/255, green: 196/255, blue: 162/255, alpha: 1)
+        : UIColor(red: 49/255, green: 94/255, blue: 76/255, alpha: 1) }
     static let cantusBackground = UIColor { $0.userInterfaceStyle == .dark
-        ? .black
-        : UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1) }
+        ? UIColor(red: 14/255, green: 19/255, blue: 16/255, alpha: 1)
+        : UIColor(red: 247/255, green: 247/255, blue: 242/255, alpha: 1) }
 }
 
 /// Un onglet. Tous partagent le même WKWebView, déplacé dans l'onglet affiché.
@@ -55,8 +55,8 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
                             WKScriptMessageHandler, WKDownloadDelegate {
     static let home = URL(string: "https://cantus-app.fr/")!
     static let tabs = [
-        (key: "library", title: "Bibliothèque", symbol: "music.note.list"),
-        (key: "playlist", title: "Playlists", symbol: "rectangle.stack"),
+        (key: "library", title: "Bibliothèque", symbol: "book"),
+        (key: "playlist", title: "Playlists", symbol: "list.bullet"),
         (key: "planner", title: "Messes", symbol: "calendar"),
         (key: "favorites", title: "Favoris", symbol: "heart"),
         (key: "live", title: "Live", symbol: "dot.radiowaves.left.and.right"),
@@ -115,7 +115,8 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
 
         let content = config.userContentController
         if let url = Bundle.main.url(forResource: "skin", withExtension: "css"),
-           let css = try? String(contentsOf: url, encoding: .utf8),
+           let skin = try? String(contentsOf: url, encoding: .utf8),
+           case let css = Self.fontFaces() + skin,
            let json = try? JSONSerialization.data(withJSONObject: css, options: .fragmentsAllowed),
            let literal = String(data: json, encoding: .utf8) {
             content.addUserScript(WKUserScript(source: "window.__cantusCSS = \(literal);",
@@ -187,11 +188,6 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
             var right = [UIBarButtonItem(image: UIImage(systemName: "gearshape"), primaryAction: UIAction { [weak self] _ in
                 self?.js("openSettings()")
             })]
-            switch page.key {
-            case "playlist": right.append(addMenu(new: "Nouvelle playlist", newJS: "newPlaylist()", kind: "playlist"))
-            case "planner": right.append(addMenu(new: "Nouvelle messe", newJS: "newMesse()", kind: "messe"))
-            default: break
-            }
             if isAdmin {
                 right.append(UIBarButtonItem(image: UIImage(systemName: "square.grid.2x2"), primaryAction: UIAction { [weak self] _ in
                     self?.js("openAdminDashboard()")
@@ -206,13 +202,14 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
         }
     }
 
-    private func addMenu(new title: String, newJS: String, kind: String) -> UIBarButtonItem {
-        UIBarButtonItem(image: UIImage(systemName: "plus"), menu: UIMenu(children: [
-            UIAction(title: title, image: UIImage(systemName: "plus")) { [weak self] _ in self?.js(newJS) },
-            UIAction(title: "Importer", image: UIImage(systemName: "square.and.arrow.down")) { [weak self] _ in
-                self?.js("openCollectionImport('\(kind)')")
-            },
-        ]))
+    /// Polices de la maquette (Newsreader, DM Sans) embarquées dans l'app : disponibles hors-ligne.
+    private static func fontFaces() -> String {
+        [("Newsreader", "Newsreader"), ("DM Sans", "DMSans")].compactMap { family, file in
+            guard let url = Bundle.main.url(forResource: file, withExtension: "woff2"),
+                  let data = try? Data(contentsOf: url) else { return nil }
+            return "@font-face{font-family:'\(family)';font-weight:400 700;font-display:block;" +
+                   "src:url(data:font/woff2;base64,\(data.base64EncodedString())) format('woff2')}"
+        }.joined()
     }
 
     /// Le grand titre est dans la page ; le titre de la barre apparaît quand il passe dessous.

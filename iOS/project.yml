@@ -16,10 +16,14 @@ targets:
     platform: iOS
     sources:
       - path: Cantus
-        excludes: [bridge.js, skin.css]
+        excludes: [bridge.js, skin.css, "fonts/**"]
       - path: Cantus/bridge.js
         buildPhase: resources
       - path: Cantus/skin.css
+        buildPhase: resources
+      - path: Cantus/fonts/Newsreader.woff2
+        buildPhase: resources
+      - path: Cantus/fonts/DMSans.woff2
         buildPhase: resources
     settings:
       base:

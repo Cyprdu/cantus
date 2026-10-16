@@ -5,6 +5,9 @@
 (function () {
     const post = (msg) => { try { window.webkit.messageHandlers.cantus.postMessage(msg); } catch (e) {} };
 
+    // Premier lancement : le thème suit celui de l'iPhone (clair/sombre) au lieu du sombre imposé.
+    try { if (!localStorage.getItem('cantus_settings')) localStorage.setItem('cantus_settings', '{"theme":"system"}'); } catch (e) {}
+
     // L'app est installée : l'onboarding saute l'étape « Ajouter à l'écran d'accueil ».
     try { Object.defineProperty(navigator, 'standalone', { get: () => true }); } catch (e) {}
 
@@ -36,15 +39,61 @@
     }, { capture: true, passive: true });
 
     // ─── Vues : la barre d'onglets native pilote showView(), et inversement ───
-    const TITLES = { library: 'Bibliothèque', playlist: 'Playlists', planner: 'Messes', favorites: 'Favoris', history: 'Favoris', live: 'Live' };
+    // Grand titre serif et surtitre de chaque onglet (maquette Figma).
+    const TITLES = { library: 'Bibliothèque', playlist: 'Playlists', planner: 'Messes', favorites: 'Ma musique', history: 'Ma musique', live: 'Live' };
+    const EYEBROWS = { playlist: 'Vos collections', planner: 'Célébrations', favorites: 'Retrouvez vos chants', history: 'Retrouvez vos chants', live: 'Chantez ensemble' };
+    // Couleurs des vignettes de chants, une par catégorie (stable d'un lancement à l'autre).
+    const TILE_COLORS = ['#7a9e86', '#7489a3', '#c1a05f', '#b07a7a', '#5f8f8a', '#8c7ba3', '#a08a6e'];
     let currentView = 'library';
+
+    function eyebrow() {
+        if (currentView !== 'library') return EYEBROWS[currentView] || '';
+        try { return state.songs.length + ' chants'; } catch (e) { return 'Partitions'; }
+    }
+
+    function tileColor(label) {
+        let h = 0;
+        for (const ch of label) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+        return TILE_COLORS[h % TILE_COLORS.length];
+    }
 
     function decorate() {
         const c = document.getElementById('content');
-        if (!c || c.querySelector(':scope > .ios-large-title')) return;
+        if (!c) return;
+
+        // Vignette colorée devant chaque chant
+        for (const card of c.querySelectorAll('.card:not([data-ios])')) {
+            card.dataset.ios = '1';
+            const badge = card.querySelector('.cat-badge:not(.local-badge)');
+            card.insertAdjacentHTML('afterbegin', `<div class="ios-tile" style="--tile:${tileColor(badge ? badge.textContent : '')}"><svg class="icon"><use href="#ico-music"/></svg></div>`);
+        }
+
+        // Catégories : le menu déroulant devient une rangée de puces
+        for (const select of c.querySelectorAll('select.search-input:not(.ios-hidden)')) {
+            select.classList.add('ios-hidden');
+            const chips = document.createElement('div');
+            chips.className = 'ios-chips';
+            chips.innerHTML = [...select.options].map(o =>
+                `<button data-v="${o.value}" class="${o.value === select.value ? 'active' : ''}">${o.value ? o.textContent : 'Tous'}</button>`).join('');
+            chips.addEventListener('click', (e) => {
+                const b = e.target.closest('button');
+                if (!b) return;
+                chips.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+                select.value = b.dataset.v;
+                select.dispatchEvent(new Event('change'));
+            });
+            select.after(chips);
+        }
+
+        const title = c.querySelector(':scope > .ios-large-title');
+        if (title) {
+            const eb = c.querySelector(':scope > .ios-eyebrow');
+            if (eb && eb.textContent !== eyebrow()) eb.textContent = eyebrow();
+            return;
+        }
         // Pas de grand titre sur les écrans de détail (éditeurs), qui ont leur propre en-tête.
         if (c.querySelector('.editor-head, .coll-editor, .live-topbar')) return;
-        let html = `<h1 class="ios-large-title">${TITLES[currentView] || ''}</h1>`;
+        let html = `<div class="ios-eyebrow">${eyebrow()}</div><h1 class="ios-large-title">${TITLES[currentView] || ''}</h1>`;
         if (currentView === 'favorites' || currentView === 'history') {
             html += `<div class="segmented ios-seg">
                 <button class="${currentView === 'favorites' ? 'active' : ''}" onclick="showView('favorites')">Favoris</button>
