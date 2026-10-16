@@ -114,8 +114,8 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
                  decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
         if action.shouldPerformDownload { return decisionHandler(.download, preferences) }
         guard let url = action.request.url else { return decisionHandler(.cancel, preferences) }
-        let internal = url.host == Self.home.host || ["about", "blob", "data"].contains(url.scheme ?? "")
-        if internal || action.targetFrame?.isMainFrame == false { return decisionHandler(.allow, preferences) }
+        let isInternal = url.host == Self.home.host || ["about", "blob", "data"].contains(url.scheme ?? "")
+        if isInternal || action.targetFrame?.isMainFrame == false { return decisionHandler(.allow, preferences) }
         UIApplication.shared.open(url) // liens externes, mailto:, tel: → Safari / app concernée
         decisionHandler(.cancel, preferences)
     }
