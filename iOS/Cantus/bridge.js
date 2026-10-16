@@ -1,6 +1,7 @@
 // Injecté par l'app iOS dans cantus-app.fr avant tout script de la page.
-// Branche les API web absentes ou limitées de WKWebView sur le natif, sans rien changer à
-// index.html : la PWA du site reste strictement identique pour les navigateurs.
+// Branche les API web absentes ou limitées de WKWebView sur le natif et applique l'habillage
+// iOS (skin.css, fourni par le natif dans window.__cantusCSS), sans rien changer à index.html :
+// la PWA du site reste strictement identique pour les navigateurs.
 (function () {
     const post = (msg) => { try { window.webkit.messageHandlers.cantus.postMessage(msg); } catch (e) {} };
 
@@ -27,29 +28,136 @@
     } catch (e) {}
 
     // Petit retour haptique sur chaque élément tactile, comme dans une app native.
-    const TAPPABLE = 'button, a[href], [onclick], [role="button"], .btn, select, label, input[type="checkbox"], input[type="radio"], summary';
     // 'click' plutôt que 'pointerdown' : un doigt posé pour faire défiler une liste ne vibre pas.
+    const TAPPABLE = 'button, a[href], [onclick], [role="button"], .btn, select, label, input[type="checkbox"], input[type="radio"], summary';
     document.addEventListener('click', (e) => {
         const el = e.target instanceof Element && e.target.closest(TAPPABLE);
-        if (el && !el.disabled) post({ type: 'tap' });
+        if (el && !el.disabled && el !== document.body) post({ type: 'tap' });
     }, { capture: true, passive: true });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // ─── Vues : la barre d'onglets native pilote showView(), et inversement ───
+    const TITLES = { library: 'Bibliothèque', playlist: 'Playlists', planner: 'Messes', favorites: 'Favoris', history: 'Favoris', live: 'Live' };
+    let currentView = 'library';
+
+    function decorate() {
+        const c = document.getElementById('content');
+        if (!c || c.querySelector(':scope > .ios-large-title')) return;
+        // Pas de grand titre sur les écrans de détail (éditeurs), qui ont leur propre en-tête.
+        if (c.querySelector('.editor-head, .coll-editor, .live-topbar')) return;
+        let html = `<h1 class="ios-large-title">${TITLES[currentView] || ''}</h1>`;
+        if (currentView === 'favorites' || currentView === 'history') {
+            html += `<div class="segmented ios-seg">
+                <button class="${currentView === 'favorites' ? 'active' : ''}" onclick="showView('favorites')">Favoris</button>
+                <button class="${currentView === 'history' ? 'active' : ''}" onclick="showView('history')">Historique</button>
+            </div>`;
+        }
+        c.insertAdjacentHTML('afterbegin', html);
+    }
+
+    function hookShowView() {
+        if (typeof window.showView !== 'function' || window.showView.__ios) return;
+        const original = window.showView;
+        let booted = false;
+        window.showView = function (v, from) {
+            // Au démarrage la page affiche la Bibliothèque : on rouvre plutôt le dernier onglet.
+            // (from === 'native' : appui sur la barre d'onglets, toujours respecté.)
+            if (from === 'native') booted = true;
+            if (!booted) {
+                booted = true;
+                let saved = null;
+                try { saved = window.__cantusTab || localStorage.getItem('cantus_ios_tab'); } catch (e) {}
+                if (v === 'library' && saved && TITLES[saved]) v = saved;
+            }
+            try { localStorage.setItem('cantus_ios_tab', v); } catch (e) {}
+            const changed = v !== currentView;
+            currentView = v;
+            document.body.dataset.view = v;
+            const r = original.call(this, v);
+            decorate();
+            if (changed) window.scrollTo(0, 0);
+            post({ type: 'view', view: v });
+            return r;
+        };
+        window.showView.__ios = true;
+    }
+
+    // ─── Écrans plein écran (visionneuse, feuilles, modales…) : on masque les barres natives ───
+    function overlayOpen() {
+        for (const el of document.querySelectorAll('body > *, #app > *')) {
+            if (el.id === 'app' || el.id === 'content' || el.id === 'toast-container') continue;
+            const s = getComputedStyle(el);
+            if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden') continue;
+            const r = el.getBoundingClientRect();
+            if (r.width >= innerWidth * .9 && r.height >= innerHeight * .9) return true;
+        }
+        return false;
+    }
+    // Visionneuse ou annotation : plein écran total (barre d'état et barre d'accueil masquées).
+    function immersiveOpen() {
+        const perf = document.getElementById('performance-mode');
+        return !!(perf && getComputedStyle(perf).display !== 'none') ||
+            !!document.querySelector('#annot-editor.open');
+    }
+    let lastState = '', pending = false;
+    function checkOverlay() {
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(() => {
+            pending = false;
+            const open = overlayOpen(), immersive = immersiveOpen();
+            if (open + '/' + immersive === lastState) return;
+            lastState = open + '/' + immersive;
+            post({ type: 'overlay', open, immersive });
+        });
+    }
+
+    function init() {
         // Plein écran bord à bord : la page gère déjà env(safe-area-inset-*).
         const vp = document.querySelector('meta[name="viewport"]');
         if (vp && !/viewport-fit/.test(vp.content)) vp.content += ', viewport-fit=cover';
 
-        // Pas de surbrillance grise ni de menu « copier/ouvrir le lien » au toucher long.
         const style = document.createElement('style');
-        style.textContent = '*{-webkit-tap-highlight-color:transparent}a,button,img{-webkit-touch-callout:none}';
+        style.id = 'cantus-ios-skin';
+        style.textContent = (window.__cantusCSS || '') +
+            '*{-webkit-tap-highlight-color:transparent}a,button,img{-webkit-touch-callout:none}';
         document.head.appendChild(style);
 
-        // Couleur de la barre d'état synchronisée avec le thème clair/sombre de l'app.
-        const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) {
-            const sync = () => post({ type: 'theme', color: meta.getAttribute('content') });
-            new MutationObserver(sync).observe(meta, { attributes: true, attributeFilter: ['content'] });
-            sync();
+        // Le document défile désormais (et non plus <main>) : la page mémorise/restaure sa
+        // position via #content.scrollTop, qu'on redirige vers le défilement de la fenêtre.
+        const content = document.getElementById('content');
+        if (content) {
+            Object.defineProperty(content, 'scrollTop', {
+                get: () => window.scrollY,
+                set: (v) => window.scrollTo(0, v)
+            });
         }
-    });
+
+        hookShowView();
+        document.body.dataset.view = currentView;
+        new MutationObserver(() => { decorate(); checkOverlay(); })
+            .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] });
+        decorate();
+
+        // Thème clair/sombre de l'app → apparence des barres natives et de la barre d'état.
+        const html = document.documentElement;
+        const syncTheme = () => post({ type: 'theme', dark: html.getAttribute('data-theme') !== 'light' });
+        new MutationObserver(syncTheme).observe(html, { attributes: true, attributeFilter: ['data-theme'] });
+        syncTheme();
+
+        // État de synchro (« À jour » / « Hors-ligne ») et accès admin → barre native.
+        const sync = document.getElementById('sync-text');
+        const dash = document.getElementById('header-dash-btn');
+        const syncChrome = () => post({
+            type: 'chrome',
+            status: sync ? sync.textContent : '',
+            admin: !!(dash && dash.classList.contains('visible'))
+        });
+        if (sync) new MutationObserver(syncChrome).observe(sync, { childList: true, characterData: true, subtree: true });
+        if (dash) new MutationObserver(syncChrome).observe(dash, { attributes: true, attributeFilter: ['class'] });
+        syncChrome();
+        checkOverlay();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();

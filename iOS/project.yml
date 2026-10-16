@@ -16,8 +16,10 @@ targets:
     platform: iOS
     sources:
       - path: Cantus
-        excludes: [bridge.js]
+        excludes: [bridge.js, skin.css]
       - path: Cantus/bridge.js
+        buildPhase: resources
+      - path: Cantus/skin.css
         buildPhase: resources
     settings:
       base:

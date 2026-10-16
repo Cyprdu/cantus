@@ -1,0 +1,426 @@
+/* Habillage iOS de Cantus, injecté uniquement dans l'app (voir bridge.js).
+   La PWA de cantus-app.fr n'est pas touchée : on ne fait que surcharger ses styles.
+   L'en-tête et les onglets web sont remplacés par les barres natives Liquid Glass ;
+   --ios-top / --ios-bottom sont la hauteur de ces barres, fournie par le natif. */
+
+/* ─── Palette système iOS (sombre / clair) ─── */
+:root {
+    --ios-top: calc(env(safe-area-inset-top) + 54px);
+    --ios-bottom: calc(env(safe-area-inset-bottom) + 64px);
+    --gutter: 16px;
+    --bg: #000;
+    --surface: #1c1c1e;
+    --surface-2: #2c2c2e;
+    --surface-3: #3a3a3c;
+    --border: rgba(84, 84, 88, .55);
+    --sep: rgba(84, 84, 88, .65);
+    --text: #fff;
+    --text-2: rgba(235, 235, 245, .6);
+    --text-3: rgba(235, 235, 245, .32);
+    --accent: #d6a57c;
+    --accent-dim: rgba(214, 165, 124, .16);
+    --accent-glow: rgba(214, 165, 124, .38);
+    --on-accent: #1a1208;
+    --danger: #ff453a;
+    --danger-dim: rgba(255, 69, 58, .16);
+    --success: #30d158;
+    --fill: rgba(118, 118, 128, .24);
+    --fill-2: rgba(118, 118, 128, .16);
+    --sheet: #1c1c1e;
+    --cell: #2c2c2e;
+    --glass: rgba(38, 38, 40, .62);
+    --glass-strong: rgba(30, 30, 32, .8);
+    --glass-edge: rgba(255, 255, 255, .14);
+    --glass-shine: rgba(255, 255, 255, .1);
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --r-xl: 26px;
+    --spring: cubic-bezier(.32, .72, 0, 1);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    --shadow-lg: 0 18px 50px rgba(0, 0, 0, .45);
+}
+:root[data-theme="light"] {
+    --bg: #f2f2f7;
+    --surface: #fff;
+    --surface-2: #f2f2f7;
+    --surface-3: #e5e5ea;
+    --border: rgba(60, 60, 67, .16);
+    --sep: rgba(60, 60, 67, .29);
+    --text: #000;
+    --text-2: rgba(60, 60, 67, .6);
+    --text-3: rgba(60, 60, 67, .3);
+    --accent: #a8693f;
+    --accent-dim: rgba(168, 105, 63, .12);
+    --accent-glow: rgba(168, 105, 63, .3);
+    --on-accent: #fff;
+    --danger: #ff3b30;
+    --danger-dim: rgba(255, 59, 48, .12);
+    --success: #34c759;
+    --fill: rgba(120, 120, 128, .16);
+    --fill-2: rgba(120, 120, 128, .1);
+    --sheet: #f2f2f7;
+    --cell: #fff;
+    --glass: rgba(255, 255, 255, .6);
+    --glass-strong: rgba(250, 250, 252, .82);
+    --glass-edge: rgba(0, 0, 0, .08);
+    --glass-shine: rgba(255, 255, 255, .7);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .06);
+    --shadow-lg: 0 18px 50px rgba(0, 0, 0, .18);
+}
+
+/* ─── Socle : typographie SF, défilement natif du document ─── */
+html, body { height: auto !important; overflow: visible !important; }
+body {
+    font: 17px/1.35 -apple-system, "SF Pro Text", system-ui, sans-serif;
+    background: var(--bg);
+    -webkit-user-select: none;
+    user-select: none;
+}
+input, textarea, [contenteditable] { -webkit-user-select: text; user-select: text; }
+#app { height: auto !important; min-height: 100dvh; display: block !important; background: var(--bg); }
+header, nav, .mobile-nav-bar, #nav-drawer { display: none !important; }
+main {
+    overflow: visible !important;
+    padding: var(--ios-top) var(--gutter) calc(var(--ios-bottom) + 28px) !important;
+}
+#content.view-enter { animation: iosFade .35s var(--spring); }
+@keyframes iosFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.icon { width: 20px; height: 20px; }
+.icon-sm { width: 15px; height: 15px; }
+
+/* Grand titre (inséré par bridge.js), relayé par le titre de la barre native au défilement */
+.ios-large-title {
+    margin: 6px 4px 10px;
+    font-size: 34px;
+    line-height: 41px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    color: var(--text);
+}
+
+/* Favoris | Historique : segmenté natif dans l'onglet Favoris */
+.ios-seg { margin: 0 0 14px; }
+
+/* ─── Boutons : capsules iOS 26 ─── */
+.btn {
+    min-height: 44px;
+    padding: 11px 20px;
+    border: 0 !important;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    transition: transform .25s var(--spring), opacity .2s, background .2s;
+}
+.btn:active { transform: scale(.96); opacity: .8; }
+.btn-primary, .btn-primary:hover { background: var(--accent); color: var(--on-accent) !important; }
+.btn-ghost, .btn-ghost:hover { background: var(--fill); color: var(--accent); }
+.btn-danger, .btn-danger:hover { background: var(--danger-dim); color: var(--danger); }
+.btn-icon { min-width: 38px; min-height: 38px; padding: 8px; color: var(--accent); background: transparent; border-radius: 50%; }
+.btn-icon:hover { background: transparent; }
+.btn-icon:active { background: var(--fill); }
+.btn:disabled { opacity: .35; }
+.planner-header { gap: 10px; margin-bottom: 18px; }
+.planner-header .btn { flex: 1; }
+/* « Nouvelle playlist / messe » et « Importer » passent dans le bouton + de la barre native */
+body[data-view="playlist"] #content > .planner-header,
+body[data-view="planner"] #content > .planner-header { display: none; }
+
+/* ─── Recherche : champ capsule, collé sous la barre native ─── */
+.search-wrap {
+    top: var(--ios-top) !important;
+    margin: 0 calc(-1 * var(--gutter)) 6px !important;
+    padding: 6px var(--gutter) 10px !important;
+    background: linear-gradient(var(--bg) 70%, transparent) !important;
+}
+.search-input, select.search-input {
+    height: 44px;
+    padding: 0 44px 0 40px !important;
+    border: 0 !important;
+    border-radius: 999px;
+    background-color: var(--fill) !important;
+    color: var(--text);
+    font-size: 17px;
+}
+select.search-input { padding-left: 18px !important; margin-bottom: 16px !important; }
+.search-input::placeholder { color: var(--text-2); }
+.search-input:focus { box-shadow: 0 0 0 2px var(--accent-glow); }
+.search-field .icon { left: 14px; width: 18px; height: 18px; color: var(--text-2); }
+.search-clear { width: 30px; height: 30px; right: 7px; background: var(--fill); }
+.search-field .search-clear .icon { width: 13px; height: 13px; color: var(--text-2); }
+
+/* ─── Listes groupées en encart (inset grouped) ─── */
+:is(.card, .messe-card, .playlist-card, .picker-row) {
+    position: relative;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: var(--surface) !important;
+    box-shadow: none;
+    transition: background .2s;
+}
+:is(.card, .messe-card, .playlist-card, .picker-row):active { background: var(--surface-2) !important; }
+:is(.card, .messe-card, .playlist-card, .picker-row)::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--sep);
+    transform: scaleY(.5);
+    transform-origin: bottom;
+    pointer-events: none;
+}
+.playlist-card::after { left: 92px; }
+/* premier / dernier d'une suite de lignes : coins arrondis, pas de séparateur en bas */
+:is(.card, .messe-card, .playlist-card, .picker-row):first-child,
+:not(.card, .messe-card, .playlist-card, .picker-row) + :is(.card, .messe-card, .playlist-card, .picker-row) {
+    border-top-left-radius: var(--r-xl);
+    border-top-right-radius: var(--r-xl);
+}
+:is(.card, .messe-card, .playlist-card, .picker-row):last-child,
+:is(.card, .messe-card, .playlist-card, .picker-row):has(+ :not(.card, .messe-card, .playlist-card, .picker-row)) {
+    border-bottom-left-radius: var(--r-xl);
+    border-bottom-right-radius: var(--r-xl);
+    margin-bottom: 20px !important;
+}
+:is(.card, .messe-card, .playlist-card, .picker-row):last-child::after,
+:is(.card, .messe-card, .playlist-card, .picker-row):has(+ :not(.card, .messe-card, .playlist-card, .picker-row))::after { display: none; }
+
+.card { min-height: 58px; padding: 9px 8px 9px 16px; gap: 8px; }
+.card-title { font-size: 17px; font-weight: 400; letter-spacing: -.01em; line-height: 1.25; }
+.cat-badge, .cat-badge.local-badge {
+    margin: 2px 0 0 !important;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.card-content > div:has(.cat-badge) { gap: 0 !important; }
+.cat-badge + .cat-badge::before { content: "\00a0·\00a0"; }
+.card .btn-icon { color: var(--text-3); min-width: 34px; min-height: 34px; padding: 7px; }
+.card .btn-icon.is-downloaded, .card .btn-icon.has-annot { color: var(--accent); }
+/* « Lire » / « Ouvrir » / jouer : pastille ronde dorée, icône seule */
+:is(.card, .messe-card, .playlist-card) .btn-primary {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 !important;
+    border-radius: 50%;
+    font-size: 0;
+    gap: 0;
+}
+:is(.card, .messe-card, .playlist-card) .btn-primary .icon { width: 13px; height: 13px; margin-left: 1px; }
+
+.messe-card { min-height: 64px; padding: 10px 8px 10px 16px; }
+.messe-name { font-size: 17px; font-weight: 600; }
+.messe-meta { font-size: 13px; color: var(--text-2); }
+.playlist-card { padding: 10px 8px 10px 12px; gap: 12px; }
+.playlist-cover { width: 64px; height: 64px; border: 0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+.playlist-name { font-size: 17px; }
+.playlist-desc { font-size: 14px; }
+.playlist-meta { font-size: 12px; color: var(--text-2); }
+
+/* Accordéon de catégories = sections groupées */
+.cat-group { margin-bottom: 12px; border: 0; border-radius: var(--r-xl); background: var(--surface); }
+.cat-group-header { min-height: 54px; padding: 0 16px; background: var(--surface); font-size: 17px; font-weight: 600; }
+.cat-group-header:active { background: var(--surface-2); }
+.cat-group-count { background: none; color: var(--text-2); font-size: 15px; font-weight: 400; padding: 0; }
+.cat-group-chevron { width: 14px; height: 14px; color: var(--text-3); transition: transform .35s var(--spring); }
+.cat-group-body-inner { padding: 0; background: var(--surface); box-shadow: inset 0 .5px 0 var(--sep); }
+.cat-group-body-inner :is(.card, .cat-group) { border-radius: 0 !important; margin: 0 !important; }
+.cat-group .cat-group { box-shadow: inset 0 .5px 0 var(--sep); }
+.cat-group .cat-group-header { font-weight: 500; padding-left: 28px; }
+
+.group-title, .coll-section-title {
+    margin: 22px 16px 7px;
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+/* ─── Contrôles ─── */
+.segmented { padding: 2px; gap: 0; border: 0; border-radius: 999px; background: var(--fill-2); }
+.segmented button { padding: 7px 6px; border-radius: 999px; color: var(--text); font-size: 14px; font-weight: 500; transition: background .3s var(--spring); }
+.segmented button.active { background: var(--surface-3); box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 3px 1px rgba(0, 0, 0, .04); font-weight: 600; }
+:root[data-theme="light"] .segmented button.active { background: #fff; }
+
+.toggle-switch { width: 51px; height: 31px; }
+.toggle-track { border: 0 !important; background: var(--fill) !important; }
+.toggle-thumb {
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    background: #fff !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .15), 0 1px 1px rgba(0, 0, 0, .16);
+    transition: transform .35s var(--spring);
+}
+.toggle-switch input:checked ~ .toggle-track { background: var(--success) !important; }
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); }
+
+.input-field {
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 0 !important;
+    border-radius: 12px;
+    background: var(--fill);
+    color: var(--text);
+    font-size: 17px;
+}
+.input-field:focus { box-shadow: 0 0 0 2px var(--accent-glow); }
+.field-label { color: var(--text-2); font-size: 13px; font-weight: 400; text-transform: uppercase; margin-left: 4px; }
+.chip { min-height: 34px; border: 0; background: var(--fill); color: var(--text); font-size: 14px; }
+.chip.active { background: var(--accent); color: var(--on-accent); }
+.choice-btn { border: 0; border-radius: var(--r-lg); background: var(--cell); }
+.empty-state { color: var(--text-2); padding: 60px 24px; }
+.empty-state .icon { width: 56px; height: 56px; color: var(--text-3); opacity: 1; }
+.empty-state p { font-size: 15px; }
+
+/* ─── Feuilles (sheets) : réglages, modales et dialogues montent du bas ─── */
+.drawer-backdrop { background: rgba(0, 0, 0, .35); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.drawer-panel, .drawer-panel.drawer-panel-right {
+    top: calc(env(safe-area-inset-top) + 10px) !important;
+    bottom: 0 !important;
+    left: max(0px, calc(50% - 340px)) !important;
+    right: max(0px, calc(50% - 340px)) !important;
+    width: auto !important;
+    padding: 0 0 env(safe-area-inset-bottom) !important;
+    border: 0 !important;
+    border-radius: 38px 38px 0 0;
+    background: var(--sheet);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, .25);
+    transform: translateY(105%) !important;
+    transition: transform .5s var(--spring) !important;
+}
+.drawer-overlay.open .drawer-panel { transform: none !important; }
+.drawer-panel::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 36px;
+    height: 5px;
+    margin-left: -18px;
+    border-radius: 3px;
+    background: var(--text-3);
+}
+.drawer-head { padding: 22px 20px 6px; border: 0; }
+.drawer-head h3 { font-size: 28px; font-weight: 700; letter-spacing: .01em; }
+.drawer-head .btn-icon, .settings-head .btn-icon { background: var(--fill); color: var(--text-2); min-width: 32px; min-height: 32px; padding: 6px; }
+.drawer-body { padding: 8px 16px 24px; }
+.settings-section { padding: 2px 16px; margin-bottom: 22px; border: 0; border-radius: var(--r-xl); background: var(--cell); }
+.settings-section-title { margin: 12px 0 2px; color: var(--text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.settings-section-title .icon { color: var(--accent); }
+.settings-row { min-height: 48px; padding: 10px 0; border-bottom: .5px solid var(--sep); }
+.settings-row-label { font-size: 17px; font-weight: 400; }
+.settings-row-desc { font-size: 13px; color: var(--text-2); }
+.settings-note { color: var(--text-2); font-size: 13px; }
+
+/* Modales → feuille flottante en verre (style iOS 26) */
+:is(.modal-overlay, #export-modal, #admin-modal, #import-modal, #offline-download-modal, #new-messe-modal,
+    #edit-song-modal, #song-request-modal, #camera-modal, #onboarding-modal, #download-overlay,
+    #live-chat-modal, #live-participants-modal) {
+    align-items: flex-end !important;
+    padding: 0 8px calc(8px + env(safe-area-inset-bottom)) !important;
+    background: rgba(0, 0, 0, .3) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+:is(.modal-overlay, #export-modal, #admin-modal, #import-modal, #offline-download-modal, #new-messe-modal,
+    #edit-song-modal, #song-request-modal, #camera-modal, #onboarding-modal, #download-overlay,
+    #live-chat-modal, #live-participants-modal) > :is(.modal-card, .settings-card, .cam-modal-card, .onboard-card, .dl-card) {
+    max-width: 560px !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 24px);
+    overflow-y: auto;
+    padding: 28px 22px 22px;
+    border: .5px solid var(--glass-edge);
+    border-radius: 38px;
+    background: var(--glass-strong);
+    backdrop-filter: blur(40px) saturate(190%);
+    -webkit-backdrop-filter: blur(40px) saturate(190%);
+    box-shadow: inset 0 1px 0 var(--glass-shine), var(--shadow-lg);
+    animation: iosSheetIn .5s var(--spring);
+}
+@keyframes iosSheetIn { from { transform: translateY(110%); } to { transform: none; } }
+:is(.modal-card, .settings-card, .cam-modal-card, .onboard-card, .dl-card) h3 { font-size: 22px; font-weight: 700; }
+.settings-head h3 { font-size: 22px; }
+.settings-card .settings-section { background: var(--fill-2); }
+.modal-actions, .cam-modal-actions, .onboard-actions, .admin-actions { gap: 10px; }
+:is(.modal-actions, .cam-modal-actions, .onboard-actions, .admin-actions) .btn { min-height: 50px; font-size: 17px; }
+
+/* Sélecteur de chants et dashboard admin : plein écran, en-tête en verre */
+#song-picker, #admin-dashboard { animation: iosSheetIn .5s var(--spring) !important; }
+.picker-head, .picker-search, .adash-top {
+    border: 0;
+    background: var(--glass-strong);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+.picker-search { box-shadow: inset 0 -.5px 0 var(--sep); }
+.picker-title h3 { font-size: 17px; }
+.picker-body { padding: 16px; }
+.picker-row { min-height: 58px; padding: 8px 10px 8px 16px; }
+.picker-row.added { background: color-mix(in srgb, var(--accent) 10%, var(--surface)) !important; }
+.adash-card, .adash-form, .adash-stat { border: 0; border-radius: var(--r-xl); background: var(--surface); }
+.adash-row { border-bottom: .5px solid var(--sep); }
+.adash-nav { border: 0; background: transparent; }
+.adash-nav-btn { border-radius: 999px; }
+
+/* Éditeurs de déroulé */
+.coll-row { border: 0; border-radius: var(--r-lg); background: var(--surface); }
+.coll-row.is-note { box-shadow: inset 3px 0 0 var(--accent); }
+.coll-add-bar { bottom: var(--ios-bottom); background: linear-gradient(to bottom, transparent, var(--bg) 30%); box-shadow: none; }
+.coll-add-bar .btn { min-height: 50px; }
+.coll-empty { border: 0; border-radius: var(--r-xl); background: var(--surface); }
+.editor-col { border: 0; border-radius: var(--r-xl); }
+.editor-head h3 { font-size: 22px; font-weight: 700; }
+
+/* ─── Mode Live ─── */
+.live-card { border: 0; border-radius: 30px; background: var(--surface); box-shadow: none; }
+.live-now-card { border: 0; border-radius: var(--r-xl); background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--danger); }
+.live-chat-fab { top: calc(var(--ios-top) + 8px); }
+#live-chat-banner {
+    top: calc(env(safe-area-inset-top) + 6px);
+    left: 8px;
+    right: 8px;
+    border: .5px solid var(--glass-edge);
+    border-radius: 26px;
+    background: var(--glass-strong);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+
+/* ─── Toasts et pastille de téléchargement : capsules en verre au-dessus de la barre d'onglets ─── */
+#toast-container { bottom: calc(var(--ios-bottom) + 14px); }
+.toast, #dl-pill {
+    border: .5px solid var(--glass-edge);
+    background: var(--glass-strong);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: inset 0 1px 0 var(--glass-shine), 0 10px 30px rgba(0, 0, 0, .25);
+}
+.toast { padding: 12px 18px; font-size: 15px; }
+#dl-pill { bottom: calc(var(--ios-bottom) + 14px) !important; right: var(--gutter); }
+.dl-pill-ring::after { background: var(--glass-strong); }
+
+/* ─── Visionneuse (toujours sombre) : commandes en verre liquide ─── */
+:is(.viewer-tool-group, #mode-toggle-btn, .nav-page-btn, .live-chat-fab, #perf-hud, .indicator-pill) {
+    border: .5px solid rgba(255, 255, 255, .2);
+    background: rgba(44, 44, 46, .42);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 8px 24px rgba(0, 0, 0, .35);
+}
+.viewer-tool-btn { height: 44px; min-width: 44px; }
+.nav-page-btn { width: 58px; height: 58px; }
+.nav-page-btn:active { background: rgba(214, 165, 124, .45); }

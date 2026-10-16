@@ -13,6 +13,15 @@ GitHub compile le `.ipa`, et vous l'installez depuis Windows.
   *App-Bound Domains*. Le shell, les PDF et les paroles déjà ouverts ou téléchargés restent
   disponibles sans réseau. Le tout premier lancement doit se faire en ligne ; sinon un écran
   natif « Réessayer » s'affiche.
+- **Design iOS propre à l'app** (la PWA du site garde son design ; les deux restent
+  compatibles, mode Live compris) :
+  - barre d'onglets et barres de navigation natives en **Liquid Glass** (iOS 26 ; style
+    translucide classique avant) : Bibliothèque, Playlists, Messes, Favoris (avec Historique),
+    Live ; boutons Réglages, « + » (nouvelle playlist/messe, importer) et Dashboard admin ;
+  - habillage `Cantus/skin.css` : typographie SF, grands titres, listes groupées iOS, champs
+    capsule, interrupteurs iOS, réglages et dialogues en feuilles qui montent du bas, en verre ;
+  - les barres disparaissent en plein écran (partition, éditeurs) avec la barre d'état ;
+  - second appui sur un onglet pour remonter en haut, dernier onglet rouvert au lancement.
 - **Ajouts natifs**, injectés par `Cantus/bridge.js` sans modifier `index.html` (la PWA du
   site ne change pas) :
   - retour haptique à chaque appui sur un bouton, et `navigator.vibrate` relié au moteur haptique ;
