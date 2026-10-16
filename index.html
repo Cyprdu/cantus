@@ -3730,7 +3730,7 @@
                     </button>
                     <div class="cat-group-body-wrap ${open ? 'open' : ''}" id="pick-wrap-${c.key}"><div class="cat-group-body"><div class="cat-group-body-inner">
                         <div class="picker-select-all-wrap" id="pick-all-${c.key}">${pickerSelectAllHtml(c.key, items)}</div>
-                        ${items.map(pickerRowHtml).join('')}
+                        ${renderGroupBody({ key: c.key, items }, list => list.map(pickerRowHtml).join(''), 'togglePickerCategory', 'pick', pickerExpanded)}
                     </div></div></div>
                 </div>`;
             }).join('') : emptyState('ico-music', 'La bibliothèque est vide.');
@@ -5875,6 +5875,7 @@
         if (!cat && !q) return renderCategoryAccordion(state.songs);
 
         const filtered = state.songs.filter(s => (!cat || effectiveCategoriesForSong(s).includes(cat)) && songMatchesSearch(s, q));
+        if (cat && !q && filtered.length) return renderGroupBody({ key: cat, items: filtered });
         return renderList(filtered, 'ico-music', 'Aucun chant trouvé.');
     }
 
@@ -5902,20 +5903,21 @@
 
     // Corps d'une catégorie : liste plate, ou sous-listes dépliables si les chants ont un `sub`
     // (ex. Ordinaire de la messe → Messe de Saint Augustin …). Chants sans `sub` en tête.
-    function renderGroupBody(g) {
-        if (!g.items.some(s => s.sub)) return renderList(g.items, 'ico-music', '');
+    // Paramétrable pour servir aussi au sélecteur de chants (rows/toggle/prefix/expanded).
+    function renderGroupBody(g, rows = items => renderList(items, 'ico-music', ''), toggle = 'toggleLibCategory', prefix = 'cat', expanded = expandedLibCategories) {
+        if (!g.items.some(s => s.sub)) return rows(g.items);
         const subs = [...new Set(g.items.map(s => s.sub).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
         const plain = g.items.filter(s => !s.sub);
-        return (plain.length ? renderList(plain, 'ico-music', '') : '') + subs.map((name, i) => {
-            const items = g.items.filter(s => s.sub === name), k = `${g.key}-sub${i}`, open = expandedLibCategories.has(k);
+        return (plain.length ? rows(plain) : '') + subs.map((name, i) => {
+            const items = g.items.filter(s => s.sub === name), k = `${g.key}-sub${i}`, open = expanded.has(k);
             return `
             <div class="cat-group">
-                <button class="cat-group-header" onclick="toggleLibCategory('${k}')">
+                <button class="cat-group-header" onclick="${toggle}('${k}')">
                     <span>${escHtml(name)}</span>
                     <span class="cat-group-count">${items.length}</span>
-                    <svg class="icon icon-sm cat-group-chevron ${open ? 'open' : ''}" id="cat-chevron-${k}"><use href="#ico-chevron"/></svg>
+                    <svg class="icon icon-sm cat-group-chevron ${open ? 'open' : ''}" id="${prefix}-chevron-${k}"><use href="#ico-chevron"/></svg>
                 </button>
-                <div class="cat-group-body-wrap ${open ? 'open' : ''}" id="cat-wrap-${k}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderList(items, 'ico-music', '')}</div></div></div>
+                <div class="cat-group-body-wrap ${open ? 'open' : ''}" id="${prefix}-wrap-${k}"><div class="cat-group-body"><div class="cat-group-body-inner">${rows(items)}</div></div></div>
             </div>`;
         }).join('');
     }
