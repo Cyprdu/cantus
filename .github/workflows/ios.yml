@@ -1,0 +1,54 @@
+# Compile l'app iOS (dossier iOS/) sur un Mac de GitHub et publie un .ipa non signé.
+# Ne se déclenche que sur les changements de iOS/ : les commits du mode admin (partitions,
+# paroles, JSON) ne relancent pas de build.
+name: iOS (.ipa)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['iOS/**', '.github/workflows/ios.yml']
+
+permissions:
+  contents: write # pour mettre à jour la release « ios-latest »
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Générer le projet Xcode
+        working-directory: iOS
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Compiler (sans signature)
+        working-directory: iOS
+        run: |
+          xcodebuild -project Cantus.xcodeproj -scheme Cantus -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empaqueter le .ipa
+        working-directory: iOS
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/Cantus.app Payload/
+          zip -qry Cantus.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cantus-ipa
+          path: iOS/Cantus.ipa
+
+      - name: Publier dans la release « ios-latest »
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view ios-latest >/dev/null 2>&1 || \
+            gh release create ios-latest --prerelease --title "Cantus iOS (dernière version)" \
+              --notes "Fichier .ipa non signé, à installer avec AltStore ou Sideloadly (voir iOS/README.md)."
+          gh release upload ios-latest iOS/Cantus.ipa --clobber
