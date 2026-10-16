@@ -1758,6 +1758,7 @@
         { key: 'communion',     label: 'Communion' },
         { key: 'marie',         label: 'Marie' },
         { key: 'polyphonique',  label: 'Polyphonique' },
+        { key: 'ordinaire',     label: 'Ordinaire de la messe' },
         { key: 'autre',         label: 'Autre' }
     ];
 
@@ -4946,6 +4947,9 @@
                         id:       f.sha,
                         type:     'song',
                         category: category,
+                        // Sous-dossier éventuel (ex. partitions/ordinaire/<Messe>/<chant>.pdf) : sert à
+                        // regrouper la catégorie en sous-listes dans la bibliothèque.
+                        sub:      segments.length > 2 ? segments[1] : null,
                         name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
                         path:     f.path,
                         size:     f.size || null,
@@ -5891,7 +5895,27 @@
                     <span class="cat-group-count">${g.items.length}</span>
                     <svg class="icon icon-sm cat-group-chevron ${isOpen ? 'open' : ''}" id="cat-chevron-${g.key}"><use href="#ico-chevron"/></svg>
                 </button>
-                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="cat-wrap-${g.key}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderList(g.items, 'ico-music', '')}</div></div></div>
+                <div class="cat-group-body-wrap ${isOpen ? 'open' : ''}" id="cat-wrap-${g.key}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderGroupBody(g)}</div></div></div>
+            </div>`;
+        }).join('');
+    }
+
+    // Corps d'une catégorie : liste plate, ou sous-listes dépliables si les chants ont un `sub`
+    // (ex. Ordinaire de la messe → Messe de Saint Augustin …). Chants sans `sub` en tête.
+    function renderGroupBody(g) {
+        if (!g.items.some(s => s.sub)) return renderList(g.items, 'ico-music', '');
+        const subs = [...new Set(g.items.map(s => s.sub).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+        const plain = g.items.filter(s => !s.sub);
+        return (plain.length ? renderList(plain, 'ico-music', '') : '') + subs.map((name, i) => {
+            const items = g.items.filter(s => s.sub === name), k = `${g.key}-sub${i}`, open = expandedLibCategories.has(k);
+            return `
+            <div class="cat-group">
+                <button class="cat-group-header" onclick="toggleLibCategory('${k}')">
+                    <span>${escHtml(name)}</span>
+                    <span class="cat-group-count">${items.length}</span>
+                    <svg class="icon icon-sm cat-group-chevron ${open ? 'open' : ''}" id="cat-chevron-${k}"><use href="#ico-chevron"/></svg>
+                </button>
+                <div class="cat-group-body-wrap ${open ? 'open' : ''}" id="cat-wrap-${k}"><div class="cat-group-body"><div class="cat-group-body-inner">${renderList(items, 'ico-music', '')}</div></div></div>
             </div>`;
         }).join('');
     }

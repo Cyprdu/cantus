@@ -28,6 +28,10 @@
     "label": "Polyphonique"
   },
   {
+    "key": "ordinaire",
+    "label": "Ordinaire de la messe"
+  },
+  {
     "key": "autre",
     "label": "Autre"
   }
