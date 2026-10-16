@@ -340,6 +340,39 @@ final class MainController: UITabBarController, UITabBarControllerDelegate, WKNa
         webView.reload() // iOS a tué le moteur web (mémoire) : on recharge
     }
 
+    // alert() / confirm() / prompt() de la page → alertes iOS natives (sans ça WKWebView les ignore :
+    // confirm() renverrait toujours false et aucune suppression ne passerait).
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler() })
+        presentDialog(alert, orElse: completionHandler)
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Annuler", style: .cancel) { _ in completionHandler(false) })
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(true) })
+        presentDialog(alert) { completionHandler(false) }
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+        alert.addTextField { $0.text = defaultText; $0.clearButtonMode = .whileEditing }
+        alert.addAction(UIAlertAction(title: "Annuler", style: .cancel) { _ in completionHandler(nil) })
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(alert.textFields?.first?.text) })
+        presentDialog(alert) { completionHandler(nil) }
+    }
+
+    /// Le gestionnaire doit toujours être rappelé, même si une autre fenêtre est déjà affichée.
+    private func presentDialog(_ alert: UIAlertController, orElse fallback: @escaping () -> Void) {
+        guard presentedViewController == nil else { return fallback() }
+        selection.selectionChanged()
+        present(alert, animated: true)
+    }
+
     func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                  initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType,
                  decisionHandler: @escaping (WKPermissionDecision) -> Void) {

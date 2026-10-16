@@ -389,6 +389,8 @@ select.search-input { padding-left: 18px !important; margin-bottom: 16px !import
 .live-card { border: 0; border-radius: 30px; background: var(--surface); box-shadow: none; }
 .live-now-card { border: 0; border-radius: var(--r-xl); background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--danger); }
 .live-chat-fab { top: calc(var(--ios-top) + 8px); }
+.live-code-big { font-size: 44px; letter-spacing: .22em; color: var(--accent); }
+.input-field.live-code-input { height: 60px; font-size: 26px; font-weight: 700; letter-spacing: .3em; text-align: center; border-radius: 18px; }
 #live-chat-banner {
     top: calc(env(safe-area-inset-top) + 6px);
     left: 8px;

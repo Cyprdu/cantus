@@ -52,6 +52,6 @@ targets:
                 UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
         # App-Bound Domains : c'est ce qui autorise le service worker (sw.js) dans WKWebView,
         # donc tout le hors-ligne de la PWA (shell + cache des PDF/paroles).
-        WKAppBoundDomains: [cantus-app.fr, api.github.com, raw.githubusercontent.com]
+        WKAppBoundDomains: [cantus-app.fr, api.github.com, raw.githubusercontent.com, cantus-live.cyprien-veyret.workers.dev]
         NSCameraUsageDescription: Cantus utilise la caméra pour scanner les QR codes de playlists et pour tourner les pages d'un mouvement de tête.
         NSPhotoLibraryUsageDescription: Cantus accède à vos photos pour choisir la couverture d'une playlist.

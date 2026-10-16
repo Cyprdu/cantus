@@ -86,11 +86,6 @@ jobs:
           xcrun simctl bootstatus "$UDID"
           xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Cantus.app
           mkdir shots
-          # Diagnostic réseau : résultat des appels GitHub affiché en clair dans la capture.
-          xcrun simctl launch "$UDID" fr.cantus-app.cantus -CantusEval "Promise.all([fetch('https://api.github.com/rate_limit').then(r=>'api '+r.status+' reste '+r.headers.get('x-ratelimit-remaining')),fetch('https://raw.githubusercontent.com/Cyprdu/cantus/main/categories.json').then(r=>'raw '+r.status)].map(p=>p.catch(e=>'ERR '+e))).then(t=>document.body.insertAdjacentHTML('beforeend','<div style=\"position:fixed;top:40%;left:0;right:0;z-index:99999;background:#c00;color:#fff;font:20px sans-serif;padding:16px\">'+t.join('<br>')+'</div>'))"
-          sleep 20
-          xcrun simctl io "$UDID" screenshot shots/diag.png
-          xcrun simctl terminate "$UDID" fr.cantus-app.cantus
           for TAB in library playlist planner favorites live; do
             xcrun simctl launch "$UDID" fr.cantus-app.cantus -CantusTab "$TAB" \
               -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open')"
@@ -106,6 +101,11 @@ jobs:
             -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open');openSettings()"
           sleep 25
           xcrun simctl io "$UDID" screenshot shots/settings.png
+          for STEP in startLiveHost startLiveJoin; do
+            xcrun simctl launch --terminate-running-process "$UDID" fr.cantus-app.cantus -CantusTab live               -CantusEval "localStorage.setItem('cantus_onboarding_seen','true');document.getElementById('onboarding-modal')?.classList.remove('open');setTimeout(()=>$STEP(),1500)"
+            sleep 25
+            xcrun simctl io "$UDID" screenshot "shots/$STEP.png"
+          done
 
       - uses: actions/upload-artifact@v4
         with:
