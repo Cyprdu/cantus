@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantus-app-shell-v27';
+const CACHE_NAME = 'cantus-app-shell-v28';
 const PDF_CACHE_NAME = 'cantus-pdfs-v1';
 
 // Les fichiers essentiels de l'application à mettre en cache obligatoirement à l'installation
@@ -20,8 +20,7 @@ const ASSETS = [
     'bibliotheque/pdfjs/pdf.worker.min.js',
     'bibliotheque/sortable/Sortable.min.js',
     'bibliotheque/lz-string/lz-string.min.js',
-    'bibliotheque/qrious/qrious.min.js',
-    'bibliotheque/jsqr/jsQR.js'
+    'bibliotheque/qrious/qrious.min.js'
     // Les scripts MediaPipe (camera_utils, face_mesh) ne sont pas pré-cachés ici (gros fichiers
     // .wasm/.data inutiles à la quasi-totalité des utilisateurs) : ils sont chargés à la demande
     // par ensureFaceMeshEngine() uniquement si la reconnaissance faciale est activée, puis mis en
@@ -72,6 +71,12 @@ async function stripRedirectFlag(response) {
 // 3. Interception robuste (Cache First avec repli intelligent)
 self.addEventListener('fetch', (event) => {
     const url = event.request.url;
+
+    // Seuls les GET se mettent en cache : le reste (création d'un salon du Mode Live…) va
+    // directement au réseau.
+    if (event.request.method !== 'GET') {
+        return;
+    }
 
     // Ne pas intercepter l'API GitHub pour le listing brut en ligne
     if (url.includes('api.github.com')) {

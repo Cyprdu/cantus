@@ -37,8 +37,6 @@
     <script src="bibliotheque/sortable/Sortable.min.js"></script>
     <script src="bibliotheque/lz-string/lz-string.min.js"></script>
     <script src="bibliotheque/qrious/qrious.min.js"></script>
-    <!-- Lecture de QR code (Mode Live) : décodage local dans le navigateur, aucun envoi réseau -->
-    <script src="bibliotheque/jsqr/jsQR.js"></script>
     <!-- Scripts MediaPipe Face Mesh & Camera : chargés à la demande uniquement (voir ensureFaceMeshEngine),
          car ce sont de grosses librairies dont la quasi-totalité des utilisateurs n'a jamais besoin
          (reconnaissance faciale désactivée par défaut) — inutile de ralentir le premier chargement pour ça. -->
@@ -301,13 +299,11 @@
         .live-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
         .live-status { font-size: 13px; color: var(--text-2); margin: 0 0 var(--sp-md); line-height: 1.5; }
         .live-status strong { color: var(--text); }
-        .live-code-box { width: 100%; min-height: 70px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.4; word-break: break-all; margin-bottom: var(--sp-sm); }
+        .live-code-big { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 2.6rem; font-weight: 800; letter-spacing: .25em; padding-left: .25em; color: var(--text); margin: 0 0 var(--sp-md); user-select: all; }
+        .live-code-input { text-align: center; text-transform: uppercase; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.4rem; letter-spacing: .3em; margin-bottom: var(--sp-md); }
         .live-qr-canvas { display: block; margin: 0 auto var(--sp-sm); padding: 12px; background: #fff; border-radius: var(--r-md); max-width: 240px; width: 100%; }
         .live-qr-actions { display: flex; gap: var(--sp-sm); margin: 0 0 var(--sp-md); }
         .live-qr-actions .btn { flex: 1; justify-content: center; }
-        .live-scan-wrap { position: relative; width: 100%; max-width: 280px; aspect-ratio: 1; margin: 0 auto var(--sp-md); border-radius: var(--r-lg); overflow: hidden; background: #000; }
-        .live-scan-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .live-scan-frame { position: absolute; inset: 14%; border: 3px solid var(--accent); border-radius: var(--r-md); pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,.4); }
         #live-qr-zoom { position: fixed; inset: 0; background: rgba(0,0,0,.95); z-index: 9500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-md); cursor: zoom-out; }
         #live-qr-zoom canvas { background: #fff; padding: 16px; border-radius: var(--r-md); max-width: 90vw; max-height: 70vh; }
         #live-qr-zoom p { color: #ccc; font-size: 13px; margin: 0; }
@@ -4762,6 +4758,7 @@
         const importData = urlParams.get('import');
         const importPlData = urlParams.get('importPl');
         const codeParam = urlParams.get('code');
+        const liveParam = urlParams.get('live');
 
         if (importData) {
             try {
@@ -4802,6 +4799,13 @@
             showView('planner');
         } else if (importPlData) {
             showView('playlist');
+        } else if (liveParam) {
+            // Lien d'invitation au Mode Live (QR code de l'hôte) : écran « Rejoindre » pré-rempli.
+            window.history.replaceState({}, document.title, window.location.pathname);
+            showView('live');
+            startLiveJoin();
+            liveCode = liveParam.toUpperCase();
+            renderLiveView();
         } else {
             showView('library');
         }
@@ -6908,33 +6912,21 @@
     }
 
     /* ══════════════════════════════════════════
-       MODE LIVE — playlist collaborative en pair-à-pair, sans serveur
+       MODE LIVE — playlist collaborative en direct, via un petit relais
 
-       Aucun serveur, aucune base de données, aucun droit GitHub requis.
-       La synchronisation passe uniquement par WebRTC, avec un serveur
-       STUN public (Google) pour la découverte d'adresse : ce serveur ne
-       voit jamais les données échangées (chants, playlist…), il sert
-       juste à ce que chaque appareil découvre sa propre adresse joignable
-       depuis l'extérieur — ça permet à Mode Live de fonctionner même
-       entre deux réseaux différents, pas seulement sur le même WiFi.
-
-       Comme un navigateur ne peut pas découvrir tout seul les autres
-       appareils, la mise en relation initiale (l'échange d'offre/réponse
-       WebRTC) se fait via un QR code scanné avec l'appareil photo — avec,
-       en secours, un champ où coller le code à la main si le scan ne
-       fonctionne pas. Le SDP est allégé au maximum (peu de candidats ICE)
-       avant d'être encodé pour que le QR reste le moins dense possible, et
-       le scan utilise en priorité le détecteur de code-barres natif du
-       navigateur (BarcodeDetector, le même moteur que l'appli Appareil
-       photo du téléphone) quand il est disponible, avec la bibliothèque
-       jsQR en repli sinon (Safari/iOS notamment).
+       Tout passe par un relais WebSocket gratuit (Worker + Durable Object
+       Cloudflare, voir live-server/) : l'hôte crée un salon et obtient un
+       code court (ex. « K7RQX ») ; les autres le saisissent (ou scannent le
+       QR code avec l'appareil photo, qui ouvre le lien ?live=CODE). Le
+       relais ne garde que le dernier état diffusé (pour les arrivants) et
+       efface le salon après 2 h sans personne. Si le réseau saute, chaque
+       appareil se reconnecte tout seul et garde son identifiant.
 
        Rôles et statuts :
-       - Topologie en étoile : l'hôte (celui qui a lancé "Être hôte") ouvre
-         une connexion dédiée par participant. Les participants ne parlent
-         qu'à l'hôte, qui reste la seule source de vérité de l'état
-         partagé (file d'attente + chant en direct) : les leaders envoient
-         des DEMANDES, l'hôte les valide et rediffuse l'état résultant à
+       - L'hôte (celui qui a lancé "Être hôte") reste la seule source de
+         vérité de l'état partagé (file d'attente + chant en direct) : les
+         participants n'envoient que des DEMANDES, que le relais transmet à
+         l'hôte seul ; l'hôte les valide et rediffuse l'état résultant à
          tout le monde. Ça évite tout risque de désynchronisation.
        - Chacun entre son prénom en rejoignant. L'hôte principal peut
          nommer n'importe quel participant connecté "leader" : lui seul
@@ -6947,77 +6939,117 @@
          fait passer le chant en position n°1 de la file vers le statut
          "en direct", pour tout le monde en même temps.
     ══════════════════════════════════════════ */
-    const LIVE_ICE_SERVERS = [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ];
-    const LIVE_MAX_CANDIDATES = 3; // au-delà, les candidats ICE sont ignorés pour alléger le QR au maximum
+    // Relais live-server/ : en local, `npx wrangler dev` ; en ligne, l'URL donnée par `npx wrangler deploy`.
+    const LIVE_RELAY_URL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://127.0.0.1:8787'
+        : 'https://cantus-live.REMPLACER.workers.dev';
     const LIVE_THREAD_MAX = 3; // nombre de chants gardés dans le "fil" de lecture personnel
 
     let liveRole = null;              // 'host' | 'join' | null
     let liveScreen = 'select';        // voir renderLiveView() pour la liste des écrans
     let livePendingRoleAfterName = null;
     let liveMyName = localStorage.getItem('cantus_live_name') || '';
-    let liveMyId = null;              // participant : identifiant attribué par l'hôte
+    let liveMyId = null;              // participant : identifiant attribué par le relais
     let livePeople = [];              // [{ id, name, isLeader, isMainHost }] — vu par tout le monde
     let liveNowItem = null;           // { qid, songId, name, category } | null — chant en direct
     let liveQueue = [];               // file d'attente ordonnée : { qid, songId, name, category }
     let liveLibSearchQuery = '';
-    let liveHostConnections = [];     // hôte : [{ id, pc, channel, name, isLeader }]
-    let liveParticipantCounter = 0;
-    let livePendingHostPc = null;     // hôte : connexion en cours de négociation
-    let livePendingHostPayload = null;
-    let liveJoinPc = null;            // participant
-    let liveJoinChannel = null;
-    let liveJoinAnswerPayload = null;
-    let liveScanStream = null;
-    let liveScanRAF = null;
+    let liveHostConnections = [];     // hôte : participants déjà venus [{ id, name, isLeader, online }]
+    let liveCode = '';                // code du salon
+    let liveHostKey = null;           // hôte : clé secrète du salon (donnée par le relais à la création)
+    let liveCid = null;               // participant : identifiant d'appareil, pour garder son id en se reconnectant
+    let liveWs = null;                // WebSocket vers le relais (null = déconnecté)
+    let liveRetry = 0;                // nombre d'essais de reconnexion d'affilée
+    let liveRetryTimer = null;
+    let liveLastRx = 0;               // dernière réception (message ou « pong »)
     let liveThreadActive = false;     // true pendant la lecture d'un chant lancé depuis "En direct"
     let liveChatQueue = [];           // messages reçus en attente d'affichage (un à la fois)
 
-    let liveBarcodeDetector = null;
-    if ('BarcodeDetector' in window) {
-        try { liveBarcodeDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { liveBarcodeDetector = null; }
+    function liveInviteLink() {
+        return location.origin + location.pathname + '?live=' + liveCode;
     }
 
-    function waitIceGatheringComplete(pc) {
-        if (pc.iceGatheringState === 'complete') return Promise.resolve();
-        return new Promise(resolve => {
-            function check() {
-                if (pc.iceGatheringState === 'complete') {
-                    pc.removeEventListener('icegatheringstatechange', check);
-                    resolve();
-                }
+    /* ─── CONNEXION AU RELAIS (avec reconnexion automatique) ─── */
+    function liveSend(msg) {
+        if (liveWs && liveWs.readyState === WebSocket.OPEN) {
+            try { liveWs.send(JSON.stringify(msg)); } catch (e) {}
+        }
+    }
+
+    function liveConnect() {
+        clearTimeout(liveRetryTimer);
+        const auth = liveRole === 'host' ? 'key=' + encodeURIComponent(liveHostKey) : 'cid=' + liveCid;
+        const ws = new WebSocket(LIVE_RELAY_URL.replace(/^http/, 'ws') + '/room/' + liveCode + '?' + auth);
+        liveWs = ws;
+        ws.onopen = () => {
+            if (ws !== liveWs) return;
+            liveLastRx = Date.now();
+            if (liveRetry > 0 && liveScreen === 'connected') showToast('Reconnecté.');
+            liveRetry = 0;
+            if (liveRole === 'host') {
+                liveEnterConnected();
+                broadcastLiveState();
+                broadcastPresence();
+            } else {
+                liveSend({ type: 'hello', name: liveMyName });
             }
-            pc.addEventListener('icegatheringstatechange', check);
-        });
+        };
+        ws.onmessage = e => {
+            if (ws !== liveWs) return;
+            liveLastRx = Date.now();
+            if (e.data === 'pong') return;
+            try {
+                const msg = JSON.parse(e.data);
+                if (liveRole === 'host') hostHandleMessage(msg); else joinHandleMessage(msg);
+            } catch (err) { console.error('Message live invalide :', err); }
+        };
+        ws.onclose = e => {
+            if (ws !== liveWs) return; // fermeture volontaire, ou connexion déjà remplacée
+            liveWs = null;
+            if (e.code === 4404 || e.code === 4001) {
+                alert(e.code === 4001 ? "L'hôte a fermé le direct." : 'Code inconnu ou direct terminé.');
+                leaveLiveModeSilent();
+                return;
+            }
+            if (liveRetry === 0 && liveScreen === 'connected') showToast('Connexion perdue, reconnexion…');
+            liveRetryTimer = setTimeout(liveConnect, Math.min(1000 * 2 ** liveRetry++, 15000));
+        };
     }
 
-    // Retire les candidats ICE en trop (TCP, doublons de multiples interfaces réseau…) : un seul
-    // appareil peut annoncer 15-20 candidats une fois le STUN ajouté, ce qui rend le QR très dense
-    // et difficile à scanner. On ne garde que les tout premiers candidats UDP, largement
-    // suffisants pour établir la connexion.
-    function pruneSdpCandidates(sdp) {
-        let kept = 0;
-        return sdp.split('\r\n').filter(line => {
-            if (!line.startsWith('a=candidate:')) return true;
-            if (line.includes(' TCP ') || line.includes(' tcp ')) return false;
-            kept++;
-            return kept <= LIVE_MAX_CANDIDATES;
-        }).join('\r\n');
+    // Abandonne la connexion actuelle (morte ou non) et en relance une tout de suite.
+    function liveReconnectNow() {
+        const old = liveWs;
+        liveWs = null;
+        if (old) { try { old.close(); } catch (e) {} }
+        liveConnect();
     }
 
-    // Encodage compact (allègement du SDP + compression LZString) pour que le QR code reste le
-    // moins dense possible.
-    function encodeSignal(desc) {
-        const sdp = pruneSdpCandidates(desc.sdp);
-        return LZString.compressToEncodedURIComponent(JSON.stringify({ sdp, type: desc.type }));
+    function liveDisconnect() {
+        clearTimeout(liveRetryTimer);
+        const old = liveWs;
+        liveWs = null;
+        if (old) { try { old.close(1000); } catch (e) {} }
     }
 
-    function decodeSignal(text) {
-        const parsed = JSON.parse(LZString.decompressFromEncodedURIComponent(text));
-        if (!parsed || !parsed.sdp || !parsed.type) throw new Error('Code invalide.');
-        return new RTCSessionDescription(parsed);
+    // Un réseau mobile peut couper une connexion sans prévenir : « ping » toutes les 25 s (répondu
+    // par le relais sans le réveiller) et reconnexion si plus rien n'arrive depuis 60 s.
+    setInterval(() => {
+        if (!liveWs || liveWs.readyState !== WebSocket.OPEN) return;
+        if (Date.now() - liveLastRx > 60000) liveReconnectNow();
+        else try { liveWs.send('ping'); } catch (e) {}
+    }, 25000);
+    window.addEventListener('online', () => { if (liveRole && liveCode && !liveWs) liveConnect(); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible' || !liveRole || !liveCode) return;
+        if (!liveWs || Date.now() - liveLastRx > 30000) liveReconnectNow();
+    });
+
+    // Première connexion réussie : l'hôte voit d'abord le code à partager, les autres le direct.
+    function liveEnterConnected() {
+        if (liveScreen === 'connected' || liveScreen === 'invite') return;
+        liveScreen = liveRole === 'host' ? 'invite' : 'connected';
+        requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
+        renderLiveView();
     }
 
     function renderQR(canvasId, text) {
@@ -7061,13 +7093,13 @@
         if (liveScreen === 'select') {
             c.innerHTML = `
                 <div class="live-choice">
-                    <p>Construisez la playlist du moment ensemble, en direct — sans compte, sans serveur de données, sans toucher au dépôt GitHub.</p>
+                    <p>Construisez la playlist du moment ensemble, en direct — sans compte, avec un simple code à partager.</p>
                     <button class="btn btn-primary" onclick="startLiveHost()">
                         <svg class="icon"><use href="#ico-live"/></svg>
                         Être hôte
                     </button>
                     <button class="btn btn-ghost" onclick="startLiveJoin()">
-                        <svg class="icon"><use href="#ico-camera"/></svg>
+                        <svg class="icon"><use href="#ico-users"/></svg>
                         Rejoindre
                     </button>
                 </div>`;
@@ -7075,99 +7107,60 @@
         }
 
         if (liveScreen === 'enter-name') {
+            const joining = livePendingRoleAfterName === 'join';
             c.innerHTML = `
                 <div class="live-card">
-                    <h3>Votre prénom</h3>
+                    <h3>${joining ? 'Rejoindre un direct' : 'Votre prénom'}</h3>
                     <p class="live-status">Pour que tout le monde voie qui est connecté.</p>
                     <input type="text" id="live-name-input" class="input-field" placeholder="Votre prénom" style="margin-bottom: var(--sp-md);">
+                    ${joining ? `
+                    <input type="text" id="live-code-input" class="input-field live-code-input" placeholder="CODE" maxlength="5"
+                        autocapitalize="characters" autocomplete="off" spellcheck="false"
+                        onkeydown="if (event.key === 'Enter') confirmLiveName()">` : ''}
                     <div class="onboard-actions">
-                        <button class="btn btn-primary" style="width:100%" onclick="confirmLiveName()">Continuer</button>
+                        <button class="btn btn-primary" style="width:100%" onclick="confirmLiveName()">${joining ? 'Rejoindre' : 'Continuer'}</button>
                         <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
                     </div>
                 </div>`;
             document.getElementById('live-name-input').value = liveMyName;
+            if (joining) document.getElementById('live-code-input').value = liveCode;
             return;
         }
 
-        if (liveScreen === 'host-wait') {
+        if (liveScreen === 'invite') {
             c.innerHTML = `
                 <div class="live-card">
-                    <h3>Faites scanner ce code</h3>
-                    <p class="live-status">Sur l'autre appareil : onglet <strong>Mode Live → Rejoindre</strong>, puis pointez la caméra vers ce QR code.</p>
+                    <h3>Code du direct</h3>
+                    <p class="live-status">Sur les autres appareils : <strong>Mode Live → Rejoindre</strong>, puis entrez ce code (ou scannez le QR code avec l'appareil photo).</p>
+                    <div class="live-code-big">${liveCode}</div>
                     <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
                     <div class="live-qr-actions">
-                        <button class="btn btn-ghost" onclick="zoomLiveQr(livePendingHostPayload)">
+                        <button class="btn btn-ghost" onclick="zoomLiveQr(liveInviteLink())">
                             <svg class="icon icon-sm"><use href="#ico-expand"/></svg>
                             Agrandir
                         </button>
-                        <button class="btn btn-ghost" onclick="shareLiveCode(livePendingHostPayload)">
+                        <button class="btn btn-ghost" onclick="shareLiveCode(liveInviteLink())">
                             <svg class="icon icon-sm"><use href="#ico-share"/></svg>
                             Partager
                         </button>
                     </div>
-                    <p class="live-status">Une fois scanné, cet appareil affichera à son tour un code : appuyez ci-dessous pour le scanner et terminer la connexion.</p>
-                    <div class="onboard-actions">
-                        <button class="btn btn-primary" style="width:100%" onclick="hostScanAnswer()">Scanner sa réponse</button>
-                        <button class="btn btn-ghost" style="width:100%" onclick="cancelPendingHostConnection()">Annuler</button>
-                    </div>
+                    <button class="btn btn-primary" style="width:100%" onclick="liveScreen = 'connected'; renderLiveView();">Aller au direct</button>
                 </div>`;
-            renderQR('live-qr-canvas', livePendingHostPayload);
+            renderQR('live-qr-canvas', liveInviteLink());
             return;
         }
 
-        if (liveScreen === 'host-scan-answer' || liveScreen === 'join-scan-offer') {
-            const title = liveScreen === 'host-scan-answer' ? 'Scannez la réponse du participant' : "Scannez le code affiché par l'hôte";
-            c.innerHTML = `
-                <div class="live-card">
-                    <h3>${title}</h3>
-                    <div class="live-scan-wrap">
-                        <video id="live-scan-video" autoplay playsinline muted></video>
-                        <div class="live-scan-frame"></div>
-                    </div>
-                    <p class="live-status">La caméra scanne automatiquement. Si ça ne fonctionne pas, collez le code reçu ici :</p>
-                    <textarea id="live-fallback-input" class="input-field live-code-box" placeholder="Collez ici le code reçu…"></textarea>
-                    <div class="onboard-actions">
-                        <button class="btn btn-primary" style="width:100%" onclick="submitLiveFallbackCode()">Valider ce code</button>
-                        <button class="btn btn-ghost" style="width:100%" onclick="cancelLiveScan()">Annuler</button>
-                    </div>
-                </div>`;
-            return;
-        }
-
-        if (liveScreen === 'join-show-answer') {
-            c.innerHTML = `
-                <div class="live-card">
-                    <h3>Montrez ce code à l'hôte</h3>
-                    <p class="live-status">L'hôte doit appuyer sur « Scanner sa réponse » puis pointer sa caméra vers ce QR code.</p>
-                    <canvas id="live-qr-canvas" class="live-qr-canvas"></canvas>
-                    <div class="live-qr-actions">
-                        <button class="btn btn-ghost" onclick="zoomLiveQr(liveJoinAnswerPayload)">
-                            <svg class="icon icon-sm"><use href="#ico-expand"/></svg>
-                            Agrandir
-                        </button>
-                        <button class="btn btn-ghost" onclick="shareLiveCode(liveJoinAnswerPayload)">
-                            <svg class="icon icon-sm"><use href="#ico-share"/></svg>
-                            Partager
-                        </button>
-                    </div>
-                    <p class="live-status">La connexion se termine automatiquement dès que l'hôte l'a acceptée.</p>
-                    <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
-                </div>`;
-            renderQR('live-qr-canvas', liveJoinAnswerPayload);
-            return;
-        }
-
-        if (liveScreen === 'host-connecting' || liveScreen === 'join-connecting') {
+        if (liveScreen === 'connecting') {
             c.innerHTML = `
                 <div class="live-card">
                     <h3>Connexion en cours…</h3>
-                    <p class="live-status">Quelques secondes, le temps que les deux appareils établissent la connexion directe.</p>
+                    <p class="live-status">Quelques secondes, le temps de rejoindre le direct.</p>
+                    <button class="btn btn-ghost" style="width:100%" onclick="leaveLiveModeSilent()">Annuler</button>
                 </div>`;
             return;
         }
 
         if (liveScreen === 'connected') {
-            const isMainHost = liveRole === 'host';
             const canManage = liveAmILeader();
             // L'écran est redessiné à chaque changement de la file (ajout, retrait, état reçu de
             // l'hôte…) : on garde la position de défilement de la page et de la colonne d'ajout,
@@ -7183,10 +7176,9 @@
                         Participants (${livePeople.length})
                     </button>
                     <div class="live-topbar-actions">
-                        ${isMainHost ? `
-                        <button class="btn btn-icon" onclick="hostAddParticipant()" title="Ajouter un participant" aria-label="Ajouter un participant">
-                            <svg class="icon"><use href="#ico-plus"/></svg>
-                        </button>` : ''}
+                        <button class="btn btn-ghost" onclick="liveScreen = 'invite'; renderLiveView();" title="Inviter quelqu'un" aria-label="Inviter : afficher le code">
+                            <svg class="icon icon-sm"><use href="#ico-plus"/></svg> ${liveCode}
+                        </button>
                         <button class="btn btn-icon" onclick="openLiveChatComposer()" title="Envoyer un message" aria-label="Message">
                             <svg class="icon"><use href="#ico-message"/></svg>
                         </button>
@@ -7285,23 +7277,30 @@
         }).join('');
     }
 
-    /* ─── PRÉNOM ─── */
+    /* ─── PRÉNOM (+ code pour rejoindre) ─── */
     function confirmLiveName() {
         const input = document.getElementById('live-name-input');
         const name = input ? input.value.trim() : '';
         if (!name) { showToast('Entrez votre prénom.'); return; }
-        liveMyName = name;
-        localStorage.setItem('cantus_live_name', name);
 
         if (livePendingRoleAfterName === 'host') {
+            liveMyName = name;
+            localStorage.setItem('cantus_live_name', name);
             liveRole = 'host';
-            hostCreateOffer();
-        } else {
-            liveRole = 'join';
-            liveScreen = 'join-scan-offer';
-            renderLiveView();
-            startLiveScanner(text => joinSubmitOfferCode(text));
+            hostCreateRoom();
+            return;
         }
+        const codeInput = document.getElementById('live-code-input');
+        const code = (codeInput ? codeInput.value : '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (code.length !== 5) { showToast('Entrez le code à 5 caractères affiché chez l\'hôte.'); return; }
+        liveMyName = name;
+        localStorage.setItem('cantus_live_name', name);
+        liveRole = 'join';
+        liveCode = code;
+        liveCid = crypto.randomUUID();
+        liveScreen = 'connecting';
+        renderLiveView();
+        liveConnect();
     }
 
     /* ─── HÔTE ─── */
@@ -7311,60 +7310,41 @@
         renderLiveView();
     }
 
-    function hostAddParticipant() {
-        hostCreateOffer();
-    }
-
-    async function hostCreateOffer() {
-        const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
-        const channel = pc.createDataChannel('live');
-        const connId = ++liveParticipantCounter;
-        const conn = { id: connId, pc, channel, name: null, isLeader: false };
-
-        channel.onopen = () => {
-            liveHostConnections.push(conn);
-            livePendingHostPc = null;
-            livePendingHostPayload = null;
-            liveScreen = 'connected';
-            requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
-            renderLiveView();
-        };
-        channel.onmessage = e => {
-            try { hostHandleMessage(conn, JSON.parse(e.data)); }
-            catch (err) { console.error('Message live invalide :', err); }
-        };
-        channel.onclose = () => {
-            liveHostConnections = liveHostConnections.filter(c2 => c2.id !== connId);
-            broadcastPresence();
-        };
-
+    async function hostCreateRoom() {
+        liveScreen = 'connecting';
+        renderLiveView();
         try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            await waitIceGatheringComplete(pc);
+            const r = await fetch(LIVE_RELAY_URL + '/room', { method: 'POST' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const room = await r.json();
+            liveCode = room.code;
+            liveHostKey = room.key;
         } catch (e) {
-            alert("Impossible de préparer la connexion (WebRTC indisponible sur cet appareil ?).");
-            try { pc.close(); } catch (e2) {}
+            alert('Impossible de créer le direct (pas de connexion internet ?).');
+            leaveLiveModeSilent();
             return;
         }
-
-        livePendingHostPc = pc;
-        livePendingHostPayload = encodeSignal(pc.localDescription);
-        liveScreen = 'host-wait';
-        renderLiveView();
+        liveConnect();
     }
 
-    // Traite un message reçu d'UN participant précis. "hello" (prénom) et "chat" (message) sont
-    // toujours acceptés ; toute demande de gestion de la file (ajout/retrait/avancement/ordre)
-    // est ignorée si ce participant n'est pas leader — l'hôte reste seul arbitre de l'état
-    // partagé.
-    function hostHandleMessage(conn, msg) {
+    // Traite un message transmis par le relais : `_from` est l'id du participant d'origine.
+    // "hello" (prénom), "bye" (départ) et "chat" (message) sont toujours acceptés ; toute demande
+    // de gestion de la file (ajout/retrait/avancement/ordre) est ignorée si ce participant n'est
+    // pas leader — l'hôte reste seul arbitre de l'état partagé.
+    function hostHandleMessage(msg) {
+        let conn = liveHostConnections.find(c2 => c2.id === msg._from);
         if (msg.type === 'hello') {
+            // Un participant qui revient (reconnexion) retrouve sa fiche, donc son statut de leader.
+            if (!conn) { conn = { id: msg._from, name: null, isLeader: false, online: true }; liveHostConnections.push(conn); }
             conn.name = msg.name || 'Sans nom';
-            try {
-                conn.channel.send(JSON.stringify({ type: 'youAre', id: conn.id }));
-                conn.channel.send(JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue }));
-            } catch (e) {}
+            conn.online = true;
+            liveSend({ type: 'state', liveNow: liveNowItem, queue: liveQueue, _to: conn.id });
+            broadcastPresence();
+            return;
+        }
+        if (!conn) return;
+        if (msg.type === 'bye') {
+            conn.online = false;
             broadcastPresence();
             return;
         }
@@ -7385,17 +7365,15 @@
     function broadcastPresence() {
         livePeople = [
             { id: 0, name: liveMyName, isLeader: true, isMainHost: true },
-            ...liveHostConnections.map(c2 => ({ id: c2.id, name: c2.name || 'Connexion en cours…', isLeader: c2.isLeader, isMainHost: false }))
+            ...liveHostConnections.filter(c2 => c2.online).map(c2 => ({ id: c2.id, name: c2.name, isLeader: c2.isLeader, isMainHost: false }))
         ];
-        const payload = JSON.stringify({ type: 'presence', people: livePeople });
-        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+        liveSend({ type: 'presence', people: livePeople });
         if (liveScreen === 'connected') renderLiveView();
         refreshLiveParticipantsModalIfOpen();
     }
 
     function broadcastLiveState() {
-        const payload = JSON.stringify({ type: 'state', liveNow: liveNowItem, queue: liveQueue });
-        liveHostConnections.forEach(c2 => { if (c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} } });
+        liveSend({ type: 'state', liveNow: liveNowItem, queue: liveQueue });
     }
 
     function toggleLeaderById(id) {
@@ -7405,44 +7383,6 @@
         broadcastPresence();
     }
 
-    function hostScanAnswer() {
-        liveScreen = 'host-scan-answer';
-        renderLiveView();
-        startLiveScanner(text => hostSubmitAnswerCode(text));
-    }
-
-    async function hostSubmitAnswerCode(text) {
-        if (!text) {
-            const input = document.getElementById('live-fallback-input');
-            text = input ? input.value.trim() : '';
-        }
-        if (!text) { showToast('Scannez un code ou collez-le ci-dessous.'); return; }
-        if (!livePendingHostPc) { showToast('Session expirée, relancez « Être hôte ».'); return; }
-
-        stopLiveScanner();
-        try {
-            const answer = decodeSignal(text);
-            await livePendingHostPc.setRemoteDescription(answer);
-            liveScreen = 'host-connecting';
-            renderLiveView();
-        } catch (e) {
-            alert('Code invalide. Réessayez de scanner, ou vérifiez le code collé.');
-            hostScanAnswer();
-        }
-    }
-
-    function cancelPendingHostConnection() {
-        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
-        livePendingHostPayload = null;
-        if (liveHostConnections.length === 0) {
-            liveRole = null;
-            liveScreen = 'select';
-        } else {
-            liveScreen = 'connected';
-        }
-        renderLiveView();
-    }
-
     /* ─── PARTICIPANT ─── */
     function startLiveJoin() {
         livePendingRoleAfterName = 'join';
@@ -7450,53 +7390,10 @@
         renderLiveView();
     }
 
-    async function joinSubmitOfferCode(text) {
-        if (!text) {
-            const input = document.getElementById('live-fallback-input');
-            text = input ? input.value.trim() : '';
-        }
-        if (!text) { showToast('Scannez un code ou collez-le ci-dessous.'); return; }
-
-        stopLiveScanner();
-        try {
-            const offer = decodeSignal(text);
-            const pc = new RTCPeerConnection({ iceServers: LIVE_ICE_SERVERS });
-            liveJoinPc = pc;
-
-            pc.ondatachannel = (e) => {
-                liveJoinChannel = e.channel;
-                liveJoinChannel.onopen = () => {
-                    try { liveJoinChannel.send(JSON.stringify({ type: 'hello', name: liveMyName })); } catch (e2) {}
-                    liveScreen = 'connected';
-                    requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
-                    renderLiveView();
-                };
-                liveJoinChannel.onmessage = ev => {
-                    try { joinHandleMessage(JSON.parse(ev.data)); }
-                    catch (err) { console.error('Message live invalide :', err); }
-                };
-            };
-
-            await pc.setRemoteDescription(offer);
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            await waitIceGatheringComplete(pc);
-
-            liveJoinAnswerPayload = encodeSignal(pc.localDescription);
-            liveScreen = 'join-show-answer';
-            renderLiveView();
-        } catch (e) {
-            alert('Code invalide. Réessayez de scanner, ou vérifiez le code collé.');
-            liveRole = 'join';
-            liveScreen = 'join-scan-offer';
-            renderLiveView();
-            startLiveScanner(text2 => joinSubmitOfferCode(text2));
-        }
-    }
-
     function joinHandleMessage(msg) {
         if (msg.type === 'youAre') {
             liveMyId = msg.id;
+            liveEnterConnected();
         } else if (msg.type === 'state') {
             liveNowItem = msg.liveNow;
             liveQueue = msg.queue || [];
@@ -7510,18 +7407,10 @@
         }
     }
 
-    function submitLiveFallbackCode() {
-        const input = document.getElementById('live-fallback-input');
-        const text = input ? input.value.trim() : '';
-        if (!text) { showToast('Collez un code avant de valider.'); return; }
-        if (liveScreen === 'host-scan-answer') hostSubmitAnswerCode(text);
-        else if (liveScreen === 'join-scan-offer') joinSubmitOfferCode(text);
-    }
-
+    // ponytail: si l'hôte est momentanément déconnecté, le relais ignore les demandes envoyées
+    // entre-temps (pas de file d'attente côté relais).
     function sendToHost(msg) {
-        if (liveJoinChannel && liveJoinChannel.readyState === 'open') {
-            try { liveJoinChannel.send(JSON.stringify(msg)); } catch (e) {}
-        }
+        liveSend(msg);
     }
 
     /* ─── FILE LIVE (mutations, appliquées uniquement côté hôte) ─── */
@@ -7704,81 +7593,6 @@
         });
     }
 
-    /* ─── SCAN QR (caméra) ─── */
-    // Décodage en priorité via l'API native BarcodeDetector (même moteur que l'appli Appareil
-    // photo du téléphone sur Android/Chrome, très fiable), avec jsQR en repli si indisponible
-    // (Safari/iOS notamment).
-    async function decodeQrFrame(canvas, imageData) {
-        if (liveBarcodeDetector) {
-            try {
-                const results = await liveBarcodeDetector.detect(canvas);
-                if (results && results.length > 0 && results[0].rawValue) return results[0].rawValue;
-            } catch (e) { /* repli sur jsQR ci-dessous */ }
-        }
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        return code ? code.data : null;
-    }
-
-    async function startLiveScanner(onDecode) {
-        const video = document.getElementById('live-scan-video');
-        if (!video) return;
-        try {
-            liveScanStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-            });
-        } catch (e) {
-            showToast("Caméra indisponible : utilisez le champ pour coller le code.");
-            return;
-        }
-        video.srcObject = liveScanStream;
-        await video.play();
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-        const tick = async () => {
-            if (!liveScanStream) return; // scan arrêté entre-temps
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = await decodeQrFrame(canvas, imageData);
-                if (data) {
-                    stopLiveScanner();
-                    onDecode(data);
-                    return;
-                }
-            }
-            liveScanRAF = requestAnimationFrame(tick);
-        };
-        liveScanRAF = requestAnimationFrame(tick);
-    }
-
-    function stopLiveScanner() {
-        if (liveScanRAF) cancelAnimationFrame(liveScanRAF);
-        liveScanRAF = null;
-        if (liveScanStream) {
-            liveScanStream.getTracks().forEach(t => t.stop());
-            liveScanStream = null;
-        }
-    }
-
-    function cancelLiveScan() {
-        stopLiveScanner();
-        if (liveRole === 'host') {
-            if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
-            livePendingHostPayload = null;
-            liveScreen = liveHostConnections.length > 0 ? 'connected' : 'select';
-            if (liveScreen === 'select') liveRole = null;
-        } else {
-            if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
-            liveRole = null;
-            liveScreen = 'select';
-        }
-        renderLiveView();
-    }
-
     /* ─── MESSAGERIE (chat) ───
 
        N'importe qui peut envoyer un message (à tout le monde ou à une personne précise) même
@@ -7825,17 +7639,16 @@
     // exclure de la diffusion "tout le monde", et à qui l'hôte ne se réaffiche pas son propre
     // message s'il se l'adressait à lui-même).
     function deliverChatAsHost(msg, fromConn) {
-        const payload = JSON.stringify({ type: 'chat', fromName: msg.fromName, text: msg.text });
+        const payload = { type: 'chat', fromName: msg.fromName, text: msg.text };
         if (msg.to === 'all') {
             liveHostConnections.forEach(c2 => {
-                if (c2 !== fromConn && c2.channel.readyState === 'open') { try { c2.channel.send(payload); } catch (e) {} }
+                if (c2 !== fromConn && c2.online) liveSend({ ...payload, _to: c2.id });
             });
             if (fromConn !== null) showLiveChatBanner(msg.fromName, msg.text);
         } else if (msg.to === 0) {
             if (fromConn !== null) showLiveChatBanner(msg.fromName, msg.text);
         } else {
-            const target = liveHostConnections.find(c2 => c2.id === msg.to);
-            if (target && target.channel.readyState === 'open') { try { target.channel.send(payload); } catch (e) {} }
+            liveSend({ ...payload, _to: msg.to });
         }
     }
 
@@ -7868,16 +7681,16 @@
         livePeople = [];
         liveMyId = null;
         liveLibSearchQuery = '';
+        liveHostConnections = [];
+        liveCode = '';
+        liveHostKey = null;
+        liveCid = null;
+        liveRetry = 0;
     }
 
-    // Annule une négociation en cours (avant toute connexion établie) sans demander de
-    // confirmation : utilisé par les boutons "Annuler" des écrans d'échange de code.
+    // Quitte sans demander de confirmation : boutons "Annuler", code inconnu, direct fermé.
     function leaveLiveModeSilent() {
-        stopLiveScanner();
-        if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} liveJoinPc = null; }
-        liveJoinChannel = null;
-        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} livePendingHostPc = null; }
-        livePendingHostPayload = null;
+        liveDisconnect();
         liveRole = null;
         liveScreen = 'select';
         liveThreadActive = false;
@@ -7890,25 +7703,8 @@
             ? 'Quitter le mode live ? Tous les participants seront déconnectés.'
             : 'Quitter le mode live ?';
         if (!confirm(msg)) return;
-
-        stopLiveScanner();
-        liveHostConnections.forEach(c2 => {
-            try { c2.channel.close(); } catch (e) {}
-            try { c2.pc.close(); } catch (e) {}
-        });
-        liveHostConnections = [];
-        if (liveJoinChannel) { try { liveJoinChannel.close(); } catch (e) {} }
-        if (liveJoinPc) { try { liveJoinPc.close(); } catch (e) {} }
-        liveJoinChannel = null;
-        liveJoinPc = null;
-        if (livePendingHostPc) { try { livePendingHostPc.close(); } catch (e) {} }
-        livePendingHostPc = null;
-
-        liveRole = null;
-        liveScreen = 'select';
-        liveThreadActive = false;
-        liveResetSharedState();
-        renderLiveView();
+        if (liveRole === 'host') liveSend({ type: 'end' }); // le relais déconnecte tout le monde et efface le salon
+        leaveLiveModeSilent();
     }
 
     /* ══════════════════════════════════════════
