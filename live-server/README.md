@@ -53,11 +53,9 @@ Cloudflare gratuit (celui déjà utilisé pour le Worker ECAM convient).
    ```
    Wrangler affiche l'adresse du relais, du type
    `https://cantus-live.<votre-sous-domaine>.workers.dev`.
-4. Dans `index.html`, remplacer l'adresse provisoire de `LIVE_RELAY_URL` par celle-ci :
-   ```js
-   : 'https://cantus-live.REMPLACER.workers.dev';
-   ```
-   puis pousser le site comme d'habitude (avec la mise à jour de `version.json`).
+4. Vérifier que `LIVE_RELAY_URL` dans `index.html` pointe bien vers cette adresse (actuellement
+   `https://cantus-live.cyprien-veyret.workers.dev`), puis pousser le site comme d'habitude
+   (avec la mise à jour de `version.json`).
 
 Pour une mise à jour du relais plus tard : refaire seulement l'étape 3.
 Journal en direct du relais déployé : `npx wrangler tail`.

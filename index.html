@@ -6942,7 +6942,7 @@
     // Relais live-server/ : en local, `npx wrangler dev` ; en ligne, l'URL donnée par `npx wrangler deploy`.
     const LIVE_RELAY_URL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
         ? 'http://127.0.0.1:8787'
-        : 'https://cantus-live.REMPLACER.workers.dev';
+        : 'https://cantus-live.cyprien-veyret.workers.dev';
     const LIVE_THREAD_MAX = 3; // nombre de chants gardés dans le "fil" de lecture personnel
 
     let liveRole = null;              // 'host' | 'join' | null
