@@ -881,8 +881,61 @@
         }
 
         /* ─── MODE LIVE : raccourcis « source » (bibliothèque entière ou une playlist) ─── */
-        .live-src-chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 8px 0; flex-shrink: 0; scrollbar-width: none; }
-        .live-src-chips::-webkit-scrollbar { display: none; }
+        .live-src { display: flex; gap: 6px; padding: 8px 8px 0; flex-shrink: 0; }
+        .live-src-select { flex: 1; min-width: 0; cursor: pointer; }
+        .live-src .btn { flex-shrink: 0; padding: 8px 12px; }
+
+        /* Actions d'une messe/playlist (Lancer, Mode Live, PDF…) */
+        .messe-tools { display: flex; flex-wrap: wrap; gap: var(--sp-sm); margin: 0 0 var(--sp-md); }
+        .messe-tools .btn { flex: 1 1 auto; }
+        @media (max-width: 480px) { .messe-tools .btn { flex: 1 1 calc(50% - var(--sp-sm)); padding: 10px 12px; } }
+
+        /* Éditeur de feuille de chants */
+        .sheet-editor { max-width: 1200px; margin: 0 auto; }
+        .sheet-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-lg); align-items: start; }
+        .sheet-preview { position: sticky; top: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-md); max-height: calc(100dvh - 150px); overflow-y: auto; }
+        .sheet-jump { display: none; }
+        @media (max-width: 899px) { .sheet-grid { grid-template-columns: minmax(0, 1fr); } .sheet-preview { position: static; max-height: none; } .sheet-jump { display: inline-flex; } }
+        .sheet-sec { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: var(--sp-md); }
+        .sheet-sec > summary { display: flex; align-items: center; gap: 8px; padding: var(--sp-md); cursor: pointer; font-weight: 700; font-size: 14px; color: var(--text); list-style: none; }
+        .sheet-sec > summary::-webkit-details-marker { display: none; }
+        .sheet-sec > summary::after { content: '▾'; color: var(--text-3); margin-left: auto; transition: transform var(--t-fast) var(--ease); }
+        .sheet-sec:not([open]) > summary::after { transform: rotate(-90deg); }
+        .sheet-sec-body { padding: 0 var(--sp-md) var(--sp-md); display: flex; flex-direction: column; gap: var(--sp-sm); }
+        .sheet-sec-body .field-label { margin: 4px 0 0; }
+        .sheet-sec-body input[type=range] { width: 100%; accent-color: var(--accent); }
+        .sheet-count { font-size: 12px; color: var(--text-3); font-weight: 600; margin-left: auto; }
+        .sheet-area { resize: vertical; font-family: inherit; line-height: 1.45; box-sizing: border-box; }
+        .sheet-select { cursor: pointer; }
+        .sheet-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+        @media (max-width: 480px) { .sheet-row2 { grid-template-columns: 1fr; } }
+        .sheet-blocks { display: flex; flex-direction: column; gap: var(--sp-sm); }
+        .sheet-block { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-sm); background: var(--surface-2); display: flex; flex-direction: column; gap: 6px; }
+        .sheet-block.is-off { opacity: .55; }
+        .sheet-block-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .sheet-block-tools { display: flex; margin-left: auto; flex-shrink: 0; }
+        .sheet-block-tools .btn-icon { min-width: 36px; min-height: 36px; padding: 8px; }
+        .sheet-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); cursor: pointer; min-width: 0; }
+        .sheet-check span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sheet-check b { color: var(--text); font-weight: 600; }
+        .sheet-check input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+        .sheet-check--inline { padding: 4px 0; }
+        .sheet-warn { font-size: 12px; line-height: 1.4; color: var(--danger); border-left: 3px solid var(--danger); padding: 4px 8px; }
+        .sheet-img-row { display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap; }
+        .sheet-img-row img { height: 56px; max-width: 120px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border); }
+        .sheet-add-row { display: flex; flex-wrap: wrap; gap: var(--sp-sm); }
+        .sheet-add-row .btn { flex: 1 1 auto; }
+        .sheet-reset { color: var(--danger); margin-top: var(--sp-sm); }
+        .sheet-preview-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); margin-bottom: var(--sp-sm); flex-wrap: wrap; }
+        .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+        .seg button { border: 0; background: none; color: var(--text-2); font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+        .seg button.active { background: var(--accent); color: #090909; }
+        .sheet-info { font-size: 12px; color: var(--text-3); }
+        .sheet-info.is-warn { color: var(--danger); font-weight: 600; }
+        .sheet-pages { display: flex; flex-direction: column; align-items: center; gap: var(--sp-sm); }
+        .sheet-pages.is-spreads { display: grid; grid-template-columns: repeat(2, max-content); justify-content: center; gap: var(--sp-sm) 2px; }
+        .sheet-pages.is-spreads .is-single { grid-column: 1 / -1; justify-self: center; }
+        .sheet-page { display: block; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.35); max-width: 100%; height: auto; }
         .chip { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); font: inherit; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
         .chip.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-glow); }
         .live-lib-row { min-height: 46px; }
@@ -947,6 +1000,7 @@
         <symbol id="ico-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></symbol>
         <symbol id="ico-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></symbol>
         <symbol id="ico-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
+        <symbol id="ico-file-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="11" x2="12" y2="17"></line><polyline points="9 14 12 17 15 14"></polyline></symbol>
         <symbol id="ico-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
         <symbol id="ico-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
         <symbol id="ico-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></symbol>
@@ -1934,6 +1988,7 @@
         const copy = buildPublicMesseCopy(pm);
         if (copy.songs.length === 0) return { ok: false, error: 'Aucun élément disponible pour cette messe pour le moment.' };
         const existingIdx = state.messes.findIndex(m => m.publicKey === pm.key);
+        if (existingIdx !== -1 && state.messes[existingIdx].sheet) copy.sheet = state.messes[existingIdx].sheet;
         if (existingIdx !== -1) state.messes[existingIdx] = copy;
         else state.messes.push(copy);
         saveMesses();
@@ -1969,6 +2024,7 @@
             const entry = PUBLIC_MESSES.find(x => x.key === m.publicKey);
             if (!entry) { changed = removedAny = true; return; }
             const copy = buildPublicMesseCopy(entry);
+            if (m.sheet) copy.sheet = m.sheet; // feuille de chants : propre à cet appareil
             if (!copy.songs.length && (entry.items || []).length) { nextMesses.push(m); return; }
             if (JSON.stringify(copy) !== JSON.stringify(m)) changed = true;
             nextMesses.push(copy);
@@ -3158,7 +3214,8 @@
                     Nouvelle playlist publique
                 </button>
             </div>
-            <div class="adash-card">${rows || emptyState('ico-list', 'Aucune playlist publique pour l’instant.')}</div>`;
+            <div class="adash-card">${rows || emptyState('ico-list', 'Aucune playlist publique pour l’instant.')}</div>
+            ${adashLocalCollectionsHtml('playlist')}`;
     }
 
     function openAdashPlaylistEditor(key) {
@@ -3286,7 +3343,8 @@
             await persistPublicPlaylistsChange(updated, `${previous ? 'Modifie' : 'Ajoute'} la playlist publique "${name}" via l'application`);
             // L'ancienne photo n'est pas supprimée du dépôt : les copies déjà importées la
             // référencent peut-être encore jusqu'à leur prochaine synchronisation.
-            showToast(`Playlist « ${name} » publiée.`);
+            if (ed.fromLocal) linkLocalToPublic('playlist', ed.fromLocal, entry);
+            showToast(`Playlist « ${name} » publiée — code ${d.code}.`);
             ed.dirty = false;
             adashGo('playlists');
         } catch (e) {
@@ -3294,6 +3352,68 @@
         } finally {
             adashSetSaving(false);
         }
+    }
+
+    /* ─── PUBLIER UNE MESSE / PLAYLIST DE CET APPAREIL ───
+       Ouvre l'éditeur public prérempli avec la copie locale ; une fois publiée, celle-ci devient
+       la copie synchronisée de la version publique (publicKey) — on la modifie ensuite depuis le
+       dashboard, comme toute messe/playlist publique. Les partitions importées seulement sur cet
+       appareil ne peuvent pas être publiées (elles ne sont pas sur GitHub). */
+    function publishLocalCollection(kind, idx) {
+        if (!isAdminActive()) { showToast('Pouvoirs administrateur inactifs.'); return; }
+        const src = kind === 'messe' ? state.messes[idx] : state.playlists[idx];
+        if (!src || src.publicKey) return;
+        const onGithub = it => state.songs.some(s => s.id === it.id && !s.isLocal);
+        const skipped = src.songs.filter(it => it.type !== 'note' && !onGithub(it)).length;
+        const items = src.songs.filter(it => it.type === 'note' || onGithub(it)).map(it => it.type === 'note'
+            ? { type: 'note', name: it.name, ref: it.ref || '', content: it.content || '' }
+            : { type: 'song', id: it.id, name: collItemName(it) });
+        if (!items.length) { showToast('Rien à publier : ces chants ne sont que sur cet appareil.'); return; }
+        const code = generateCategoryCode(allPublicCodes());
+        const draft = kind === 'messe'
+            ? { key: null, label: src.name, date: src.date || null, code, items }
+            : { key: null, label: src.name, code, splitByCategory: !!src.splitByCategory, cover: null, coverUrl: null,
+                coverDataUrl: src.cover && src.cover.startsWith('data:') ? src.cover : null, items };
+        openAdminDashboard(kind === 'messe' ? 'messes' : 'playlists');
+        adashOpenEditor({ kind, isNew: true, draft, dirty: true, fromLocal: src });
+        if (skipped) showToast(`${skipped} partition${skipped > 1 ? 's' : ''} locale${skipped > 1 ? 's' : ''} non publiable${skipped > 1 ? 's' : ''}, laissée${skipped > 1 ? 's' : ''} de côté.`);
+    }
+
+    function linkLocalToPublic(kind, local, entry) {
+        const list = kind === 'messe' ? state.messes : state.playlists;
+        const i = list.indexOf(local);
+        if (i === -1) return;
+        const copy = kind === 'messe' ? buildPublicMesseCopy(entry) : buildPublicPlaylistCopy(entry);
+        if (local.sheet) copy.sheet = local.sheet;
+        list[i] = copy;
+        if (kind === 'messe') saveMesses(); else savePlaylists();
+    }
+
+    function adashLocalCollectionsHtml(kind) {
+        const list = kind === 'messe' ? state.messes : state.playlists;
+        const rows = list.map((x, i) => x.publicKey ? '' : `
+            <div class="adash-row">
+                <div class="adash-row-thumb"><svg class="icon"><use href="#${kind === 'messe' ? 'ico-cal' : 'ico-list'}"/></svg></div>
+                <div class="adash-row-main">
+                    <div class="adash-row-title">${escHtml(x.name)}</div>
+                    <div class="adash-row-sub"><span class="adash-meta">${x.songs.length} élément${x.songs.length > 1 ? 's' : ''} · sur cet appareil</span></div>
+                </div>
+                <div class="adash-row-actions">
+                    <button class="btn btn-ghost" onclick="publishLocalCollection('${kind}', ${i})">
+                        <svg class="icon icon-sm"><use href="#ico-globe"/></svg>
+                        <span class="adash-btn-label">Publier</span>
+                    </button>
+                </div>
+            </div>`).join('');
+        if (!rows.trim()) return '';
+        return `
+            <div class="adash-section-head" style="margin-top: var(--sp-xl);">
+                <div>
+                    <h3>Sur cet appareil</h3>
+                    <p>Vos ${kind === 'messe' ? 'messes' : 'playlists'} locales : publiez-en une pour lui donner un code et un lien d'import publics.</p>
+                </div>
+            </div>
+            <div class="adash-card">${rows}</div>`;
     }
 
     // Version la plus récente d'un registre public (repli sur la copie en mémoire si la lecture
@@ -3365,7 +3485,8 @@
                     Nouvelle messe publique
                 </button>
             </div>
-            <div class="adash-card">${rows || emptyState('ico-cal', 'Aucune messe publique pour l’instant.')}</div>`;
+            <div class="adash-card">${rows || emptyState('ico-cal', 'Aucune messe publique pour l’instant.')}</div>
+            ${adashLocalCollectionsHtml('messe')}`;
     }
 
     function openAdashMesseEditor(key) {
@@ -3480,7 +3601,8 @@
             const exists = !!previous;
             const updated = exists ? latest.map(m => m.key === key ? entry : m) : [...latest, entry];
             await persistPublicMessesChange(updated, `${exists ? 'Modifie' : 'Ajoute'} la messe publique "${name}" via l'application`);
-            showToast(`Messe « ${name} » publiée.`);
+            if (ed.fromLocal) linkLocalToPublic('messe', ed.fromLocal, entry);
+            showToast(`Messe « ${name} » publiée — code ${d.code}.`);
             ed.dirty = false;
             adashGo('messes');
         } catch (e) {
@@ -5674,6 +5796,9 @@
                         <svg class="icon"><use href="#ico-edit"/></svg>
                     </button>` : ''}
                     ${s.type === 'song' ? `
+                    <button class="btn btn-icon" onclick="downloadSongPdf('${s.id}', event)" title="Télécharger le PDF" aria-label="Télécharger le PDF">
+                        <svg class="icon"><use href="#ico-file-down"/></svg>
+                    </button>
                     <button class="btn btn-icon ${songHasAnnotations(s.id) ? 'has-annot' : ''}" data-annot-id="${s.id}" onclick="openAnnotEditor('${s.id}', event)" title="Annoter au stylet" aria-label="Annoter">
                         <svg class="icon"><use href="#ico-stylus"/></svg>
                     </button>` : ''}
@@ -6771,13 +6896,11 @@
                             <svg class="icon"><use href="#ico-arrow-left"/></svg>
                         </button>
                         <h3>${escHtml(m.name)}</h3>
-                        <button class="btn btn-icon" onclick="startPerformance(state.messes[${idx}].songs)" title="Lancer la messe" aria-label="Lancer la messe">
-                            <svg class="icon"><use href="#ico-play"/></svg>
-                        </button>
                         <button class="btn btn-icon danger" onclick="deleteMesse(${idx})" title="Retirer de cet appareil" aria-label="Retirer">
                             <svg class="icon"><use href="#ico-trash"/></svg>
                         </button>
                     </div>
+                    ${messeToolsHtml(idx)}
                     <p class="settings-note" style="margin: 0 2px var(--sp-md);">Messe publique : elle se met à jour toute seule quand les responsables la modifient.</p>
                     <div class="coll-list">${m.songs.map((it, i) => `
                         <div class="coll-row ${it.type === 'note' ? 'is-note' : ''}" style="padding-left: var(--sp-sm);">
@@ -6809,13 +6932,11 @@
                         <svg class="icon"><use href="#ico-arrow-left"/></svg>
                     </button>
                     <h3>${escHtml(m.name)}</h3>
-                    <button class="btn btn-icon" onclick="startPerformance(state.messes[${idx}].songs)" title="Lancer la messe" aria-label="Lancer la messe">
-                        <svg class="icon"><use href="#ico-play"/></svg>
-                    </button>
                     <button class="btn btn-icon danger" onclick="deleteMesse(${idx})" title="Supprimer" aria-label="Supprimer">
                         <svg class="icon"><use href="#ico-trash"/></svg>
                     </button>
                 </div>
+                ${messeToolsHtml(idx)}
                 <div class="coll-section-title"><span>Déroulé</span><span id="coll-list-count"></span></div>
                 <div id="coll-list" class="coll-list"></div>
                 <div class="coll-add-bar">
@@ -6831,6 +6952,24 @@
             </div>`;
 
         mountCollEditor();
+    }
+
+    // Tout ce qu'on peut faire d'une messe, au même endroit et avec des libellés : la lancer, la
+    // suivre en Mode Live, en tirer les PDF, la publier (admin).
+    function messeToolsHtml(idx) {
+        const m = state.messes[idx];
+        const tool = (icon, label, onclick, cls = 'btn-ghost') => `
+            <button class="btn ${cls}" onclick="${onclick}">
+                <svg class="icon icon-sm"><use href="#${icon}"/></svg><span>${label}</span>
+            </button>`;
+        return `
+            <div class="messe-tools">
+                ${tool('ico-play', 'Lancer', `startPerformance(state.messes[${idx}].songs)`, 'btn-primary')}
+                ${tool('ico-live', 'Mode Live', `startLiveWithCollection('m${idx}')`)}
+                ${tool('ico-file-down', 'Partitions PDF', `downloadMessePdf(${idx}, this)`)}
+                ${tool('ico-file', 'Feuille de chants', `openSheetEditor(${idx})`)}
+                ${isAdminActive() && !m.publicKey ? tool('ico-globe', 'Rendre publique', `publishLocalCollection('messe', ${idx})`) : ''}
+            </div>`;
     }
 
     function saveMesses() {
@@ -7081,6 +7220,11 @@
     function liveEnterConnected() {
         if (liveScreen === 'connected' || liveScreen === 'invite') return;
         liveScreen = liveRole === 'host' ? 'invite' : 'connected';
+        if (liveRole === 'host' && livePendingSongIds) {
+            livePendingSongIds.forEach(liveAddSong);
+            livePendingSongIds = null;
+            broadcastLiveState();
+        }
         requestWakeLock(); // l'écran reste allumé tant que le Mode Live est actif
         renderLiveView();
     }
@@ -7482,6 +7626,13 @@
         if (song) showToast(`« ${song.name} » ajouté à la file`);
     }
 
+    function liveActionAddMany(ids) {
+        if (!ids.length) return;
+        if (liveRole === 'host') { ids.forEach(liveAddSong); broadcastLiveState(); renderLiveView(); }
+        else ids.forEach(songId => sendToHost({ type: 'requestAdd', songId }));
+        showToast(`${ids.length} chant${ids.length > 1 ? 's' : ''} ajouté${ids.length > 1 ? 's' : ''} à la file`);
+    }
+
     function liveActionRemoveSong(qid) {
         if (liveRole === 'host') { liveRemoveSong(qid); broadcastLiveState(); renderLiveView(); }
         else sendToHost({ type: 'requestRemove', qid });
@@ -7518,28 +7669,58 @@
         startPerformance([liveItemToSong(item)]);
     }
 
-    /* ─── RACCOURCIS PLAYLISTS ───
-       La colonne d'ajout peut piocher dans toute la bibliothèque ou dans une seule playlist de
-       cet appareil (pastilles en haut de colonne) : on ne voit alors que ses chants, divisés par
-       catégorie si la playlist est réglée ainsi. */
-    let liveLibSource = 'all'; // 'all' ou index (en texte) d'une playlist de state.playlists
+    /* ─── SOURCE DES CHANTS : BIBLIOTHÈQUE, MESSE OU PLAYLIST ───
+       La colonne d'ajout pioche dans toute la bibliothèque ou dans une messe / playlist de cet
+       appareil (menu en haut de colonne) : on ne voit alors que ses chants — dans l'ordre du
+       déroulé pour une messe, divisés par catégorie si la playlist est réglée ainsi — et
+       « Tout ajouter » les verse d'un coup dans la file : c'est le Mode Live « messe », où
+       « Chant terminé → suivant » fait avancer tout le monde dans le déroulé. */
+    let liveLibSource = 'all';     // 'all', 'm<index>' (messe) ou 'p<index>' (playlist) de cet appareil
+    let livePendingSongIds = null; // chants à verser dans la file dès que le direct est créé
 
-    function liveSourcePlaylist() {
-        if (liveLibSource === 'all') return null;
-        return state.playlists[Number(liveLibSource)] || null;
+    function liveSourceCollection() {
+        const i = Number(liveLibSource.slice(1));
+        if (liveLibSource[0] === 'm') return state.messes[i] || null;
+        if (liveLibSource[0] === 'p') return state.playlists[i] || null;
+        return null;
+    }
+
+    function liveSourceSongIds() {
+        const coll = liveSourceCollection();
+        return coll ? coll.songs.filter(it => it.type !== 'note' && state.songs.some(s => s.id === it.id)).map(it => it.id) : [];
     }
 
     function renderLiveSourceChips() {
-        if (!state.playlists.length) return '';
-        if (!liveSourcePlaylist()) liveLibSource = 'all';
-        const chip = (value, label, icon) => `
-            <button class="chip ${liveLibSource === value ? 'active' : ''}" onclick="setLiveLibSource('${value}')" title="${escHtml(label)}">
-                <svg class="icon icon-sm"><use href="#${icon}"/></svg>${escHtml(label)}
-            </button>`;
-        return `<div class="live-src-chips" id="live-src-chips">
-            ${chip('all', 'Toute la bibliothèque', 'ico-music')}
-            ${state.playlists.map((p, i) => chip(String(i), p.name, 'ico-list')).join('')}
+        if (!state.playlists.length && !state.messes.length) return '';
+        if (!liveSourceCollection()) liveLibSource = 'all';
+        const opt = (value, label) => `<option value="${value}" ${liveLibSource === value ? 'selected' : ''}>${escHtml(label)}</option>`;
+        const n = liveSourceSongIds().length;
+        return `<div class="live-src" id="live-src-chips">
+            <select class="input-field live-src-select" onchange="setLiveLibSource(this.value)" aria-label="Où chercher les chants">
+                ${opt('all', 'Toute la bibliothèque')}
+                ${state.messes.length ? `<optgroup label="Messes">${state.messes.map((m, i) => opt('m' + i, m.name)).join('')}</optgroup>` : ''}
+                ${state.playlists.length ? `<optgroup label="Playlists">${state.playlists.map((p, i) => opt('p' + i, p.name)).join('')}</optgroup>` : ''}
+            </select>
+            ${n ? `<button class="btn btn-ghost" onclick="liveActionAddMany(liveSourceSongIds())" title="Ajouter tous ces chants à la file, dans l'ordre">
+                <svg class="icon icon-sm"><use href="#ico-plus"/></svg>Tout ajouter (${n})
+            </button>` : ''}
         </div>`;
+    }
+
+    // Depuis une messe ou une playlist (bouton « Mode Live ») : ouvre le Mode Live sur cette
+    // source et verse ses chants dans la file — tout de suite si on gère déjà un direct, sinon
+    // dès que le direct qu'on lance est créé (voir liveEnterConnected).
+    function startLiveWithCollection(src) {
+        liveLibSource = src;
+        const ids = liveSourceSongIds();
+        showView('live');
+        if (liveScreen === 'select') {
+            livePendingSongIds = ids;
+            startLiveHost();
+        } else if (liveScreen === 'connected' && liveAmILeader() && ids.length
+            && confirm(`Ajouter les ${ids.length} chants à la file du direct ?`)) {
+            liveActionAddMany(ids);
+        }
     }
 
     function setLiveLibSource(value) {
@@ -7554,8 +7735,8 @@
     }
 
     function liveFilteredLibrary() {
-        const pl = liveSourcePlaylist();
-        // Chants d'une playlist : version actuelle de la bibliothèque (pour l'id et la partition),
+        const pl = liveSourceCollection();
+        // Chants d'une messe/playlist : version actuelle de la bibliothèque (pour l'id et la partition),
         // mais sous le nom affiché dans la playlist (nom propre à une playlist publique, par ex.).
         const base = pl
             ? pl.songs.filter(s => s.type !== 'note').map(s => {
@@ -7568,9 +7749,9 @@
     }
 
     function renderLiveLibraryList(list) {
-        const pl = liveSourcePlaylist();
+        const pl = liveSourceCollection();
         if (list.length === 0) {
-            return `<div class="empty-state"><p>${pl && !liveLibSearchQuery.trim() ? 'Cette playlist est vide.' : 'Aucun chant disponible.'}</p></div>`;
+            return `<div class="empty-state"><p>${pl && !liveLibSearchQuery.trim() ? 'Aucun chant dans cette liste.' : 'Aucun chant disponible.'}</p></div>`;
         }
         const row = s => `
             <div class="ed-item ed-item--add live-lib-row" onclick="liveActionAddSong('${s.id}')">
@@ -7727,6 +7908,7 @@
         liveRole = null;
         liveScreen = 'select';
         liveThreadActive = false;
+        livePendingSongIds = null;
         liveResetSharedState();
         renderLiveView();
     }
@@ -7738,6 +7920,803 @@
         if (!confirm(msg)) return;
         if (liveRole === 'host') liveSend({ type: 'end' }); // le relais déconnecte tout le monde et efface le salon
         leaveLiveModeSilent();
+    }
+
+    /* ══════════════════════════════════════════
+       PDF — TÉLÉCHARGEMENT DES PARTITIONS ET FEUILLE DE CHANTS
+
+       pdf-lib (bibliotheque/pdf-lib, chargé à la demande puis mis en cache par le service worker)
+       fusionne les partitions et dessine les pages générées : page de garde du PDF d'une messe,
+       feuille de chants (livret imposé pour l'impression recto-verso). Les polices sont les
+       polices standard du PDF (encodage WinAnsi, accents français compris) : un caractère hors de
+       cet encodage (emoji…) est simplement retiré du texte dessiné.
+    ══════════════════════════════════════════ */
+    const PDF_A4 = [595.28, 841.89];
+    const PDF_A5 = [419.53, 595.28];
+    const PDF_INK = [0.1, 0.1, 0.1], PDF_GREY = [0.42, 0.42, 0.42], PDF_ACCENT = [0.58, 0.38, 0.22];
+
+    async function ensurePdfLib() {
+        await loadScriptOnce('bibliotheque/pdf-lib/pdf-lib.min.js');
+        return window.PDFLib;
+    }
+
+    // Octets d'une partition : copie hors-ligne si elle existe, sinon réseau.
+    async function songPdfBytes(song) {
+        if ('caches' in window) {
+            const hit = await (await caches.open(PDF_CACHE_NAME)).match(song.url);
+            if (hit) return hit.arrayBuffer();
+        }
+        const res = await fetch(song.url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.arrayBuffer();
+    }
+
+    function saveBytesAs(bytes, filename) {
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    async function withBusyButton(btn, label, fn) {
+        const old = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = label; }
+        try { await fn(); }
+        catch (e) { console.error(e); showToast(e.message || 'Échec de la génération du PDF.'); }
+        finally { if (btn) { btn.disabled = false; btn.innerHTML = old; } }
+    }
+
+    async function downloadSongPdf(id, event) {
+        if (event) event.stopPropagation();
+        const song = state.songs.find(s => s.id === id);
+        if (!song) return;
+        try {
+            saveBytesAs(await songPdfBytes(song), song.path ? song.path.split('/').pop() : sanitizePartitionFilename(song.name) + '.pdf');
+        } catch (e) {
+            showToast('Téléchargement impossible — vérifiez la connexion.');
+        }
+    }
+
+    const pdfCharsets = new WeakMap();
+    function pdfSafe(font, text) {
+        let set = pdfCharsets.get(font);
+        if (!set) { set = new Set(font.getCharacterSet()); pdfCharsets.set(font, set); }
+        return [...String(text || '')].map(ch => set.has(ch.codePointAt(0)) ? ch : (/\s/.test(ch) ? ' ' : '')).join('');
+    }
+
+    // Découpe une ligne de texte (déjà passée par pdfSafe) en lignes de largeur ≤ maxW ; un mot
+    // plus large que la colonne est coupé lettre à lettre.
+    function pdfWrap(font, size, text, maxW) {
+        const lines = [];
+        let line = '';
+        for (const word of text.split(/ +/)) {
+            const cand = line ? line + ' ' + word : word;
+            if (line && font.widthOfTextAtSize(cand, size) > maxW) { lines.push(line); line = word; }
+            else line = cand;
+            while (line.length > 1 && font.widthOfTextAtSize(line, size) > maxW) {
+                let cut = line.length - 1;
+                while (cut > 1 && font.widthOfTextAtSize(line.slice(0, cut), size) > maxW) cut--;
+                lines.push(line.slice(0, cut));
+                line = line.slice(cut);
+            }
+        }
+        lines.push(line);
+        return lines;
+    }
+
+    /* ─── PDF DES PARTITIONS D'UNE MESSE (page de garde + partitions à la suite) ─── */
+    async function downloadMessePdf(idx, btn) {
+        const m = state.messes[idx];
+        if (!m) return;
+        const seen = new Set();
+        const entries = m.songs.filter(it => it.type !== 'note' && !seen.has(it.id) && seen.add(it.id));
+        if (!entries.length) { showToast('Aucune partition dans cette messe.'); return; }
+
+        await withBusyButton(btn, 'Préparation…', async () => {
+            const { PDFDocument, StandardFonts, rgb } = await ensurePdfLib();
+            const parts = [], failed = [];
+            await Promise.all(entries.map(async (it, i) => {
+                try {
+                    const doc = await PDFDocument.load(await songPdfBytes(collSourceSong(it) || it), { ignoreEncryption: true });
+                    parts[i] = { it, doc };
+                } catch (e) { failed.push(collItemName(it)); }
+            }));
+            const ok = parts.filter(Boolean);
+            if (!ok.length) throw new Error("Aucune partition n'a pu être récupérée — vérifiez la connexion.");
+
+            const out = await PDFDocument.create();
+            out.setTitle(m.name);
+            const startPage = new Map();
+            let p = 2; // la page de garde est la page 1
+            ok.forEach(pt => { startPage.set(pt.it.id, p); p += pt.doc.getPageCount(); });
+
+            const fB = await out.embedFont(StandardFonts.TimesRomanBold);
+            const fR = await out.embedFont(StandardFonts.TimesRoman);
+            const fI = await out.embedFont(StandardFonts.TimesRomanItalic);
+            const ink = rgb(...PDF_INK), grey = rgb(...PDF_GREY), accent = rgb(...PDF_ACCENT);
+            const [W, H] = PDF_A4;
+            const page = out.addPage(PDF_A4);
+            const center = (text, font, size, y, color) => {
+                const t = pdfSafe(font, text);
+                page.drawText(t, { x: (W - font.widthOfTextAtSize(t, size)) / 2, y, size, font, color });
+            };
+
+            let y = H - 120;
+            pdfWrap(fB, 30, pdfSafe(fB, m.name), W - 140).forEach(line => { center(line, fB, 30, y, ink); y -= 36; });
+            const dateLabel = m.date ? formatMesseDateLabel(m.date) : '';
+            if (dateLabel && dateLabel !== m.name) { center(dateLabel, fI, 14, y + 6, grey); y -= 22; }
+            y -= 6;
+            page.drawLine({ start: { x: W / 2 - 40, y }, end: { x: W / 2 + 40, y }, thickness: 1, color: accent });
+            y -= 46;
+
+            // Déroulé : chaque chant avec le numéro de page où commence sa partition, les notes et
+            // lectures en italique (elles n'ont pas de partition).
+            const x0 = 80, x1 = W - 80;
+            const rows = m.songs.length;
+            const rowH = Math.max(12, Math.min(22, (y - 70) / Math.max(rows, 1)));
+            const size = Math.min(12.5, rowH * 0.62);
+            const dotW = fR.widthOfTextAtSize('.', size);
+            const fitText = (font, text, maxW) => {
+                let t = pdfSafe(font, text);
+                if (font.widthOfTextAtSize(t, size) <= maxW) return t;
+                while (t.length > 1 && font.widthOfTextAtSize(t + '…', size) > maxW) t = t.slice(0, -1);
+                return t + '…';
+            };
+            m.songs.forEach(it => {
+                if (it.type === 'note') {
+                    const t = fitText(fI, it.ref ? `${it.name} — ${it.ref}` : it.name, x1 - x0);
+                    page.drawText(t, { x: x0, y, size, font: fI, color: grey });
+                } else {
+                    const num = startPage.has(it.id) ? String(startPage.get(it.id)) : '—';
+                    const numW = fR.widthOfTextAtSize(num, size);
+                    const name = fitText(fR, collItemName(it), x1 - x0 - numW - 30);
+                    const nameW = fR.widthOfTextAtSize(name, size);
+                    page.drawText(name, { x: x0, y, size, font: fR, color: ink });
+                    const dots = '.'.repeat(Math.max(0, Math.floor((x1 - numW - 8 - (x0 + nameW + 8)) / dotW)));
+                    page.drawText(dots, { x: x1 - numW - 8 - dots.length * dotW, y, size, font: fR, color: grey });
+                    page.drawText(num, { x: x1 - numW, y, size, font: fR, color: ink });
+                }
+                y -= rowH;
+            });
+            center(`${ok.length} partition${ok.length > 1 ? 's' : ''} · Cantus`, fI, 9, 36, grey);
+
+            for (const pt of ok) {
+                const pages = await out.copyPages(pt.doc, pt.doc.getPageIndices());
+                pages.forEach(pg => out.addPage(pg));
+            }
+            saveBytesAs(await out.save(), `${sanitizePartitionFilename(m.name)}_-_partitions.pdf`);
+            showToast(failed.length
+                ? `PDF prêt, sans ${failed.length} partition${failed.length > 1 ? 's' : ''} introuvable${failed.length > 1 ? 's' : ''} : ${failed.join(', ')}`
+                : 'PDF des partitions prêt.');
+        });
+    }
+
+    /* ─── FEUILLE DE CHANTS ───
+       Enregistrée dans la messe elle-même (m.sheet, conservée aussi pour une messe publique
+       importée, voir applyPublicSync). Les blocs issus de la messe gardent `src` (id du chant ou
+       nom de la note) pour être reconnus par « Mettre à jour depuis la messe » ; les blocs ajoutés
+       à la main (texte, image) n'en ont pas. */
+    const SHEET_DEFAULTS = {
+        format: 'booklet', sheets: 'auto', maxPages: 'auto', cover: true, columns: 1, font: 'serif',
+        size: 11, leading: 1.3, align: 'left', margin: 'normal', boldRefrain: true, fit: true,
+        pageNumbers: true, separators: true, titleCase: 'sentence', intro: '', backText: '', image: null, imageWidth: 70
+    };
+    let sheetEd = null; // { idx, view: 'pages'|'print', closed: {}, token }
+
+    function sheetKeyOf(it) {
+        return it.type === 'note' ? 'n:' + (it.name || '') + '|' + (it.ref || '') : 's:' + it.id;
+    }
+
+    async function sheetBlocksFromMesse(m, previous = []) {
+        await Promise.all(m.songs.filter(it => it.type !== 'note').map(it => getLyricsForSong(collSourceSong(it) || it)));
+        const prev = new Map(previous.filter(b => b.src).map(b => [b.src, b]));
+        const blocks = [];
+        for (const it of m.songs) {
+            const src = sheetKeyOf(it);
+            if (prev.has(src)) { blocks.push(prev.get(src)); prev.delete(src); continue; }
+            if (it.type === 'note') {
+                blocks.push({ src, kind: 'note', include: true, label: '', title: it.name || 'Note', ref: it.ref || '', text: it.content || '', showText: false });
+            } else {
+                const text = await getLyricsForSong(collSourceSong(it) || it);
+                blocks.push({ src, kind: 'song', include: true, label: '', title: collItemName(it), text: text || '' });
+            }
+        }
+        previous.forEach((b, i) => { if (!b.src) blocks.splice(Math.min(i, blocks.length), 0, b); });
+        return blocks;
+    }
+
+    function saveSheet() {
+        try { saveMesses(); }
+        catch (e) { showToast('Stockage de l’appareil plein : retirez ou réduisez une image.'); }
+    }
+
+    async function openSheetEditor(idx) {
+        const m = state.messes[idx];
+        if (!m) return;
+        document.getElementById('content').innerHTML = `<div class="empty-state"><svg class="icon"><use href="#ico-file"/></svg><p>Préparation de la feuille de chants…</p></div>`;
+        if (!m.sheet) {
+            const dateLabel = m.date ? formatMesseDateLabel(m.date) : '';
+            m.sheet = { ...SHEET_DEFAULTS, title: m.name, subtitle: dateLabel && dateLabel !== m.name ? dateLabel : '', blocks: [] };
+            m.sheet.blocks = await sheetBlocksFromMesse(m);
+            saveSheet();
+        } else {
+            m.sheet = { ...SHEET_DEFAULTS, ...m.sheet };
+        }
+        // Sur téléphone, l'aperçu est sous les réglages : sections longues repliées au départ.
+        sheetEd = { idx, view: 'pages', closed: window.innerWidth < 900 ? { blocks: true, layout: true } : {}, token: 0 };
+        renderSheetEditor();
+    }
+
+    function sheetCur() {
+        return sheetEd && state.messes[sheetEd.idx] ? state.messes[sheetEd.idx].sheet : null;
+    }
+
+    function sheetSet(key, value, rerender) {
+        const s = sheetCur();
+        if (!s) return;
+        s[key] = value;
+        saveSheet();
+        if (rerender) renderSheetEditor();
+        else scheduleSheetPreview();
+    }
+
+    function sheetBlockSet(i, key, value, rerender) {
+        const s = sheetCur();
+        if (!s || !s.blocks[i]) return;
+        s.blocks[i][key] = value;
+        saveSheet();
+        if (rerender) renderSheetEditor();
+        else scheduleSheetPreview();
+    }
+
+    function sheetMoveBlock(i, delta) {
+        const s = sheetCur(), j = i + delta;
+        if (!s || j < 0 || j >= s.blocks.length) return;
+        [s.blocks[i], s.blocks[j]] = [s.blocks[j], s.blocks[i]];
+        saveSheet();
+        renderSheetEditor();
+    }
+
+    function sheetRemoveBlock(i) {
+        const s = sheetCur();
+        if (!s || !confirm('Retirer ce bloc de la feuille ?')) return;
+        s.blocks.splice(i, 1);
+        saveSheet();
+        renderSheetEditor();
+    }
+
+    function sheetAddText() {
+        const s = sheetCur();
+        if (!s) return;
+        s.blocks.push({ kind: 'text', include: true, title: '', text: '' });
+        saveSheet();
+        renderSheetEditor();
+    }
+
+    // Image redimensionnée (1200 px max) et compressée : elle est stockée dans la messe, sur
+    // l'appareil, dont l'espace de stockage est limité.
+    function sheetImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = e => {
+                const img = new Image();
+                img.onerror = reject;
+                img.onload = () => {
+                    const k = Math.min(1, 1200 / Math.max(img.width, img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(img.width * k);
+                    canvas.height = Math.round(img.height * k);
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.82));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // target : 'cover' (image de couverture), 'new' (nouveau bloc image) ou index d'un bloc image.
+    async function sheetPickImage(event, target) {
+        const file = event.target.files[0];
+        const s = sheetCur();
+        if (!file || !s) return;
+        try {
+            const src = await sheetImageFromFile(file);
+            if (target === 'cover') s.image = src;
+            else if (target === 'new') s.blocks.push({ kind: 'image', include: true, src, width: 60, caption: '' });
+            else s.blocks[target].src = src;
+            saveSheet();
+            renderSheetEditor();
+        } catch (e) {
+            showToast('Image illisible, essayez un autre fichier.');
+        }
+    }
+
+    async function sheetResync() {
+        const m = state.messes[sheetEd.idx];
+        if (!m) return;
+        m.sheet.blocks = await sheetBlocksFromMesse(m, m.sheet.blocks);
+        saveSheet();
+        renderSheetEditor();
+        showToast('Feuille mise à jour depuis le déroulé de la messe.');
+    }
+
+    function sheetResetConfirm() {
+        const m = state.messes[sheetEd.idx];
+        if (!m || !confirm('Recréer la feuille de chants à partir de la messe ? Vos modifications (textes, images, réglages) seront perdues.')) return;
+        delete m.sheet;
+        openSheetEditor(sheetEd.idx);
+    }
+
+    function sheetSelectHtml(key, options, rerender = true) {
+        const s = sheetCur();
+        return `<select class="input-field sheet-select" onchange="sheetSet('${key}', ${typeof options[0][0] === 'number' ? 'Number(this.value)' : 'this.value'}, ${rerender})">
+            ${options.map(([v, l]) => `<option value="${v}" ${String(s[key]) === String(v) ? 'selected' : ''}>${escHtml(l)}</option>`).join('')}
+        </select>`;
+    }
+
+    function sheetBlockHtml(b, i, n) {
+        const kindLabel = { song: 'Chant', note: 'Lecture / note', text: 'Texte libre', image: 'Image' }[b.kind];
+        const on = b.include !== false;
+        const field = (key, ph, val = b[key]) => `<input type="text" class="input-field" placeholder="${ph}" value="${escHtml(val || '')}" oninput="sheetBlockSet(${i}, '${key}', this.value)">`;
+        const area = (key, ph, rows) => `<textarea class="input-field sheet-area" rows="${rows}" placeholder="${ph}" oninput="sheetBlockSet(${i}, '${key}', this.value)">${escHtml(b[key] || '')}</textarea>`;
+        let body = '';
+        if (on && b.kind === 'song') {
+            body = `
+                <div class="sheet-row2">${field('label', 'Moment (ex. Entrée)')}${field('title', 'Titre')}</div>
+                ${b.text ? '' : `<div class="sheet-warn">Pas de paroles enregistrées pour ce chant : saisissez-les ci-dessous, sinon seul le titre sera imprimé.</div>`}
+                ${area('text', 'Paroles… (une ligne vide entre les strophes ; « Refrain » seul sur une ligne)', 6)}`;
+        } else if (on && b.kind === 'note') {
+            body = `
+                <div class="sheet-row2">${field('label', 'Moment (ex. 1re lecture)')}${field('title', 'Titre')}</div>
+                ${field('ref', 'Référence (ex. Is 55, 1-11)')}
+                <label class="sheet-check sheet-check--inline"><input type="checkbox" ${b.showText ? 'checked' : ''} onchange="sheetBlockSet(${i}, 'showText', this.checked, true)"><span>Imprimer le texte complet</span></label>
+                ${b.showText ? area('text', 'Texte', 5) : ''}`;
+        } else if (on && b.kind === 'text') {
+            body = `${field('title', 'Titre (optionnel)')}${area('text', 'Texte : annonce, prière, consigne…', 4)}`;
+        } else if (on && b.kind === 'image') {
+            body = `
+                <div class="sheet-img-row">
+                    ${b.src ? `<img src="${b.src}" alt="">` : ''}
+                    <label class="btn btn-ghost">Changer<input type="file" accept="image/*" hidden onchange="sheetPickImage(event, ${i})"></label>
+                </div>
+                <label class="field-label">Largeur : <span id="sheet-w-${i}">${b.width}</span> %</label>
+                <input type="range" min="20" max="100" step="5" value="${b.width}" oninput="document.getElementById('sheet-w-${i}').textContent = this.value; sheetBlockSet(${i}, 'width', Number(this.value))">
+                ${field('caption', 'Légende (optionnel)')}`;
+        }
+        return `
+            <div class="sheet-block ${on ? '' : 'is-off'}">
+                <div class="sheet-block-head">
+                    <label class="sheet-check"><input type="checkbox" ${on ? 'checked' : ''} onchange="sheetBlockSet(${i}, 'include', this.checked, true)">
+                        <span><b>${kindLabel}</b>${on ? '' : ' · ' + escHtml(b.title || b.caption || '')}</span></label>
+                    <div class="sheet-block-tools">
+                        <button class="btn btn-icon" onclick="sheetMoveBlock(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Monter" aria-label="Monter"><svg class="icon icon-sm" style="transform:rotate(180deg)"><use href="#ico-chevron"/></svg></button>
+                        <button class="btn btn-icon" onclick="sheetMoveBlock(${i}, 1)" ${i === n - 1 ? 'disabled' : ''} title="Descendre" aria-label="Descendre"><svg class="icon icon-sm"><use href="#ico-chevron"/></svg></button>
+                        ${b.src && b.kind !== 'image' ? '' : `<button class="btn btn-icon danger" onclick="sheetRemoveBlock(${i})" title="Retirer" aria-label="Retirer"><svg class="icon icon-sm"><use href="#ico-trash"/></svg></button>`}
+                    </div>
+                </div>
+                ${body}
+            </div>`;
+    }
+
+    function renderSheetEditor() {
+        const m = state.messes[sheetEd.idx];
+        if (!m || !m.sheet) { showView('planner'); return; }
+        const s = m.sheet, booklet = s.format === 'booklet';
+        const c = document.getElementById('content');
+        const keepScroll = c.querySelector('.sheet-editor') ? c.scrollTop : 0;
+        const sec = (k, title, inner, extra = '') => `
+            <details class="sheet-sec" ${sheetEd.closed[k] ? '' : 'open'} ontoggle="sheetEd.closed['${k}'] = !this.open">
+                <summary><span>${title}</span>${extra}</summary>
+                <div class="sheet-sec-body">${inner}</div>
+            </details>`;
+        const toggle = (key, label, desc) => toggleRowHtml(label, desc, !!s[key], `sheetSet('${key}', this.checked)`);
+        const included = s.blocks.filter(b => b.include !== false).length;
+
+        c.innerHTML = `
+            <div class="sheet-editor">
+                <div class="editor-head">
+                    <button class="btn btn-icon" onclick="editMesse(${sheetEd.idx})" aria-label="Retour à la messe">
+                        <svg class="icon"><use href="#ico-arrow-left"/></svg>
+                    </button>
+                    <h3>Feuille de chants · ${escHtml(m.name)}</h3>
+                    <button class="btn btn-ghost sheet-jump" onclick="document.querySelector('.sheet-preview').scrollIntoView({ behavior: 'smooth' })" title="Voir l'aperçu" aria-label="Voir l'aperçu">
+                        <svg class="icon icon-sm"><use href="#ico-eye"/></svg>
+                    </button>
+                    <button class="btn btn-primary" onclick="downloadSheetPdf(this, 'print')">
+                        <svg class="icon icon-sm"><use href="#ico-download"/></svg>
+                        <span>Télécharger</span>
+                    </button>
+                </div>
+                <div class="sheet-grid">
+                    <div class="sheet-panel">
+                        ${sec('cover', 'Titre et couverture', `
+                            <label class="field-label">Titre</label>
+                            <input type="text" class="input-field" value="${escHtml(s.title || '')}" oninput="sheetSet('title', this.value)">
+                            <label class="field-label">Sous-titre</label>
+                            <input type="text" class="input-field" value="${escHtml(s.subtitle || '')}" placeholder="Ex : Paroisse Saint-Jean · 10 h 30" oninput="sheetSet('subtitle', this.value)">
+                            <label class="field-label">Image</label>
+                            <div class="sheet-img-row">
+                                ${s.image ? `<img src="${s.image}" alt="">` : ''}
+                                <label class="btn btn-ghost"><svg class="icon icon-sm"><use href="#ico-image"/></svg>${s.image ? 'Changer' : 'Ajouter une image'}<input type="file" accept="image/*" hidden onchange="sheetPickImage(event, 'cover')"></label>
+                                ${s.image ? `<button class="btn btn-ghost" onclick="sheetSet('image', null, true)">Retirer</button>` : ''}
+                            </div>
+                            ${s.image ? `<label class="field-label">Largeur de l'image : <span id="sheet-w-cover">${s.imageWidth}</span> %</label>
+                            <input type="range" min="20" max="100" step="5" value="${s.imageWidth}" oninput="document.getElementById('sheet-w-cover').textContent = this.value; sheetSet('imageWidth', Number(this.value))">` : ''}
+                            <label class="field-label">Texte d'accueil</label>
+                            <textarea class="input-field sheet-area" rows="3" placeholder="Ex : mot d'accueil, intention de la messe…" oninput="sheetSet('intro', this.value)">${escHtml(s.intro || '')}</textarea>
+                            ${toggleRowHtml('Page de couverture', 'Titre, image et texte d’accueil seuls sur la première page. Sinon, ils sont en tête de la première page.', !!s.cover, `sheetSet('cover', this.checked)`)}
+                            ${booklet ? `<label class="field-label">Dernière page du livret (4e de couverture)</label>
+                            <textarea class="input-field sheet-area" rows="3" placeholder="Ex : annonces, prochaines messes… (vide = page blanche)" oninput="sheetSet('backText', this.value)">${escHtml(s.backText || '')}</textarea>` : ''}`)}
+                        ${sec('blocks', 'Contenu', `
+                            <div class="sheet-blocks">${s.blocks.map((b, i) => sheetBlockHtml(b, i, s.blocks.length)).join('') || emptyState('ico-music', 'Aucun chant : ajoutez-en à la messe.')}</div>
+                            <div class="sheet-add-row">
+                                <button class="btn btn-ghost" onclick="sheetAddText()"><svg class="icon icon-sm"><use href="#ico-note"/></svg>Texte</button>
+                                <label class="btn btn-ghost"><svg class="icon icon-sm"><use href="#ico-image"/></svg>Image<input type="file" accept="image/*" hidden onchange="sheetPickImage(event, 'new')"></label>
+                                <button class="btn btn-ghost" onclick="sheetResync()" title="Ajoute les chants et notes ajoutés depuis à la messe, en gardant vos modifications">Mettre à jour depuis la messe</button>
+                            </div>`, `<span class="sheet-count">${included} / ${s.blocks.length}</span>`)}
+                        ${sec('layout', 'Mise en page', `
+                            <label class="field-label">Format</label>
+                            ${sheetSelectHtml('format', [['booklet', 'Livret : feuille(s) A4 pliée(s) en deux'], ['a4', 'Feuilles A4'], ['a5', 'Feuilles A5']])}
+                            ${booklet
+                                ? `<label class="field-label">Nombre de feuilles A4</label>
+                                   ${sheetSelectHtml('sheets', [['auto', 'Automatique (selon le contenu)'], [1, '1 feuille pliée — 4 pages'], [2, '2 feuilles emboîtées — 8 pages'], [3, '3 feuilles emboîtées — 12 pages'], [4, '4 feuilles emboîtées — 16 pages']])}`
+                                : `<label class="field-label">Nombre de pages</label>
+                                   ${sheetSelectHtml('maxPages', [['auto', 'Automatique (selon le contenu)'], [1, '1 page'], [2, '2 pages (recto-verso)'], [3, '3 pages'], [4, '4 pages']])}`}
+                            <div class="sheet-row2">
+                                <div><label class="field-label">Colonnes</label>${sheetSelectHtml('columns', [[1, '1 colonne'], [2, '2 colonnes']], false)}</div>
+                                <div><label class="field-label">Police</label>${sheetSelectHtml('font', [['serif', 'Classique (Times)'], ['sans', 'Moderne (Helvetica)']], false)}</div>
+                            </div>
+                            <div class="sheet-row2">
+                                <div><label class="field-label">Alignement</label>${sheetSelectHtml('align', [['left', 'À gauche'], ['center', 'Centré']], false)}</div>
+                                <div><label class="field-label">Marges</label>${sheetSelectHtml('margin', [['small', 'Étroites'], ['normal', 'Normales'], ['large', 'Larges']], false)}</div>
+                            </div>
+                            <label class="field-label">Titres des chants</label>
+                            ${sheetSelectHtml('titleCase', [['sentence', 'Première lettre en majuscule'], ['upper', 'MAJUSCULES'], ['asis', 'Tels que saisis']], false)}
+                            <label class="field-label">Taille du texte : <span id="sheet-size-v">${s.size}</span> pt</label>
+                            <input type="range" min="7" max="16" step="0.5" value="${s.size}" oninput="document.getElementById('sheet-size-v').textContent = this.value; sheetSet('size', Number(this.value))">
+                            <label class="field-label">Interligne : <span id="sheet-lead-v">${s.leading}</span></label>
+                            <input type="range" min="1" max="1.8" step="0.05" value="${s.leading}" oninput="document.getElementById('sheet-lead-v').textContent = this.value; sheetSet('leading', Number(this.value))">
+                            ${toggle('fit', 'Ajuster pour tenir', 'Réduit le texte si besoin pour tenir dans le nombre de pages choisi.')}
+                            ${toggle('boldRefrain', 'Refrains en gras', 'Strophe qui suit « Refrain » ou commence par « R. ».')}
+                            ${toggle('separators', 'Filets entre les chants', 'Un trait discret sépare les blocs.')}
+                            ${toggle('pageNumbers', 'Numéros de page', 'En bas de page (sauf couverture).')}
+                            <button class="btn btn-ghost sheet-reset" onclick="sheetResetConfirm()">Recréer la feuille depuis la messe</button>`)}
+                    </div>
+                    <div class="sheet-preview">
+                        <div class="sheet-preview-head">
+                            <div class="seg">
+                                <button class="${sheetEd.view === 'pages' ? 'active' : ''}" onclick="sheetEd.view = 'pages'; renderSheetEditor()">Lecture</button>
+                                <button class="${sheetEd.view === 'print' ? 'active' : ''}" onclick="sheetEd.view = 'print'; renderSheetEditor()">Impression</button>
+                            </div>
+                            <span id="sheet-info" class="sheet-info"></span>
+                        </div>
+                        <div id="sheet-pages" class="sheet-pages ${booklet && sheetEd.view === 'pages' ? 'is-spreads' : ''}"><div class="sheet-info">Génération de l'aperçu…</div></div>
+                        <p class="settings-note" id="sheet-hint"></p>
+                        <button class="btn btn-ghost" style="width:100%; margin-top: var(--sp-sm);" onclick="downloadSheetPdf(this, 'pages')">PDF pages dans l'ordre (écran, projection)</button>
+                    </div>
+                </div>
+            </div>`;
+        c.scrollTop = keepScroll;
+        scheduleSheetPreview(0);
+    }
+
+    let sheetPreviewTimer = null;
+    function scheduleSheetPreview(delay = 450) {
+        clearTimeout(sheetPreviewTimer);
+        sheetPreviewTimer = setTimeout(renderSheetPreview, delay);
+    }
+
+    async function renderSheetPreview() {
+        const s = sheetCur();
+        const host = document.getElementById('sheet-pages');
+        if (!s || !host) return;
+        const token = ++sheetEd.token;
+        let built;
+        try {
+            built = await buildSheetPdf(s);
+        } catch (e) {
+            console.error(e);
+            host.innerHTML = `<div class="sheet-warn">Aperçu impossible : ${escHtml(e.message || 'erreur')}</div>`;
+            return;
+        }
+        if (token !== sheetEd.token || !document.getElementById('sheet-pages')) return;
+
+        const info = document.getElementById('sheet-info');
+        const booklet = s.format === 'booklet';
+        info.textContent = `${built.pageCount} page${built.pageCount > 1 ? 's' : ''}`
+            + (booklet ? ` · ${built.pageCount / 4} feuille${built.pageCount > 4 ? 's' : ''} A4` : '')
+            + (built.scale < 0.999 ? ` · texte réduit à ${Math.round(built.scale * 100)} %` : '');
+        info.classList.toggle('is-warn', !!built.overflow);
+        document.getElementById('sheet-hint').textContent = built.overflow
+            ? `Le contenu dépasse le nombre de pages choisi (${built.overflow}) : retirez des blocs, réduisez le texte ou ajoutez des pages.`
+            : booklet
+                ? 'Impression : recto-verso, retournement sur le bord court, à 100 % (sans ajustement). Pliez ensuite les feuilles ensemble, la première à l’extérieur.'
+                : 'Impression : à 100 % (sans ajustement), recto-verso si plusieurs pages.';
+
+        const bytes = sheetEd.view === 'print' ? built.print : built.pages;
+        const pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+        if (token !== sheetEd.token) return;
+        const frag = document.createDocumentFragment();
+        const hostW = Math.min(host.clientWidth || 320, 560);
+        const targetW = sheetEd.view === 'print' ? hostW : booklet ? (hostW - 2) / 2 : hostW * 0.85;
+        for (let n = 1; n <= pdf.numPages; n++) {
+            const page = await pdf.getPage(n);
+            const base = page.getViewport({ scale: 1 });
+            const vp = page.getViewport({ scale: targetW / base.width * (window.devicePixelRatio || 1) });
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width;
+            canvas.height = vp.height;
+            canvas.style.width = targetW + 'px';
+            canvas.className = 'sheet-page';
+            if (booklet && sheetEd.view === 'pages' && (n === 1 || n === pdf.numPages)) canvas.classList.add('is-single');
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+            frag.appendChild(canvas);
+            if (token !== sheetEd.token) return;
+        }
+        host.innerHTML = '';
+        host.appendChild(frag);
+        pdf.destroy();
+    }
+
+    async function downloadSheetPdf(btn, which) {
+        const s = sheetCur();
+        if (!s) return;
+        await withBusyButton(btn, 'Génération…', async () => {
+            const built = await buildSheetPdf(s);
+            const base = sanitizePartitionFilename(s.title || 'Feuille de chants');
+            if (which === 'print' && s.format === 'booklet') saveBytesAs(built.print, `${base}_-_livret_impression.pdf`);
+            else saveBytesAs(built.pages, `${base}_-_feuille_de_chants.pdf`);
+        });
+    }
+
+    // Mots gardés avec une majuscule quand un titre en MAJUSCULES est remis en minuscules.
+    const SHEET_KEEP_CAPS = new Set(['dieu', 'seigneur', 'jésus', 'christ', 'marie', 'esprit', 'emmanuel', 'messie', 'sauveur', 'trinité', 'agneau']);
+
+    function sheetTitleCase(text, mode) {
+        const t = (text || '').trim();
+        if (mode === 'upper') return t.toLocaleUpperCase('fr');
+        if (mode === 'sentence') {
+            const cap = w => w.charAt(0).toLocaleUpperCase('fr') + w.slice(1);
+            const l = t.toLocaleLowerCase('fr').split(' ').map(w => SHEET_KEEP_CAPS.has(w.replace(/[^\p{L}]/gu, '')) ? cap(w) : w).join(' ');
+            return cap(l);
+        }
+        return t;
+    }
+
+    /* Mise en page de la feuille : les blocs deviennent des « unités » insécables (en-tête + 1re
+       strophe, puis chaque strophe, image…) composées de lignes de hauteur connue, réparties en
+       colonnes puis en pages. Calcul pur (mesures de texte pdf-lib), refait à une échelle plus
+       petite tant que le contenu dépasse le nombre de pages visé, si « Ajuster pour tenir ». */
+    async function buildSheetPdf(s) {
+        const { PDFDocument, StandardFonts, rgb } = await ensurePdfLib();
+        const doc = await PDFDocument.create();
+        doc.setTitle(s.title || 'Feuille de chants');
+        const names = s.font === 'sans'
+            ? ['Helvetica', 'HelveticaBold', 'HelveticaOblique', 'HelveticaBoldOblique']
+            : ['TimesRoman', 'TimesRomanBold', 'TimesRomanItalic', 'TimesRomanBoldItalic'];
+        const [fR, fB, fI, fBI] = await Promise.all(names.map(n => doc.embedFont(StandardFonts[n])));
+        const ink = rgb(...PDF_INK), grey = rgb(...PDF_GREY), accent = rgb(...PDF_ACCENT);
+        const images = new Map();
+        const embedImg = async src => {
+            if (!src) return null;
+            if (!images.has(src)) images.set(src, src.startsWith('data:image/png') ? await doc.embedPng(src) : await doc.embedJpg(src));
+            return images.get(src);
+        };
+        const coverImg = await embedImg(s.image);
+        for (const b of s.blocks) if (b.kind === 'image' && b.include !== false) await embedImg(b.src);
+
+        const booklet = s.format === 'booklet';
+        const [PW, PH] = s.format === 'a4' ? PDF_A4 : PDF_A5;
+        const M = { small: 24, normal: 36, large: 52 }[s.margin] * (PW < 500 ? 0.85 : 1);
+        const cols = Math.max(1, Number(s.columns) || 1), gutter = M * 0.7;
+        const colW = (PW - 2 * M - (cols - 1) * gutter) / cols;
+        const footer = s.pageNumbers ? 14 : 0;
+        const hasBack = booklet && !!(s.backText || '').trim();
+        const target = booklet ? (s.sheets === 'auto' ? null : Number(s.sheets) * 4) : (s.maxPages === 'auto' ? null : Number(s.maxPages));
+
+        // Lignes de texte centrées/alignées dans une largeur donnée, avec retrait des lignes de
+        // continuation (alignement à gauche) pour qu'un vers coupé reste lisible.
+        const textRows = (text, font, size, lead, width, color, opts = {}) => {
+            const rows = [];
+            pdfWrap(font, size, pdfSafe(font, text), width - (opts.indent || 0)).forEach((line, k) => {
+                const indent = k > 0 && !opts.center ? (opts.indent || 0) : 0;
+                rows.push({ h: size * lead, draw: (page, x, yTop) => {
+                    const w = font.widthOfTextAtSize(line, size);
+                    const lx = opts.center ? x + (width - w) / 2 : x + indent;
+                    page.drawText(line, { x: lx, y: yTop - size * 0.82 - (size * lead - size) / 2, size, font, color });
+                } });
+            });
+            return rows;
+        };
+        const gapRow = h => ({ h, draw: () => {} });
+        // Titre, sous-titre, image et texte d'accueil : seuls sur la page de couverture (big), ou
+        // en tête de la première page, sur toute la largeur, quand il n'y en a pas.
+        const coverRows = (fs, width, big) => {
+            const rows = [];
+            if (s.title) rows.push(...textRows(s.title, fB, fs * (big ? 2.4 : 1.8), 1.2, width, ink, { center: true }));
+            if (s.subtitle) rows.push(gapRow(fs * 0.3), ...textRows(s.subtitle, fI, fs * (big ? 1.2 : 1.1), 1.4, width, grey, { center: true }));
+            if (coverImg) {
+                const maxH = PH * (big ? 0.45 : 0.22);
+                let w = width * (s.imageWidth || 70) / 100, h = w * coverImg.height / coverImg.width;
+                if (h > maxH) { w *= maxH / h; h = maxH; }
+                rows.push(gapRow(fs * (big ? 1.5 : 0.8)), { h: h + fs * 0.8, draw: (pg, x, yTop) => pg.drawImage(coverImg, { x: x + (width - w) / 2, y: yTop - h, width: w, height: h }) });
+            }
+            if (s.intro) {
+                rows.push(gapRow(fs * (big ? 1 : 0.4)));
+                s.intro.split('\n').forEach(l => rows.push(...(l.trim() ? textRows(l, fI, fs * (big ? 1.05 : 1), 1.4, width, ink, { center: true }) : [gapRow(fs * 0.6)])));
+            }
+            return rows;
+        };
+
+        function layout(scale) {
+            const fs = s.size * scale, lead = s.leading, center = s.align === 'center';
+            const units = [];
+            s.blocks.filter(b => b.include !== false).forEach((b, bi) => {
+                const sepBefore = bi > 0;
+                const head = [];
+                if (b.label) head.push(...textRows(b.label.toLocaleUpperCase('fr'), fI, fs * 0.78, 1.35, colW, accent, { center }));
+                if (b.kind === 'song' || b.kind === 'note' || (b.kind === 'text' && b.title)) {
+                    const title = b.kind === 'song' ? sheetTitleCase(b.title, s.titleCase) : b.title;
+                    head.push(...textRows(title, fB, fs * 1.18, 1.25, colW, ink, { center }));
+                }
+                if (b.kind === 'note' && b.ref) head.push(...textRows(b.ref, fI, fs * 0.9, 1.3, colW, grey, { center }));
+
+                let stanzas = [];
+                if (b.kind === 'song' || b.kind === 'text' || (b.kind === 'note' && b.showText)) {
+                    let refrainNext = false;
+                    stanzas = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(block => block.split('\n').map(l => l.trim()).filter(Boolean)).filter(ls => ls.length).map(lines => {
+                        const rows = [];
+                        let bold = false;
+                        if (isLyricsSectionHeading(lines[0])) {
+                            const heading = lines.shift();
+                            bold = /^refrain/i.test(heading.trim());
+                            rows.push(...textRows(heading.replace(/\s*:\s*$/, ''), fI, fs * 0.85, 1.3, colW, accent, { center }));
+                        }
+                        if (lines.length && /^(R\s*[./]|Refrain\b)/i.test(lines[0])) bold = true;
+                        if (!lines.length && bold) { refrainNext = true; return rows; }
+                        if (refrainNext) { bold = true; refrainNext = false; }
+                        const useBold = s.boldRefrain && bold && b.kind === 'song';
+                        lines.forEach(l => rows.push(...textRows(l, useBold ? fB : fR, fs, lead, colW, ink, { center, indent: fs })));
+                        return rows;
+                    }).filter(r => r.length);
+                }
+                if (b.kind === 'image' && b.src) {
+                    const img = images.get(b.src);
+                    const w = colW * Math.min(100, b.width || 60) / 100, h = w * img.height / img.width;
+                    const rows = [{ h: h + fs * 0.4, draw: (page, x, yTop) => page.drawImage(img, { x: x + (colW - w) / 2, y: yTop - h, width: w, height: h }) }];
+                    if (b.caption) rows.push(...textRows(b.caption, fI, fs * 0.85, 1.3, colW, grey, { center: true }));
+                    stanzas = [rows];
+                }
+
+                const first = [...head, ...(head.length && stanzas.length ? [gapRow(fs * 0.3)] : []), ...(stanzas[0] || [])];
+                units.push({ rows: first, gap: sepBefore ? fs * 1.2 : 0, sep: sepBefore && s.separators });
+                stanzas.slice(1).forEach(rows => units.push({ rows, gap: fs * 0.55 }));
+            });
+
+            // En-tête de la première page quand il n'y a pas de page de couverture : titre,
+            // sous-titre, image et texte d'accueil sur toute la largeur, avant les colonnes.
+            const full = PW - 2 * M;
+            const headerRows = [];
+            if (!s.cover) {
+                headerRows.push(...coverRows(fs, full, false));
+                if (headerRows.length) headerRows.push(gapRow(fs * 1.4));
+            }
+
+            const pages = [];
+            const top = PH - M, bottom = M + footer;
+            let page, col, y, colTop;
+            const newPage = () => {
+                page = []; pages.push(page);
+                col = 0;
+                colTop = top;
+                if (pages.length === 1 && headerRows.length) {
+                    let yy = top;
+                    headerRows.forEach(r => { page.push({ r, x: M, y: yy }); yy -= r.h; });
+                    colTop = yy;
+                }
+                y = colTop;
+            };
+            const nextCol = () => {
+                if (++col >= cols) newPage();
+                else y = colTop;
+            };
+            const colX = () => M + col * (colW + gutter);
+            newPage();
+            units.forEach(u => {
+                const h = u.rows.reduce((a, r) => a + r.h, 0);
+                const atTop = y === colTop;
+                if (!atTop && y - u.gap - h < bottom && h <= colTop - bottom) nextCol();
+                if (y !== colTop) {
+                    if (u.sep) {
+                        const sy = y - u.gap / 2, sx = colX();
+                        page.push({ r: { draw: pg => pg.drawLine({ start: { x: sx + colW * 0.3, y: sy }, end: { x: sx + colW * 0.7, y: sy }, thickness: 0.5, color: grey }) }, x: 0, y: 0 });
+                    }
+                    y -= u.gap;
+                }
+                u.rows.forEach(r => {
+                    if (y - r.h < bottom && y !== colTop) nextCol();
+                    page.push({ r, x: colX(), y });
+                    y -= r.h;
+                });
+            });
+            if (pages.length === 1 && !pages[0].length) pages.length = 0;
+            return { pages, fs };
+        }
+
+        const needed = plan => plan.pages.length + (s.cover ? 1 : 0) + (hasBack ? 1 : 0);
+        let scale = 1, plan = layout(scale);
+        if (s.fit && target) {
+            while (needed(plan) > target && scale > 0.56) { scale = Math.round((scale - 0.04) * 100) / 100; plan = layout(scale); }
+            if (needed(plan) > target) { scale = 1; plan = layout(1); } // impossible à tenir : inutile de réduire
+        }
+
+        // Pages logiques, dans l'ordre de lecture : couverture, contenu, pages blanches de
+        // complément (livret : multiple de 4), dernière page.
+        const logical = [];
+        if (s.cover) logical.push('cover');
+        plan.pages.forEach(p => logical.push(p));
+        let total = logical.length + (hasBack ? 1 : 0);
+        if (booklet) total = Math.max(Math.ceil(total / 4) * 4, target || 0, 4);
+        else if (target && total < target) total = target;
+        while (logical.length < total - (hasBack ? 1 : 0)) logical.push(null);
+        if (hasBack) logical.push('back');
+
+        logical.forEach((content, i) => {
+            const page = doc.addPage([PW, PH]);
+            // Contenu minimal (invisible) : pdf-lib refuse d'imposer une page sans contenu (page blanche).
+            page.drawRectangle({ x: 0, y: 0, width: 1, height: 1, opacity: 0 });
+            if (content === 'cover') {
+                const rows = coverRows(s.size * scale, PW - 2 * M, true);
+                const h = rows.reduce((a, r) => a + r.h, 0);
+                let y = Math.min(PH - M - PH * 0.1, PH / 2 + h / 2 + PH * 0.05);
+                if (y - h < M) y = PH - M;
+                rows.forEach(r => { r.draw(page, M, y); y -= r.h; });
+            } else if (content === 'back') {
+                const fs = s.size * scale;
+                const rows = [];
+                s.backText.split('\n').forEach(l => rows.push(...(l.trim() ? textRows(l, fR, fs, 1.4, PW - 2 * M, ink, { center: true }) : [gapRow(fs * 0.7)])));
+                const h = rows.reduce((a, r) => a + r.h, 0);
+                let y = Math.max(PH / 2 + h / 2, M + h);
+                rows.forEach(r => { r.draw(page, M, y); y -= r.h; });
+            } else if (content) {
+                content.forEach(({ r, x, y }) => r.draw(page, x, y));
+            }
+            if (s.pageNumbers && content && content !== 'cover' && content !== 'back') {
+                const num = String(i + 1), size = 8.5;
+                page.drawText(num, { x: (PW - fR.widthOfTextAtSize(num, size)) / 2, y: M * 0.55, size, font: fR, color: grey });
+            }
+        });
+
+        const pagesBytes = await doc.save();
+        const overflow = target && needed(plan) > target ? `${needed(plan)} pages pour ${target}` : '';
+        if (!booklet) return { pages: pagesBytes, print: pagesBytes, pageCount: logical.length, scale, overflow };
+
+        // Imposition en livret (cahier unique piqué à cheval) : la feuille k porte au recto les
+        // pages (P-1-2k, 2k) et au verso (2k+1, P-2-2k), en comptant depuis 0 — une fois les
+        // feuilles emboîtées et pliées, les pages se suivent dans l'ordre.
+        const out = await PDFDocument.create();
+        out.setTitle((s.title || 'Feuille de chants') + ' — livret');
+        const P = logical.length;
+        const embedded = await out.embedPdf(pagesBytes, [...Array(P).keys()]);
+        const [SW, SH] = [PDF_A4[1], PDF_A4[0]];
+        for (let k = 0; k < P / 4; k++) {
+            for (const [l, r] of [[P - 1 - 2 * k, 2 * k], [2 * k + 1, P - 2 - 2 * k]]) {
+                const sheet = out.addPage([SW, SH]);
+                sheet.drawPage(embedded[l], { x: 0, y: 0, width: SW / 2, height: SH });
+                sheet.drawPage(embedded[r], { x: SW / 2, y: 0, width: SW / 2, height: SH });
+                [[SH, SH - 10], [0, 10]].forEach(([a, b2]) => sheet.drawLine({ start: { x: SW / 2, y: a }, end: { x: SW / 2, y: b2 }, thickness: 0.4, color: rgb(0.75, 0.75, 0.75) }));
+            }
+        }
+        return { pages: pagesBytes, print: await out.save(), pageCount: P, scale, overflow };
     }
 
     /* ══════════════════════════════════════════
@@ -7937,6 +8916,10 @@
                 </div>
             </div>
 
+            <div class="messe-tools">
+                <button class="btn btn-ghost" onclick="startLiveWithCollection('p${idx}')"><svg class="icon icon-sm"><use href="#ico-live"/></svg><span>Mode Live</span></button>
+                ${isAdminActive() && !p.publicKey ? `<button class="btn btn-ghost" onclick="publishLocalCollection('playlist', ${idx})"><svg class="icon icon-sm"><use href="#ico-globe"/></svg><span>Rendre publique</span></button>` : ''}
+            </div>
             <div id="pl-songs-list">${renderPlaylistSongs(p)}</div>
         `;
     }
