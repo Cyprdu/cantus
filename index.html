@@ -1282,7 +1282,8 @@
             <button type="button" class="btn btn-ghost" onclick="fetchImportUrl()" id="import-url-fetch-btn">Récupérer</button>
         </div>
         <input type="text" id="import-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
-        <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('import-extra-cats', this.value, [])"></select>
+        <select id="import-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('import-extra-cats', this.value, []); syncSubInput('import', this.value)"></select>
+        <input type="text" id="import-sub-input" class="input-field" list="ordinaire-subs" placeholder="Ordinaire : choisir ou saisir un nouveau" style="margin-bottom: var(--sp-sm); display:none;">
         <div class="settings-row-label" style="margin-bottom: 4px;">Catégories supplémentaires (optionnel)</div>
         <div class="settings-row-desc" style="margin-bottom: 6px;">Un chant peut aussi apparaître dans d'autres catégories que la principale.</div>
         <div id="import-extra-cats" style="margin-bottom: var(--sp-md); display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
@@ -1463,7 +1464,9 @@
             </button>
         </div>
         <input type="text" id="edit-name-input" class="input-field" placeholder="Nom du chant" style="margin-bottom: var(--sp-sm);">
-        <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('edit-extra-cats', this.value, currentEditExtraCats())"></select>
+        <select id="edit-cat-select" class="input-field" style="margin-bottom: var(--sp-sm); -webkit-appearance:none; appearance:none; cursor:pointer;" onchange="renderExtraCatCheckboxes('edit-extra-cats', this.value, currentEditExtraCats()); syncSubInput('edit', this.value, document.getElementById('edit-sub-input').value)"></select>
+        <input type="text" id="edit-sub-input" class="input-field" list="ordinaire-subs" placeholder="Ordinaire : choisir ou saisir un nouveau" style="margin-bottom: var(--sp-sm); display:none;">
+        <datalist id="ordinaire-subs"></datalist>
         <div class="settings-row-label" style="margin-bottom: 4px;">Catégories supplémentaires (optionnel)</div>
         <div class="settings-row-desc" style="margin-bottom: 6px;">Un chant peut aussi apparaître dans d'autres catégories que la principale.</div>
         <div id="edit-extra-cats" style="margin-bottom: var(--sp-md); display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
@@ -4056,6 +4059,7 @@
         const catSelect = document.getElementById('import-cat-select');
         catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === 'autre' ? ' selected' : ''}>${escHtml(c.label)}</option>`).join('');
         renderExtraCatCheckboxes('import-extra-cats', 'autre', []);
+        syncSubInput('import', 'autre');
 
         document.getElementById('import-modal').classList.add('open');
     }
@@ -4283,13 +4287,13 @@
         localStorage.setItem('cantus_local_songs', JSON.stringify(list));
     }
 
-    async function importLocalSong(file, displayName, category, lyricsText, extraCategories) {
+    async function importLocalSong(file, displayName, category, lyricsText, extraCategories, sub) {
         const id = 'local-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         const url = `/local-songs/${id}.pdf`;
         const cache = await caches.open(PDF_CACHE_NAME);
         await cache.put(url, new Response(file, { headers: { 'Content-Type': 'application/pdf' } }));
 
-        const meta = { id, type: 'song', category, name: displayName.trim().toUpperCase(), url, size: file.size, isLocal: true };
+        const meta = { id, type: 'song', category, sub: sub || null, name: displayName.trim().toUpperCase(), url, size: file.size, isLocal: true };
         // Import local (pas de dépôt GitHub à écrire dedans) : les paroles et catégories
         // supplémentaires vont directement dans les métadonnées localStorage du chant, comme le
         // nom ou la catégorie principale.
@@ -4330,6 +4334,9 @@
         const category = document.getElementById('import-cat-select').value;
         const lyricsText = document.getElementById('import-lyrics-input').value.trim();
         const extraCats = readExtraCatCheckboxes('import-extra-cats');
+        const sub = readSubInput('import', category);
+        if (sub === '') { setImportModalError("Choisissez l'ordinaire de la messe ou saisissez-en un nouveau."); return; }
+        const subDir = sub ? sub + '/' : '';
 
         // Import local (cache du navigateur de cet appareil) : avertissement explicite avant
         // d'enregistrer — sauf pour un admin, qui vient de choisir « Importation locale » dans
@@ -4351,7 +4358,7 @@
             setImportModalError('');
 
             try {
-                await importLocalSong(importSelectedFile, displayName, category, lyricsText, extraCats);
+                await importLocalSong(importSelectedFile, displayName, category, lyricsText, extraCats, sub);
                 closeImportModal();
                 showToast(`"${displayName}" enregistrée sur cet appareil.`);
                 await refreshLocalSongsIntoState();
@@ -4377,7 +4384,7 @@
 
         try {
             const safeName = sanitizePartitionFilename(displayName) + '.pdf';
-            const path = `${GITHUB_PATH}/${category}/${safeName}`;
+            const path = `${GITHUB_PATH}/${category}/${subDir}${safeName}`;
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
             const base64Content = await fileToBase64(importSelectedFile);
 
@@ -4414,7 +4421,7 @@
             // catalogue. Un échec ici n'annule pas l'envoi de la partition, déjà réussi.
             if (lyricsText) {
                 try {
-                    const lyricsPath = `${LYRICS_PATH}/${category}/${sanitizePartitionFilename(displayName)}.txt`;
+                    const lyricsPath = `${LYRICS_PATH}/${category}/${subDir}${sanitizePartitionFilename(displayName)}.txt`;
                     await commitTextToGithub(lyricsPath, lyricsText, `Ajout des paroles pour "${displayName}" via l'application`);
                 } catch (e) {
                     showToast(`"${displayName}" envoyée, mais échec de l'envoi des paroles.`);
@@ -4460,6 +4467,7 @@
         const catSelect = document.getElementById('edit-cat-select');
         catSelect.innerHTML = CATEGORIES.map(c => `<option value="${c.key}"${c.key === song.category ? ' selected' : ''}>${escHtml(c.label)}</option>`).join('');
         renderExtraCatCheckboxes('edit-extra-cats', song.category, song.extraCategories || extraCategoriesMap[song.id] || []);
+        syncSubInput('edit', song.category, song.sub);
         setEditModalError('');
 
         const lyricsInput = document.getElementById('edit-lyrics-input');
@@ -4501,6 +4509,9 @@
         const newCategory = document.getElementById('edit-cat-select').value;
         const newLyricsText = document.getElementById('edit-lyrics-input').value.trim();
         const newExtraCats = readExtraCatCheckboxes('edit-extra-cats');
+        const newSub = readSubInput('edit', newCategory);
+        if (newSub === '') { setEditModalError("Choisissez l'ordinaire de la messe ou saisissez-en un nouveau."); return; }
+        const newSubDir = newSub ? newSub + '/' : '';
 
         // Partition locale (importée sans mode administrateur) : simple mise à jour des
         // métadonnées, le fichier reste au même endroit dans le cache.
@@ -4510,6 +4521,7 @@
             if (entry) {
                 entry.name = newName.toUpperCase();
                 entry.category = newCategory;
+                entry.sub = newSub;
                 if (newLyricsText) entry.lyricsText = newLyricsText;
                 else delete entry.lyricsText;
                 if (newExtraCats.length) entry.extraCategories = newExtraCats;
@@ -4528,11 +4540,11 @@
         if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
 
         const newSafeName = sanitizePartitionFilename(newName) + '.pdf';
-        const newPath = `${GITHUB_PATH}/${newCategory}/${newSafeName}`;
+        const newPath = `${GITHUB_PATH}/${newCategory}/${newSubDir}${newSafeName}`;
         // Même convention qu'à l'import (voir LYRICS_PATH) : le fichier de paroles suit
         // toujours le même chemin relatif que le PDF, catégorie et nom compris.
         const oldLyricsPath = LYRICS_PATH + song.path.slice(GITHUB_PATH.length, -4) + '.txt';
-        const newLyricsPath = `${LYRICS_PATH}/${newCategory}/${sanitizePartitionFilename(newName)}.txt`;
+        const newLyricsPath = `${LYRICS_PATH}/${newCategory}/${newSubDir}${sanitizePartitionFilename(newName)}.txt`;
         const pdfRenamed = newPath !== song.path;
         const lyricsChanged = newLyricsText !== editSongOriginalLyrics;
         const currentExtraCats = song.extraCategories || extraCategoriesMap[song.id] || [];
@@ -5594,6 +5606,27 @@
                 <input type="checkbox" value="${escHtml(c.key)}" ${checked.has(c.key) ? 'checked' : ''} style="width:16px; height:16px; accent-color: var(--accent); cursor:pointer; flex-shrink:0;">
                 <span>${escHtml(c.label)}</span>
             </label>`).join('') : `<div class="settings-row-desc">Aucune autre catégorie.</div>`;
+    }
+
+    // Ordinaires de messe = sous-dossiers de partitions/ordinaire/ (voir `sub` dans loadLibrary).
+    // Un seul champ texte + <datalist> : on choisit un ordinaire existant ou on tape un nouveau nom.
+    function ordinaireSubs() {
+        return [...new Set(state.songs.filter(s => s.category === 'ordinaire' && s.sub).map(s => s.sub))].sort((a, b) => a.localeCompare(b, 'fr'));
+    }
+
+    function syncSubInput(prefix, category, value = '') {
+        const el = document.getElementById(prefix + '-sub-input');
+        el.style.display = category === 'ordinaire' ? '' : 'none';
+        el.value = value || '';
+        document.getElementById('ordinaire-subs').innerHTML = ordinaireSubs().map(n => `<option value="${escHtml(n)}">`).join('');
+    }
+
+    // null hors « ordinaire », '' si le champ est vide ; sinon le nom saisi, ramené à l'ordinaire
+    // existant de même nom (casse ignorée) pour ne pas créer de doublon.
+    function readSubInput(prefix, category) {
+        if (category !== 'ordinaire') return null;
+        const v = document.getElementById(prefix + '-sub-input').value.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+        return ordinaireSubs().find(n => n.toLowerCase() === v.toLowerCase()) || v;
     }
 
     function readExtraCatCheckboxes(containerId) {
