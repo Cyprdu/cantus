@@ -144,5 +144,73 @@
         "id": "7dab57e934a8fbdc44a5de964e99eb75d49ceb36"
       }
     ]
+  },
+  {
+    "key": "dimanche_18_octobre_2026",
+    "label": "Dimanche 18 octobre 2026",
+    "date": "2026-10-18",
+    "code": "86458252",
+    "items": [
+      {
+        "type": "song",
+        "id": "b450f10abdbd679417b5b525a8f14591846c278a"
+      },
+      {
+        "type": "song",
+        "id": "22d5007afcbc49c7ce9bc022226acbcdfce6a6fb"
+      },
+      {
+        "type": "song",
+        "id": "e3969a6804fab93436dff08c5e6c23323ceb45cb"
+      },
+      {
+        "type": "note",
+        "name": "PREMIÈRE LECTURE",
+        "ref": "Is 45, 1.4-6",
+        "content": "Ainsi parle le Seigneur à son messie, à Cyrus, qu’il a pris par la main pour lui soumettre les nations et désarmer les rois, pour lui ouvrir les portes à deux battants, car aucune porte ne restera fermée :\n\n« À cause de mon serviteur Jacob, d’Israël mon élu, je t’ai appelé par ton nom, je t’ai donné un titre, alors que tu ne me connaissais pas.\n\nJe suis le Seigneur, il n’en est pas d’autre : hors moi, pas de Dieu. Je t’ai rendu puissant, alors que tu ne me connaissais pas, pour que l’on sache, de l’orient à l’occident, qu’il n’y a rien en dehors de moi. Je suis le Seigneur, il n’en est pas d’autre. »\n\n– Parole du Seigneur."
+      },
+      {
+        "type": "note",
+        "name": "PSAUME",
+        "ref": "Ps 95 (96), 1.3, 4-5, 7-8, 9-10ac",
+        "content": "Rendez au Seigneur la gloire et la puissance.\n\nChantez au Seigneur un chant nouveau, chantez au Seigneur, terre entière, racontez à tous les peuples sa gloire, à toutes les nations ses merveilles !\n\nIl est grand, le Seigneur, hautement loué, redoutable au-dessus de tous les dieux : néant, tous les dieux des nations ! Lui, le Seigneur, a fait les cieux.\n\nRendez au Seigneur, familles des peuples, rendez au Seigneur la gloire et la puissance, rendez au Seigneur la gloire de son nom. Apportez votre offrande, entrez dans ses parvis.\n\nAdorez le Seigneur, éblouissant de sainteté : tremblez devant lui, terre entière. Allez dire aux nations : « Le Seigneur est roi ! » Il gouverne les peuples avec droiture."
+      },
+      {
+        "type": "note",
+        "name": "DEUXIÈME LECTURE",
+        "ref": "1 Th 1, 1-5b",
+        "content": "Paul, Silvain et Timothée, à l’Église de Thessalonique qui est en Dieu le Père et dans le Seigneur Jésus Christ. À vous, la grâce et la paix.\n\nÀ tout moment, nous rendons grâce à Dieu au sujet de vous tous, en faisant mémoire de vous dans nos prières. Sans cesse, nous nous souvenons que votre foi est active, que votre charité se donne de la peine, que votre espérance tient bon en notre Seigneur Jésus Christ, en présence de Dieu notre Père. Nous le savons, frères bien-aimés de Dieu, vous avez été choisis par lui. En effet, notre annonce de l’Évangile n’a pas été, chez vous, simple parole, mais puissance, action de l’Esprit Saint, pleine certitude.\n\n– Parole du Seigneur."
+      },
+      {
+        "type": "song",
+        "id": "10e72a8eb86896a47f2589592e3298d938c5f5fd"
+      },
+      {
+        "type": "note",
+        "name": "ÉVANGILE",
+        "ref": "Mt 22, 15-21",
+        "content": "En ce temps-là, les pharisiens allèrent tenir conseil pour prendre Jésus au piège en le faisant parler. Ils lui envoient leurs disciples, accompagnés des partisans d’Hérode : « Maître, lui disent-ils, nous le savons : tu es toujours vrai et tu enseignes le chemin de Dieu en vérité ; tu ne te laisses influencer par personne, car ce n’est pas selon l’apparence que tu considères les gens. Alors, donne-nous ton avis : Est-il permis, oui ou non, de payer l’impôt à César, l’empereur ? » Connaissant leur perversité, Jésus dit : « Hypocrites ! pourquoi voulez-vous me mettre à l’épreuve ? Montrez-moi la monnaie de l’impôt. » Ils lui présentèrent une pièce d’un denier. Il leur dit : « Cette effigie et cette inscription, de qui sont-elles ? » Ils répondirent : « De César. » Alors il leur dit : « Rendez donc à César ce qui est à César, et à Dieu ce qui est à Dieu. »\n\n– Acclamons la Parole de Dieu."
+      },
+      {
+        "type": "song",
+        "id": "43a3974701ef382684e32858cb23fbf72b1301e7"
+      },
+      {
+        "type": "song",
+        "id": "e5158cd23cee7c3859263d20cbb62abdd58da3ed"
+      },
+      {
+        "type": "song",
+        "id": "47fad25f97fd574e7e5515077aa736356d3e460d"
+      },
+      {
+        "type": "song",
+        "id": "09ff8e99c8367ad298ddae667d869e9780e50494"
+      },
+      {
+        "type": "song",
+        "id": "569372256b9a857208640e8b8f81c69b0aba0681"
+      }
+    ]
   }
 ]
