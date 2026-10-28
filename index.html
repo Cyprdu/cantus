@@ -7026,9 +7026,10 @@
         // L'API AELF n'envoie plus d'en-tête CORS (octobre 2026) : le navigateur bloque l'appel
         // direct. On tente quand même en direct (au cas où ce soit rétabli), sinon on passe par
         // la passerelle /aelf du relais Cloudflare (live-server/).
-        let res;
-        try { res = await fetch(`https://api.aelf.org/v1/messes/${dateStr}/france`); }
-        catch (e) { res = await fetch(`https://cantus-live.cyprien-veyret.workers.dev/aelf/messes/${dateStr}/france`); }
+        // (sw.js transforme l'échec CORS en faux 404 : on bascule donc aussi sur !res.ok.)
+        let res = null;
+        try { res = await fetch(`https://api.aelf.org/v1/messes/${dateStr}/france`); } catch (e) { /* bloqué */ }
+        if (!res || !res.ok) res = await fetch(`https://cantus-live.cyprien-veyret.workers.dev/aelf/messes/${dateStr}/france`);
         if (!res.ok) throw new Error('Réponse AELF invalide : ' + res.status);
         const data = await res.json();
         aelfCache[dateStr] = data;
