@@ -1527,6 +1527,15 @@
         <div class="settings-row-label" style="margin-bottom: 4px;">Paroles</div>
         <div class="settings-row-desc" style="margin-bottom: 6px;">Ajoutez-les si elles manquent, corrigez-les, ou videz le champ pour les retirer.</div>
         <textarea id="edit-lyrics-input" class="input-field" placeholder="Collez ici les paroles du chant…" style="height: 140px; margin-bottom: var(--sp-md); width: 100%; box-sizing: border-box;"></textarea>
+        <div id="edit-replace-block">
+            <div class="settings-row-label" style="margin-bottom: 4px;">Remplacer le PDF</div>
+            <div class="settings-row-desc" style="margin-bottom: 6px;">Une meilleure version de la même partition : favoris, playlists et messes la gardent, et les copies hors-ligne sont mises à jour.</div>
+            <input type="file" id="edit-replace-input" accept="application/pdf" style="display:none;" onchange="replaceSongPdf(this.files[0]); this.value='';">
+            <button class="btn" style="width:100%; margin-bottom: var(--sp-md);" onclick="document.getElementById('edit-replace-input').click()" id="edit-replace-btn">
+                <svg class="icon icon-sm"><use href="#ico-upload"></use></svg>
+                Choisir le nouveau PDF…
+            </button>
+        </div>
         <div id="edit-modal-error" style="display:none; font-size:12px; color:var(--danger); margin-bottom: var(--sp-sm); line-height:1.4;"></div>
         <div style="display:flex; flex-direction:column; gap: var(--sp-sm);">
             <button class="btn btn-primary" style="width:100%;" onclick="submitEditSong()" id="edit-save-btn">Enregistrer</button>
@@ -1831,6 +1840,11 @@
     // { songId: [catKey, …] } — catégories supplémentaires d'un chant GitHub, au-delà de sa
     // catégorie principale (déduite de son dossier) ; chargé depuis extra_categories.json.
     let extraCategoriesMap = {};
+    // { shaDuBlobActuel: idStable } — song_aliases.json. Quand le PDF d'une partition est remplacé
+    // (voir replaceSongPdf), son sha Git change ; l'alias lui conserve son identifiant d'origine
+    // pour que favoris, playlists, messes, historique et catégories continuent de la retrouver.
+    // Gardé aussi en localStorage : une lecture ratée ne doit jamais faire « changer » d'id un chant.
+    let songAliases = (() => { try { return JSON.parse(localStorage.getItem('cantus_song_aliases')) || {}; } catch (e) { return {}; } })();
 
     function rebuildCategoryIndexes() {
         CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
@@ -1890,6 +1904,12 @@
 
         const extra = await fetchRepoJson('extra_categories.json');
         if (extra.ok && extra.data && typeof extra.data === 'object') extraCategoriesMap = extra.data;
+
+        const aliases = await fetchRepoJson('song_aliases.json');
+        if (aliases.ok && aliases.data && typeof aliases.data === 'object') {
+            songAliases = aliases.data;
+            localStorage.setItem('cantus_song_aliases', JSON.stringify(songAliases));
+        }
 
         await loadPublicRegistries();
     }
@@ -4591,6 +4611,8 @@
         renderExtraCatCheckboxes('edit-extra-cats', song.category, song.extraCategories || extraCategoriesMap[song.id] || []);
         syncSubInput('edit', song.category, song.sub);
         setEditModalError('');
+        // Remplacement du fichier : seulement pour une partition du dépôt (pas une locale).
+        document.getElementById('edit-replace-block').style.display = song.isLocal ? 'none' : '';
 
         const lyricsInput = document.getElementById('edit-lyrics-input');
         lyricsInput.value = '';
@@ -4722,7 +4744,7 @@
                     headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
                     body: JSON.stringify({
                         message: `Supprime l'ancien fichier de "${song.name}" (renommé en "${newName}")`,
-                        sha: song.id,
+                        sha: song.sha || song.id,
                         branch: GITHUB_BRANCH
                     })
                 });
@@ -4777,6 +4799,62 @@
         }
     }
 
+    // sha Git d'un fichier (« blob <taille>\0<contenu> » en SHA-1), calculé avant l'envoi pour
+    // écrire l'alias AVANT le PDF : si l'envoi du PDF échoue ensuite, l'alias reste inoffensif ;
+    // dans l'ordre inverse, la partition changerait d'id le temps de réparer.
+    async function gitBlobSha(buffer) {
+        const head = new TextEncoder().encode(`blob ${buffer.byteLength}\0`);
+        const all = new Uint8Array(head.length + buffer.byteLength);
+        all.set(head); all.set(new Uint8Array(buffer), head.length);
+        const hash = await crypto.subtle.digest('SHA-1', all);
+        return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Remplace le PDF d'une partition du dépôt par une meilleure version, au même chemin. L'id du
+    // chant ne bouge pas (song_aliases.json : nouveau sha → id d'origine), donc favoris, playlists,
+    // messes publiques, historique et catégories supplémentaires la retrouvent telle quelle ; son
+    // adresse prend un nouveau ?v= et chaque appareil purge puis re-télécharge l'ancienne copie
+    // hors-ligne au prochain chargement de la bibliothèque (voir purgeStalePdfCache).
+    async function replaceSongPdf(file) {
+        const song = state.songs.find(s => s.id === editSongId);
+        if (!song || song.isLocal || !file) return;
+        if (!isAdminActive()) { setEditModalError('Pouvoirs administrateur inactifs ou session expirée.'); return; }
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) { setEditModalError('Choisissez un fichier PDF.'); return; }
+        if (!confirm(`Remplacer le PDF de "${song.name}" par "${file.name}" ?`)) return;
+
+        const btn = document.getElementById('edit-replace-btn');
+        btn.disabled = true;
+        setEditModalError('');
+        try {
+            const buffer = await file.arrayBuffer();
+            const newSha = await gitBlobSha(buffer);
+            if (newSha === song.sha) { showToast('Ce PDF est identique à la version actuelle.'); return; }
+
+            const latest = await fetchRepoJson('song_aliases.json');
+            if (!latest.ok) throw new Error('Impossible de lire song_aliases.json.');
+            const aliases = { ...(latest.data || {}) };
+            Object.keys(aliases).forEach(k => { if (aliases[k] === song.id) delete aliases[k]; });
+            if (newSha !== song.id) aliases[newSha] = song.id;
+            await commitTextToGithub('song_aliases.json', JSON.stringify(aliases, null, 2), `Garde l'identifiant de "${song.name}" après remplacement du PDF`);
+            songAliases = aliases;
+            localStorage.setItem('cantus_song_aliases', JSON.stringify(aliases));
+
+            await commitBase64ToGithub(song.path, await fileToBase64(file), `Remplace le PDF de "${song.name}" via l'application`);
+            if ('caches' in window) caches.open(PDF_CACHE_NAME).then(cache => cache.delete(song.url));
+
+            closeEditSongModal();
+            showToast(`PDF de "${song.name}" remplacé.`);
+            await loadLibrary();
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) showView(activeTabBtn.id.replace('tab-', ''));
+            refreshAdminDashboardIfOpen();
+        } catch (e) {
+            setEditModalError(e.message || 'Échec du remplacement.');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     async function deleteSongFromLibrary() {
         const song = state.songs.find(s => s.id === editSongId);
         if (!song) return;
@@ -4812,7 +4890,7 @@
                 headers: { Authorization: `token ${adminTokenCache}`, Accept: 'application/vnd.github+json' },
                 body: JSON.stringify({
                     message: `Supprime la partition "${song.name}" via l'application`,
-                    sha: song.id,
+                    sha: song.sha || song.id,
                     branch: GITHUB_BRANCH
                 })
             });
@@ -5081,8 +5159,11 @@
                     const rawCategory = segments.length > 1 ? segments[0] : 'autre';
                     const category = CATEGORY_LABELS[rawCategory] ? rawCategory : 'autre';
                     const filename = segments[segments.length - 1];
+                    const stableId = songAliases[f.sha];
+                    const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`;
                     return {
-                        id:       f.sha,
+                        id:       stableId || f.sha,
+                        sha:      f.sha, // sha Git du fichier actuel (≠ id après un remplacement)
                         type:     'song',
                         category: category,
                         // Sous-dossier éventuel (ex. partitions/ordinaire/<Messe>/<chant>.pdf) : sert à
@@ -5091,7 +5172,10 @@
                         name:     filename.replace('.pdf', '').replace(/_/g, ' ').toUpperCase(),
                         path:     f.path,
                         size:     f.size || null,
-                        url:      `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${f.path.split('/').map(encodeURIComponent).join('/')}`,
+                        // PDF remplacé : ?v=<sha> change l'adresse, donc la clé de cache — l'ancienne
+                        // version en cache est ignorée puis purgée (purgeStalePdfCache), et le CDN de
+                        // raw.githubusercontent.com ne peut pas resservir l'ancien fichier.
+                        url:      stableId ? `${rawUrl}?v=${f.sha.slice(0, 12)}` : rawUrl,
                         lyricsUrl: lyricsByKey.get(relative.slice(0, -4)) || null
                     };
                 });
@@ -5102,6 +5186,7 @@
             state.songs = sortSongsList([...state.songs, ...loadLocalSongs()]);
             libraryFresh = true;
             setSyncStatus(true);
+            await purgeStalePdfCache();
             await refreshCachedUrlSet();
 
             // Le téléchargement des PDF pour la consultation hors-ligne n'a lieu que si
@@ -5447,6 +5532,27 @@
     // nouveautés en arrière-plan si elles sont peu nombreuses (un ajout ponctuel), ou affiche la
     // barre de progression bloquante pour un gros volume (beaucoup d'ajouts d'un coup). Le tout
     // premier téléchargement massif passe par openOfflineDownloadModal(), pas ici.
+    // Retire du cache les PDF du dépôt qui ne correspondent plus à aucune partition (fichier
+    // supprimé, ou remplacé : son adresse porte alors un nouveau ?v=). Une partition remplacée
+    // qui était téléchargée est re-téléchargée aussitôt dans sa nouvelle version si possible.
+    async function purgeStalePdfCache() {
+        if (!('caches' in window)) return;
+        try {
+            const base = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_PATH}/`;
+            const current = new Map(state.songs.filter(s => !s.isLocal).map(s => [resolveUrl(s.url), s]));
+            const byPath = new Map([...current.values()].map(s => [resolveUrl(s.url).split('?')[0], s]));
+            const cache = await caches.open(PDF_CACHE_NAME);
+            const refetch = [];
+            for (const req of await cache.keys()) {
+                if (!req.url.startsWith(base) || current.has(req.url)) continue;
+                await cache.delete(req);
+                const replaced = byPath.get(req.url.split('?')[0]);
+                if (replaced && !refetch.includes(replaced)) refetch.push(replaced);
+            }
+            if (refetch.length && navigator.onLine) dlEnqueue(refetch);
+        } catch (e) { console.warn('Purge du cache PDF impossible :', e); }
+    }
+
     async function syncOfflineCache(songs) {
         if (!settings.offlineMode || !('caches' in window)) return;
         const missing = await getMissingSongs(songs);
