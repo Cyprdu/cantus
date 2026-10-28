@@ -7023,7 +7023,12 @@
 
     async function fetchAelfReadings(dateStr) {
         if (aelfCache[dateStr]) return aelfCache[dateStr];
-        const res = await fetch(`https://api.aelf.org/v1/messes/${dateStr}/france`);
+        // L'API AELF n'envoie plus d'en-tête CORS (octobre 2026) : le navigateur bloque l'appel
+        // direct. On tente quand même en direct (au cas où ce soit rétabli), sinon on passe par
+        // la passerelle /aelf du relais Cloudflare (live-server/).
+        let res;
+        try { res = await fetch(`https://api.aelf.org/v1/messes/${dateStr}/france`); }
+        catch (e) { res = await fetch(`https://cantus-live.cyprien-veyret.workers.dev/aelf/messes/${dateStr}/france`); }
         if (!res.ok) throw new Error('Réponse AELF invalide : ' + res.status);
         const data = await res.json();
         aelfCache[dateStr] = data;

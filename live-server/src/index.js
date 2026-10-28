@@ -29,6 +29,13 @@ export default {
         if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
 
         const { pathname } = new URL(request.url);
+        // Passerelle vers l'API AELF, qui n'envoie plus d'en-tête CORS (octobre 2026) : le
+        // navigateur bloquait la réponse. Mise en cache 6 h côté Cloudflare.
+        const aelf = pathname.match(/^\/aelf\/messes\/(\d{4}-\d{2}-\d{2})\/([a-z]+)$/);
+        if (request.method === 'GET' && aelf) {
+            const r = await fetch(`https://api.aelf.org/v1/messes/${aelf[1]}/${aelf[2]}`, { cf: { cacheTtl: 21600, cacheEverything: true } });
+            return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json', ...cors(origin) } });
+        }
         if (request.method === 'POST' && pathname === '/room') {
             for (let i = 0; i < 5; i++) {
                 const code = randomCode();
