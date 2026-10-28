@@ -212,5 +212,51 @@
         "id": "569372256b9a857208640e8b8f81c69b0aba0681"
       }
     ]
+  },
+  {
+    "key": "dimanche_1_novembre_2026",
+    "label": "Dimanche 1 novembre 2026",
+    "date": "2026-11-01",
+    "code": "50092722",
+    "items": [
+      {
+        "type": "song",
+        "id": "9d61165b091c69df4b413568ab71d90f1a1ebe5a"
+      },
+      {
+        "type": "song",
+        "id": "847f325674419d148e9a5e63ecbb1fcf632137ec"
+      },
+      {
+        "type": "song",
+        "id": "00373bb61a37f0549941ea15b6a146badbee258d"
+      },
+      {
+        "type": "note",
+        "name": "PSAUME",
+        "ref": "",
+        "content": ""
+      },
+      {
+        "type": "song",
+        "id": "e22660870f6b8b520250f74db3bf36026d23cf6f"
+      },
+      {
+        "type": "song",
+        "id": "5462fe14a656fd2f1dddd347afc6be833f8912c5"
+      },
+      {
+        "type": "song",
+        "id": "e2af867e40cb89659d9c9b1110fa48bfe465fc30"
+      },
+      {
+        "type": "song",
+        "id": "8e668ec4ae746c107a816e48b9c8a5f6191a33b1"
+      },
+      {
+        "type": "song",
+        "id": "7efcc0750984ae6bf7534679afae237c5c3e9ebf"
+      }
+    ]
   }
 ]
