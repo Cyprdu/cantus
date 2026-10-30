@@ -244,6 +244,10 @@
         "content": "Voici le peuple de ceux qui cherchent ta face, Seigneur.\n\nAu Seigneur, le monde et sa richesse, la terre et tous ses habitants ! C’est lui qui l’a fondée sur les mers et la garde inébranlable sur les flots.\n\nQui peut gravir la montagne du Seigneur et se tenir dans le lieu saint ? L’homme au cœur pur, aux mains innocentes, qui ne livre pas son âme aux idoles.\n\nIl obtient, du Seigneur, la bénédiction, et de Dieu son Sauveur, la justice. Voici le peuple de ceux qui le cherchent ! Voici Jacob qui recherche ta face !"
       },
       {
+        "type": "song",
+        "id": "296bd7b5614dc369f6f89b630fd9e635e11cdd1a"
+      },
+      {
         "type": "note",
         "name": "DEUXIÈME LECTURE",
         "ref": "1 Jn 3, 1-3",
@@ -267,11 +271,19 @@
       },
       {
         "type": "song",
+        "id": "9bfe94dc31ee1c035f91341ccc64c504f08d7e57"
+      },
+      {
+        "type": "song",
         "id": "e22660870f6b8b520250f74db3bf36026d23cf6f"
       },
       {
         "type": "song",
         "id": "5462fe14a656fd2f1dddd347afc6be833f8912c5"
+      },
+      {
+        "type": "song",
+        "id": "4a0854f720ec16823eabcc730bf2fa22645cf874"
       },
       {
         "type": "song",
