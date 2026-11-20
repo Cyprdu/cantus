@@ -8357,9 +8357,19 @@
             });
             center(`${ok.length} partition${ok.length > 1 ? 's' : ''} · Cantus`, fI, 9, 36, grey);
 
+            // Les partitions n'ont pas toutes le même format (A4, Letter, A3, scans…) : chaque page
+            // est ramenée sur un A4 (paysage si la source l'est), agrandie ou réduite pour remplir
+            // la page à marge égale et centrée — sinon certaines sortaient énormes, d'autres minuscules.
+            const PAD = 14;
             for (const pt of ok) {
-                const pages = await out.copyPages(pt.doc, pt.doc.getPageIndices());
-                pages.forEach(pg => out.addPage(pg));
+                const embedded = await out.embedPages(pt.doc.getPages());
+                embedded.forEach(ep => {
+                    const landscape = ep.width > ep.height;
+                    const [PW, PH] = landscape ? [PDF_A4[1], PDF_A4[0]] : PDF_A4;
+                    const k = Math.min((PW - 2 * PAD) / ep.width, (PH - 2 * PAD) / ep.height);
+                    const w = ep.width * k, h = ep.height * k;
+                    out.addPage([PW, PH]).drawPage(ep, { x: (PW - w) / 2, y: (PH - h) / 2, width: w, height: h });
+                });
             }
             saveBytesAs(await out.save(), `${sanitizePartitionFilename(m.name)}_-_partitions.pdf`);
             showToast(failed.length
@@ -8520,7 +8530,12 @@
             m.sheet.blocks = await sheetBlocksFromMesse(m);
             saveSheet();
         } else {
+            // Toujours calée sur le déroulé actuel : chants retirés de la messe enlevés, chants
+            // ajoutés insérés à leur place, dans l'ordre de la messe ; les blocs déjà retouchés et
+            // les blocs ajoutés à la main (texte, image) sont conservés.
             m.sheet = { ...SHEET_DEFAULTS, ...m.sheet };
+            m.sheet.blocks = await sheetBlocksFromMesse(m, m.sheet.blocks);
+            saveSheet();
         }
         // Sur téléphone, l'aperçu est sous les réglages : sections longues repliées au départ.
         sheetEd = { idx, view: 'pages', closed: window.innerWidth < 900 ? { blocks: true, layout: true } : {}, token: 0 };
