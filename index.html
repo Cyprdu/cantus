@@ -923,6 +923,26 @@
         .sheet-warn { font-size: 12px; line-height: 1.4; color: var(--danger); border-left: 3px solid var(--danger); padding: 4px 8px; }
         .sheet-img-row { display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap; }
         .sheet-img-row img { height: 56px; max-width: 120px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border); }
+        /* Cartes de choix du design (miniature de page : logo ou titre, puis lignes de texte) */
+        .design-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: var(--sp-sm); }
+        .design-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 8px; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: var(--r-md); color: var(--text); cursor: pointer; text-align: left; transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+        .design-card:hover { border-color: var(--text-3); }
+        .design-card:active { transform: scale(.98); }
+        .design-card.active { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+        .design-card-art { aspect-ratio: 0.71; background: #fff; border-radius: 4px; padding: 10% 12%; display: flex; flex-direction: column; align-items: center; gap: 8%; overflow: hidden; }
+        .design-card-art img { width: 90%; max-height: 22%; object-fit: contain; }
+        .design-card-title { font: 700 20px/1 Georgia, serif; color: #222; margin-top: 10%; }
+        .design-card-lines { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+        .design-card-lines i { display: block; height: 4px; border-radius: 2px; background: #d9d9d9; }
+        .design-card-lines i:first-child { width: 40%; background: var(--d-accent); }
+        .design-card-lines i:nth-child(2) { width: 92%; }
+        .design-card-lines i:nth-child(3) { width: 75%; }
+        .design-card-name { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+        .design-card-check { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; }
+        .design-thumb { background: #fff !important; }
+        .design-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+        .design-swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .design-color { height: 44px; padding: 4px; cursor: pointer; }
         .sheet-add-row { display: flex; flex-wrap: wrap; gap: var(--sp-sm); }
         .sheet-add-row .btn { flex: 1 1 auto; }
         .sheet-reset { color: var(--danger); margin-top: var(--sp-sm); }
@@ -1911,6 +1931,12 @@
             localStorage.setItem('cantus_song_aliases', JSON.stringify(songAliases));
         }
 
+        const designs = await fetchRepoJson('sheet_designs.json');
+        if (designs.ok && Array.isArray(designs.data)) {
+            SHEET_DESIGNS = designs.data;
+            localStorage.setItem('cantus_sheet_designs', JSON.stringify(SHEET_DESIGNS));
+        }
+
         await loadPublicRegistries();
     }
 
@@ -2771,7 +2797,8 @@
         { key: 'songs',      label: 'Partitions',          icon: 'ico-music',  count: () => state.songs.filter(s => !s.isLocal).length },
         { key: 'categories', label: 'Catégories',          icon: 'ico-folder', count: () => CATEGORIES.length },
         { key: 'playlists',  label: 'Playlists publiques', icon: 'ico-list',   count: () => PUBLIC_PLAYLISTS.length },
-        { key: 'messes',     label: 'Messes publiques',    icon: 'ico-cal',    count: () => PUBLIC_MESSES.length }
+        { key: 'messes',     label: 'Messes publiques',    icon: 'ico-cal',    count: () => PUBLIC_MESSES.length },
+        { key: 'designs',    label: 'Designs de feuille',  icon: 'ico-palette', count: () => SHEET_DESIGNS.length }
     ];
 
     function isAdminDashboardOpen() {
@@ -2811,6 +2838,7 @@
     function adashGo(section) {
         if (!confirmDiscardAdashEditor()) return;
         adashDropEditor();
+        adashDesignForm = null;
         adashSection = section;
         renderAdminDashboard();
     }
@@ -2859,7 +2887,140 @@
         else if (adashSection === 'categories') el.innerHTML = renderAdashCategories();
         else if (adashSection === 'playlists') el.innerHTML = renderAdashPlaylists();
         else if (adashSection === 'messes') el.innerHTML = renderAdashMesses();
+        else if (adashSection === 'designs') el.innerHTML = renderAdashDesigns();
         else el.innerHTML = renderAdashHome();
+    }
+
+    /* ─── DESIGNS DE FEUILLE DE MESSE (sheet_designs.json + designs/<clé>/logo.*) ─── */
+    let adashDesignForm = null; // null = liste ; sinon brouillon { key?, label, accent, … , logoFile }
+
+    function renderAdashDesigns() {
+        if (adashDesignForm) return renderAdashDesignForm();
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>Designs de feuille</h3>
+                    <p>L'identité visuelle d'une paroisse pour la feuille de messe : logo, couleur des rubriques, police, format. Chacun peut ensuite le choisir dans « Feuille de chants ».</p>
+                </div>
+                <button class="btn btn-primary" onclick="adashEditDesign()">
+                    <svg class="icon"><use href="#ico-plus"/></svg>
+                    Nouveau design
+                </button>
+            </div>
+            <div class="adash-card">${SHEET_DESIGNS.length ? SHEET_DESIGNS.map(d => `
+                <div class="adash-row">
+                    <div class="adash-row-thumb design-thumb" style="--d-accent:${escHtml(d.accent || '#9a6338')}">${d.logo ? `<img src="${escHtml(sheetRepoUrl(d.logo))}" alt="">` : '<svg class="icon"><use href="#ico-palette"/></svg>'}</div>
+                    <div class="adash-row-main">
+                        <div class="adash-row-title">${escHtml(d.label)}</div>
+                        <div class="adash-row-sub"><span class="design-swatch" style="background:${escHtml(d.accent || '#9a6338')}"></span><span class="adash-meta">${d.style === 'parish' ? 'Paroissial' : 'Classique'} · ${{ booklet: 'Livret A4 plié', a4: 'A4', a5: 'A5' }[d.format] || 'Livret A4 plié'}</span></div>
+                    </div>
+                    <div class="adash-row-actions">
+                        <button class="btn btn-icon" onclick="adashEditDesign('${d.key}')" title="Modifier" aria-label="Modifier"><svg class="icon"><use href="#ico-edit"/></svg></button>
+                        <button class="btn btn-icon danger" onclick="adashDeleteDesign('${d.key}')" title="Supprimer" aria-label="Supprimer"><svg class="icon"><use href="#ico-trash"/></svg></button>
+                    </div>
+                </div>`).join('') : emptyState('ico-palette', 'Aucun design publié : seul « Classique » est proposé.')}</div>`;
+    }
+
+    function adashEditDesign(key) {
+        const d = SHEET_DESIGNS.find(x => x.key === key);
+        adashDesignForm = d ? { ...d } : { label: '', style: 'parish', accent: '#bf2329', ink: '#333333', font: 'sans', size: 9, leading: 1.36, align: 'left', margin: 'normal', format: 'booklet', columns: 1, titleCase: 'upper', readings: 'full', pageNumbers: false, separators: false, logoWidth: 80, description: '' };
+        rerenderAdashKeepScroll();
+    }
+
+    function adashDesignSet(k, v) { if (adashDesignForm) adashDesignForm[k] = v; }
+
+    function renderAdashDesignForm() {
+        const f = adashDesignForm;
+        const sel = (k, opts) => `<select class="input-field" onchange="adashDesignSet('${k}', ${typeof opts[0][0] === 'number' ? 'Number(this.value)' : 'this.value'})">${opts.map(([v, l]) => `<option value="${v}" ${String(f[k]) === String(v) ? 'selected' : ''}>${escHtml(l)}</option>`).join('')}</select>`;
+        return `
+            <div class="adash-section-head">
+                <div>
+                    <h3>${f.key ? 'Modifier le design' : 'Nouveau design'}</h3>
+                    <p>Ces réglages s'appliquent quand on choisit ce design ; chaque feuille reste modifiable ensuite.</p>
+                </div>
+            </div>
+            <div class="adash-form">
+                <label class="field-label">Nom</label>
+                <input type="text" class="input-field" value="${escHtml(f.label)}" placeholder="Ex : Paroisse Saint-Jean" oninput="adashDesignSet('label', this.value)">
+                <label class="field-label">Description courte</label>
+                <input type="text" class="input-field" value="${escHtml(f.description || '')}" placeholder="Affichée sous les cartes de design" oninput="adashDesignSet('description', this.value)">
+                <label class="field-label">Logo (en tête de la 1re page)</label>
+                <div class="sheet-img-row">
+                    ${f.logo && !f.logoData ? `<img src="${escHtml(sheetRepoUrl(f.logo))}" alt="">` : ''}${f.logoData ? `<img src="${f.logoData}" alt="">` : ''}
+                    <label class="btn btn-ghost"><svg class="icon icon-sm"><use href="#ico-image"/></svg>${f.logo || f.logoData ? 'Changer' : 'Choisir une image'}<input type="file" accept="image/png,image/jpeg" hidden onchange="adashDesignPickLogo(event)"></label>
+                </div>
+                <div class="sheet-row2">
+                    <div><label class="field-label">Couleur des rubriques</label><input type="color" class="input-field design-color" value="${escHtml(f.accent)}" oninput="adashDesignSet('accent', this.value)"></div>
+                    <div><label class="field-label">Couleur du texte</label><input type="color" class="input-field design-color" value="${escHtml(f.ink)}" oninput="adashDesignSet('ink', this.value)"></div>
+                </div>
+                <div class="sheet-row2">
+                    <div><label class="field-label">Style</label>${sel('style', [['parish', 'Paroissial (logo, rubriques)'], ['classic', 'Classique (couverture)']])}</div>
+                    <div><label class="field-label">Format</label>${sel('format', [['booklet', 'Livret A4 plié'], ['a4', 'A4'], ['a5', 'A5']])}</div>
+                </div>
+                <div class="sheet-row2">
+                    <div><label class="field-label">Police</label>${sel('font', [['sans', 'Moderne (sans empattement)'], ['serif', 'Classique (Times)']])}</div>
+                    <div><label class="field-label">Taille du texte</label>${sel('size', [[8, '8 pt'], [8.5, '8,5 pt'], [9, '9 pt'], [10, '10 pt'], [11, '11 pt'], [12, '12 pt']])}</div>
+                </div>
+                <div class="sheet-row2">
+                    <div><label class="field-label">Lectures</label>${sel('readings', [['full', 'Texte complet'], ['ref', 'Référence seule']])}</div>
+                    <div><label class="field-label">Largeur du logo</label>${sel('logoWidth', [[50, '50 %'], [65, '65 %'], [80, '80 %'], [95, '95 %']])}</div>
+                </div>
+                <div id="design-form-error" class="form-error" style="display:none;"></div>
+                <div class="adash-inline-form" style="margin-top: var(--sp-md);">
+                    <button class="btn btn-ghost" onclick="adashDesignForm = null; rerenderAdashKeepScroll()">Annuler</button>
+                    <button class="btn btn-primary" id="design-save-btn" onclick="adashSaveDesign()">Publier le design</button>
+                </div>
+            </div>`;
+    }
+
+    async function adashDesignPickLogo(event) {
+        const file = event.target.files[0];
+        if (!file || !adashDesignForm) return;
+        if (file.size > 1.5e6) { showToast('Logo trop lourd (1,5 Mo max).'); return; }
+        adashDesignForm.logoData = await new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = ko; r.readAsDataURL(file); });
+        adashDesignForm.logoExt = file.type === 'image/png' ? 'png' : 'jpg';
+        rerenderAdashKeepScroll();
+    }
+
+    async function adashSaveDesign() {
+        const f = adashDesignForm, err = document.getElementById('design-form-error');
+        const fail = msg => { err.textContent = msg; err.style.display = 'block'; };
+        if (!f || !f.label.trim()) return fail('Donnez un nom au design.');
+        if (!isAdminActive()) return fail('Pouvoirs administrateur inactifs ou session expirée.');
+        await withBusyButton(document.getElementById('design-save-btn'), 'Publication…', async () => {
+            const latest = await fetchRepoJson('sheet_designs.json');
+            if (!latest.ok) throw new Error('Impossible de lire sheet_designs.json.');
+            const list = Array.isArray(latest.data) ? latest.data : [];
+            const slug = f.key || (f.label.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'design');
+            let key = slug, n = 2;
+            while (!f.key && list.some(d => d.key === key)) key = `${slug}_${n++}`;
+            const { logoData, logoExt, ...entry } = { ...f, key, label: f.label.trim() };
+            if (logoData) {
+                entry.logo = `designs/${key}/logo.${logoExt}`;
+                await commitBase64ToGithub(entry.logo, logoData.split(',')[1], `Logo du design de feuille « ${entry.label} »`);
+            }
+            const next = list.some(d => d.key === key) ? list.map(d => d.key === key ? entry : d) : [...list, entry];
+            await commitTextToGithub('sheet_designs.json', JSON.stringify(next, null, 2), `${f.key ? 'Modifie' : 'Ajoute'} le design de feuille « ${entry.label} » via l'application`);
+            SHEET_DESIGNS = next;
+            localStorage.setItem('cantus_sheet_designs', JSON.stringify(next));
+            adashDesignForm = null;
+            renderAdminDashboard();
+            showToast(`Design « ${entry.label} » publié.`);
+        });
+    }
+
+    async function adashDeleteDesign(key) {
+        const d = SHEET_DESIGNS.find(x => x.key === key);
+        if (!d || !confirm(`Supprimer le design « ${d.label} » ? Les feuilles qui l'utilisent repasseront au design Classique.`)) return;
+        try {
+            const latest = await fetchRepoJson('sheet_designs.json');
+            const next = (Array.isArray(latest.data) ? latest.data : SHEET_DESIGNS).filter(x => x.key !== key);
+            await commitTextToGithub('sheet_designs.json', JSON.stringify(next, null, 2), `Supprime le design de feuille « ${d.label} » via l'application`);
+            SHEET_DESIGNS = next;
+            localStorage.setItem('cantus_sheet_designs', JSON.stringify(next));
+            renderAdminDashboard();
+            showToast('Design supprimé.');
+        } catch (e) { showToast(e.message || 'Échec de la suppression.'); }
     }
 
     function rerenderAdashKeepScroll() {
@@ -8219,6 +8380,107 @@
     };
     let sheetEd = null; // { idx, view: 'pages'|'print', closed: {}, token }
 
+    /* ─── DESIGNS DE FEUILLE ───
+       sheet_designs.json (écrit par le dashboard admin) : identité visuelle d'une paroisse —
+       logo, couleur des rubriques, police, format. Style « parish » : logo et date en tête de la
+       1re page, chaque chant titré par son moment (ENTRÉE, KYRIE…) en couleur, lectures complètes
+       et justifiées, psaume réduit à son refrain. « Classique » est intégré et toujours proposé. */
+    let SHEET_DESIGNS = (() => { try { return JSON.parse(localStorage.getItem('cantus_sheet_designs')) || []; } catch (e) { return []; } })();
+    const SHEET_DESIGN_CLASSIC = { key: 'classique', label: 'Classique', description: 'Page de couverture avec titre et image, chants en colonnes.', style: 'classic' };
+    // Réglages de mise en page qu'un design impose (l'utilisateur peut ensuite les retoucher).
+    const SHEET_DESIGN_KEYS = ['font', 'size', 'leading', 'align', 'margin', 'format', 'columns', 'titleCase', 'pageNumbers', 'separators'];
+
+    function sheetDesigns() { return [SHEET_DESIGN_CLASSIC, ...SHEET_DESIGNS]; }
+    function sheetDesignOf(s) { return sheetDesigns().find(d => d.key === s.design) || SHEET_DESIGN_CLASSIC; }
+    function sheetRepoUrl(path) {
+        return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${path.split('/').map(encodeURIComponent).join('/')}`;
+    }
+    function hexToRgb01(hex, fallback) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+        if (!m) return fallback;
+        const n = parseInt(m[1], 16);
+        return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
+    }
+
+    // Moment liturgique d'un élément du déroulé (titre de rubrique du style « parish », et
+    // étiquette au-dessus du titre dans le style classique). D'abord d'après le titre (pièces de
+    // l'ordinaire, psaume…), sinon d'après la position : avant la 1re lecture → Entrée ; entre
+    // l'Évangile et le Sanctus → Prière universelle puis Offertoire ; après l'Agnus → Communion,
+    // Action de grâce, Envoi.
+    const SHEET_MOMENTS = [
+        [/kyrie|prends piti/, 'Kyrie'], [/gloria|gloire a dieu/, 'Gloire à Dieu'], [/psaume/, 'Psaume'],
+        [/alleluia/, 'Alléluia'], [/sanctus/, 'Sanctus'], [/anamnese/, 'Anamnèse'],
+        [/agnus|agneau de dieu/, 'Agnus Dei'], [/notre pere/, 'Notre Père'], [/priere universelle|litanie/, 'Prière universelle']
+    ];
+    function sheetInferMoments(items) {
+        const norm = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+        const title = it => norm(it.type === 'note' ? it.name : collItemName(it));
+        const out = items.map(it => {
+            if (it.type === 'note') return '';
+            const hit = SHEET_MOMENTS.find(([re]) => re.test(title(it)));
+            return hit ? hit[1] : null;
+        });
+        const find = (pred, from = 0) => { for (let i = from; i < items.length; i++) if (pred(i)) return i; return -1; };
+        const firstReading = find(i => items[i].type === 'note' || out[i] === 'Kyrie' || out[i] === 'Gloire à Dieu');
+        const gospel = find(i => items[i].type === 'note' && /evangile/.test(title(items[i])));
+        const sanctus = find(i => out[i] === 'Sanctus');
+        const agnus = (() => { for (let i = items.length - 1; i >= 0; i--) if (out[i] === 'Agnus Dei') return i; return -1; })();
+        const free = (a, b) => items.map((_, i) => i).filter(i => i > a && i < b && out[i] === null);
+        free(-1, firstReading < 0 ? items.length : firstReading).forEach(i => { out[i] = 'Entrée'; });
+        if (gospel >= 0) {
+            const mid = free(gospel, sanctus < 0 ? (agnus < 0 ? items.length : agnus) : sanctus);
+            const puNote = find(i => items[i].type === 'note' && /priere universelle/.test(title(items[i])), gospel);
+            mid.forEach((i, k) => { out[i] = (mid.length > 1 && k === 0) || (puNote >= 0 && i === puNote + 1) ? 'Prière universelle' : 'Offertoire'; });
+        }
+        if (agnus >= 0) {
+            const end = free(agnus, items.length);
+            end.forEach((i, k) => { out[i] = k === 0 ? 'Communion' : k === end.length - 1 ? 'Envoi' : 'Action de grâce'; });
+        }
+        return out.map(v => v || '');
+    }
+
+    // Applique un design : réglages de mise en page, en-tête, moments manquants, lectures.
+    function applySheetDesign(key) {
+        const s = sheetCur(), m = state.messes[sheetEd.idx];
+        const d = sheetDesigns().find(x => x.key === key);
+        if (!s || !d) return;
+        s.design = d.key;
+        if (d.style === 'parish') {
+            SHEET_DESIGN_KEYS.forEach(k => { if (d[k] !== undefined) s[k] = d[k]; });
+            s.cover = false;
+            s.boldRefrain = true;
+            s.fit = true;
+            if (m && m.date) s.title = formatMesseDateLabel(m.date);
+            s.subtitle = '';
+            s.blocks.forEach(b => { if (b.kind === 'note' && d.readings === 'full') b.showText = true; });
+        } else {
+            SHEET_DESIGN_KEYS.forEach(k => { s[k] = SHEET_DEFAULTS[k]; });
+            s.cover = SHEET_DEFAULTS.cover;
+        }
+        if (m) {
+            const moments = sheetInferMoments(m.songs);
+            const byKey = new Map(m.songs.map((it, i) => [sheetKeyOf(it), moments[i]]));
+            s.blocks.forEach(b => { if (!b.label && b.src && byKey.get(b.src)) b.label = byKey.get(b.src); });
+        }
+        saveSheet();
+        renderSheetEditor();
+        showToast(`Design « ${d.label} » appliqué.`);
+    }
+
+    function sheetDesignCardsHtml(s) {
+        const cur = sheetDesignOf(s).key;
+        return `<div class="design-cards">${sheetDesigns().map(d => `
+            <button class="design-card ${d.key === cur ? 'active' : ''}" onclick="applySheetDesign('${d.key}')" aria-pressed="${d.key === cur}">
+                <span class="design-card-art" style="--d-accent:${escHtml(d.accent || '#9a6338')}">
+                    ${d.logo ? `<img src="${escHtml(sheetRepoUrl(d.logo))}" alt="" loading="lazy">` : '<span class="design-card-title">Aa</span>'}
+                    <span class="design-card-lines"><i></i><i></i><i></i></span>
+                </span>
+                <span class="design-card-name">${escHtml(d.label)}</span>
+                ${d.key === cur ? '<span class="design-card-check"><svg class="icon icon-sm"><use href="#ico-check"/></svg></span>' : ''}
+            </button>`).join('')}</div>
+            <p class="settings-note">${escHtml(sheetDesignOf(s).description || '')}</p>`;
+    }
+
     function sheetKeyOf(it) {
         return it.type === 'note' ? 'n:' + (it.name || '') + '|' + (it.ref || '') : 's:' + it.id;
     }
@@ -8226,15 +8488,17 @@
     async function sheetBlocksFromMesse(m, previous = []) {
         await Promise.all(m.songs.filter(it => it.type !== 'note').map(it => getLyricsForSong(collSourceSong(it) || it)));
         const prev = new Map(previous.filter(b => b.src).map(b => [b.src, b]));
+        const moments = sheetInferMoments(m.songs);
+        const fullReadings = m.sheet && sheetDesignOf(m.sheet).readings === 'full';
         const blocks = [];
-        for (const it of m.songs) {
+        for (const [i, it] of m.songs.entries()) {
             const src = sheetKeyOf(it);
             if (prev.has(src)) { blocks.push(prev.get(src)); prev.delete(src); continue; }
             if (it.type === 'note') {
-                blocks.push({ src, kind: 'note', include: true, label: '', title: it.name || 'Note', ref: it.ref || '', text: it.content || '', showText: false });
+                blocks.push({ src, kind: 'note', include: true, label: '', title: it.name || 'Note', ref: it.ref || '', text: it.content || '', showText: !!fullReadings });
             } else {
                 const text = await getLyricsForSong(collSourceSong(it) || it);
-                blocks.push({ src, kind: 'song', include: true, label: '', title: collItemName(it), text: text || '' });
+                blocks.push({ src, kind: 'song', include: true, label: moments[i], title: collItemName(it), text: text || '' });
             }
         }
         previous.forEach((b, i) => { if (!b.src) blocks.splice(Math.min(i, blocks.length), 0, b); });
@@ -8450,7 +8714,8 @@
                 </div>
                 <div class="sheet-grid">
                     <div class="sheet-panel">
-                        ${sec('cover', 'Titre et couverture', `
+                        ${sec('design', 'Design', sheetDesignCardsHtml(s))}
+                        ${sec('cover', sheetDesignOf(s).style === 'parish' ? 'En-tête' : 'Titre et couverture', `
                             <label class="field-label">Titre</label>
                             <input type="text" class="input-field" value="${escHtml(s.title || '')}" oninput="sheetSet('title', this.value)">
                             <label class="field-label">Sous-titre</label>
@@ -8616,7 +8881,16 @@
             ? ['Helvetica', 'HelveticaBold', 'HelveticaOblique', 'HelveticaBoldOblique']
             : ['TimesRoman', 'TimesRomanBold', 'TimesRomanItalic', 'TimesRomanBoldItalic'];
         const [fR, fB, fI, fBI] = await Promise.all(names.map(n => doc.embedFont(StandardFonts[n])));
-        const ink = rgb(...PDF_INK), grey = rgb(...PDF_GREY), accent = rgb(...PDF_ACCENT);
+        const design = sheetDesignOf(s), parish = design.style === 'parish';
+        const ink = rgb(...hexToRgb01(design.ink, PDF_INK)), grey = rgb(...PDF_GREY), accent = rgb(...hexToRgb01(design.accent, PDF_ACCENT));
+        let logoImg = null;
+        if (design.logo) {
+            try {
+                const res = await fetch(sheetRepoUrl(design.logo));
+                const bytes = new Uint8Array(await res.arrayBuffer());
+                logoImg = bytes[0] === 0x89 ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+            } catch (e) { console.warn('Logo du design indisponible :', e); }
+        }
         const images = new Map();
         const embedImg = async src => {
             if (!src) return null;
@@ -8637,23 +8911,62 @@
 
         // Lignes de texte centrées/alignées dans une largeur donnée, avec retrait des lignes de
         // continuation (alignement à gauche) pour qu'un vers coupé reste lisible.
+        // opts.justify : lignes étirées sur toute la largeur (sauf la dernière du paragraphe).
         const textRows = (text, font, size, lead, width, color, opts = {}) => {
             const rows = [];
-            pdfWrap(font, size, pdfSafe(font, text), width - (opts.indent || 0)).forEach((line, k) => {
-                const indent = k > 0 && !opts.center ? (opts.indent || 0) : 0;
+            const lines = pdfWrap(font, size, pdfSafe(font, text), width - (opts.indent || 0));
+            lines.forEach((line, k) => {
+                const indent = k > 0 && !opts.center && !opts.justify ? (opts.indent || 0) : 0;
                 rows.push({ h: size * lead, draw: (page, x, yTop) => {
+                    const y = yTop - size * 0.82 - (size * lead - size) / 2;
+                    const words = line.split(' ');
+                    if (opts.justify && k < lines.length - 1 && words.length > 1) {
+                        const gap = (width - words.reduce((a, w) => a + font.widthOfTextAtSize(w, size), 0)) / (words.length - 1);
+                        let wx = x;
+                        words.forEach(w => { page.drawText(w, { x: wx, y, size, font, color }); wx += font.widthOfTextAtSize(w, size) + gap; });
+                        return;
+                    }
                     const w = font.widthOfTextAtSize(line, size);
                     const lx = opts.center ? x + (width - w) / 2 : x + indent;
-                    page.drawText(line, { x: lx, y: yTop - size * 0.82 - (size * lead - size) / 2, size, font, color });
+                    page.drawText(line, { x: lx, y, size, font, color });
                 } });
             });
             return rows;
+        };
+        // Rubrique du style « parish » : MOMENT en capitales grasses de couleur, suivi sur la même
+        // ligne (si la place le permet) d'un complément en romain (référence d'une lecture).
+        const parishHeadRows = (label, extra, fs, width) => {
+            const lab = pdfSafe(fB, label.toLocaleUpperCase('fr')), size = fs * 1.1;
+            const ext = extra ? pdfSafe(fR, extra) : '';
+            const labW = fB.widthOfTextAtSize(lab, size), sp = fs * 0.4;
+            if (!ext || labW + sp + fR.widthOfTextAtSize(ext, fs) > width) {
+                return [...textRows(lab, fB, size, 1.4, width, accent), ...(ext ? textRows(ext, fR, fs, 1.35, width, ink) : [])];
+            }
+            return [{ h: size * 1.4, draw: (page, x, yTop) => {
+                const y = yTop - size * 0.82 - size * 0.2;
+                page.drawText(lab, { x, y, size, font: fB, color: accent });
+                page.drawText(ext, { x: x + labW + sp, y, size: fs, font: fR, color: ink });
+            } }];
         };
         const gapRow = h => ({ h, draw: () => {} });
         // Titre, sous-titre, image et texte d'accueil : seuls sur la page de couverture (big), ou
         // en tête de la première page, sur toute la largeur, quand il n'y en a pas.
         const coverRows = (fs, width, big) => {
             const rows = [];
+            if (parish) {
+                // En-tête paroissial : logo puis date (ou titre) en capitales de couleur.
+                if (logoImg) {
+                    const w = width * (design.logoWidth || 80) / 100, h = w * logoImg.height / logoImg.width;
+                    rows.push({ h: h + fs * 1.6, draw: (pg, x, yTop) => pg.drawImage(logoImg, { x: x + (width - w) / 2, y: yTop - h, width: w, height: h }) });
+                }
+                if (s.title) rows.push(...textRows(s.title.toLocaleUpperCase('fr'), fB, fs * 1.1, 1.4, width, accent, { center: true }));
+                if (s.subtitle) rows.push(...textRows(s.subtitle, fI, fs, 1.4, width, ink, { center: true }));
+                if (s.intro) {
+                    rows.push(gapRow(fs * 0.4));
+                    s.intro.split('\n').forEach(l => rows.push(...(l.trim() ? textRows(l, fI, fs, 1.4, width, ink, { center: true }) : [gapRow(fs * 0.6)])));
+                }
+                return rows;
+            }
             if (s.title) rows.push(...textRows(s.title, fB, fs * (big ? 2.4 : 1.8), 1.2, width, ink, { center: true }));
             if (s.subtitle) rows.push(gapRow(fs * 0.3), ...textRows(s.subtitle, fI, fs * (big ? 1.2 : 1.1), 1.4, width, grey, { center: true }));
             if (coverImg) {
@@ -8675,15 +8988,31 @@
             s.blocks.filter(b => b.include !== false).forEach((b, bi) => {
                 const sepBefore = bi > 0;
                 const head = [];
-                if (b.label) head.push(...textRows(b.label.toLocaleUpperCase('fr'), fI, fs * 0.78, 1.35, colW, accent, { center }));
-                if (b.kind === 'song' || b.kind === 'note' || (b.kind === 'text' && b.title)) {
-                    const title = b.kind === 'song' ? sheetTitleCase(b.title, s.titleCase) : b.title;
-                    head.push(...textRows(title, fB, fs * 1.18, 1.25, colW, ink, { center }));
+                const isPsalmNote = b.kind === 'note' && /psaume/i.test((b.title || '').normalize('NFD').replace(/[̀-ͯ]/g, ''));
+                if (parish) {
+                    // Rubrique = moment (ENTRÉE, KYRIE…) ; à défaut, le titre. Le titre d'un chant
+                    // n'est pas répété : ce sont ses paroles qui suivent, comme sur la feuille papier.
+                    const heading = b.kind === 'note' ? (b.label || b.title) : (b.label || (b.kind === 'song' ? sheetTitleCase(b.title, 'asis') : b.title));
+                    if (heading) head.push(...parishHeadRows(heading, b.kind === 'note' ? b.ref : '', fs, colW));
+                } else {
+                    if (b.label) head.push(...textRows(b.label.toLocaleUpperCase('fr'), fI, fs * 0.78, 1.35, colW, accent, { center }));
+                    if (b.kind === 'song' || b.kind === 'note' || (b.kind === 'text' && b.title)) {
+                        const title = b.kind === 'song' ? sheetTitleCase(b.title, s.titleCase) : b.title;
+                        head.push(...textRows(title, fB, fs * 1.18, 1.25, colW, ink, { center }));
+                    }
+                    if (b.kind === 'note' && b.ref) head.push(...textRows(b.ref, fI, fs * 0.9, 1.3, colW, grey, { center }));
                 }
-                if (b.kind === 'note' && b.ref) head.push(...textRows(b.ref, fI, fs * 0.9, 1.3, colW, grey, { center }));
 
                 let stanzas = [];
-                if (b.kind === 'song' || b.kind === 'text' || (b.kind === 'note' && b.showText)) {
+                if (parish && isPsalmNote && b.showText) {
+                    // Psaume : seulement l'antienne (1er paragraphe), en gras, précédée de R/.
+                    const refrain = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/)[0].trim();
+                    if (refrain) stanzas = [textRows('R/ ' + refrain.replace(/\n/g, ' '), fB, fs * 1.1, lead, colW, ink)];
+                } else if (parish && b.kind === 'note' && b.showText) {
+                    // Lectures : texte complet, paragraphes justifiés.
+                    stanzas = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(p => p.replace(/\n/g, ' ').trim()).filter(Boolean)
+                        .map(p => textRows(p, fR, fs, lead, colW, ink, { justify: true }));
+                } else if (b.kind === 'song' || b.kind === 'text' || (b.kind === 'note' && b.showText)) {
                     let refrainNext = false;
                     stanzas = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(block => block.split('\n').map(l => l.trim()).filter(Boolean)).filter(ls => ls.length).map(lines => {
                         const rows = [];
@@ -8700,6 +9029,10 @@
                         lines.forEach(l => rows.push(...textRows(l, useBold ? fB : fR, fs, lead, colW, ink, { center, indent: fs })));
                         return rows;
                     }).filter(r => r.length);
+                }
+                // Chant sans paroles enregistrées : son titre, pour que la rubrique ne reste pas vide.
+                if (parish && b.kind === 'song' && !stanzas.length && b.label) {
+                    stanzas = [textRows(sheetTitleCase(b.title, 'sentence'), fI, fs, lead, colW, ink)];
                 }
                 if (b.kind === 'image' && b.src) {
                     const img = images.get(b.src);

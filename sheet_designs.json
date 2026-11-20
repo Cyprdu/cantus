@@ -1,0 +1,23 @@
+[
+  {
+    "key": "montrevel",
+    "label": "Paroisse de Montrevel-en-Bresse",
+    "description": "Logo du groupement paroissial, rubriques en rouge, lectures complètes : livret A5 sur A4 plié.",
+    "style": "parish",
+    "logo": "designs/montrevel/logo.jpg",
+    "logoWidth": 80,
+    "accent": "#bf2329",
+    "ink": "#333333",
+    "font": "sans",
+    "size": 9,
+    "leading": 1.36,
+    "align": "left",
+    "margin": "normal",
+    "format": "booklet",
+    "columns": 1,
+    "titleCase": "upper",
+    "readings": "full",
+    "pageNumbers": false,
+    "separators": false
+  }
+]
