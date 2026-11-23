@@ -979,6 +979,42 @@
         .design-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
         .design-swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         .design-color { height: 44px; padding: 4px; cursor: pointer; }
+        /* Bloc compact : poignée · moment + titre · modifier · interrupteur, puis choix du contenu */
+        .sheet-block { gap: 8px; padding: 8px 10px 8px 4px; }
+        .sheet-block.is-off { opacity: 1; background: transparent; border-style: dashed; }
+        .sheet-block.is-off .sheet-block-name { opacity: .5; }
+        .sheet-block.is-off .sheet-block-name span { text-decoration: line-through; }
+        .sheet-block.is-open { border-color: var(--accent); }
+        .sheet-drag { display: flex; align-items: center; justify-content: center; width: 30px; min-height: 40px; color: var(--text-3); cursor: grab; flex-shrink: 0; touch-action: none; }
+        .sheet-block-name { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; background: none; border: 0; padding: 2px 0; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+        .sheet-block-name small { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+        .sheet-block-name span { font-size: 14px; font-weight: 600; line-height: 1.3; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sheet-block-name em { font-style: normal; font-weight: 400; color: var(--text-3); font-size: 12.5px; }
+        .toggle-switch--sm { transform: scale(.85); margin-right: 2px; }
+        .sheet-modes { margin-left: 30px; align-self: flex-start; max-width: calc(100% - 30px); overflow-x: auto; }
+        .seg-sm button { padding: 5px 11px; font-size: 12px; }
+        .sheet-block-body { display: flex; flex-direction: column; gap: 6px; margin-left: 30px; }
+        .sheet-block-foot { display: flex; flex-wrap: wrap; gap: 6px; }
+        .sheet-block .sheet-warn { margin-left: 30px; }
+        .btn-sm { padding: 6px 10px; font-size: 12.5px; min-height: 32px; }
+        .btn.danger { color: var(--danger); }
+        .link-btn { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+        .sheet-help { margin: 0; }
+        .sheet-quick { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); flex-wrap: wrap; padding: 8px 10px; background: var(--surface-2); border-radius: var(--r-md); }
+        .sheet-quick-label { font-size: 13px; font-weight: 700; }
+        .sheet-notice { font-size: 13px; line-height: 1.45; padding: 10px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+        .sheet-notice-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .sheet-notice-actions .btn { background: var(--surface); }
+        /* Menu « Télécharger » */
+        .dl-menu { position: relative; }
+        .dl-menu > summary { list-style: none; }
+        .dl-menu > summary::-webkit-details-marker { display: none; }
+        .dl-menu-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(300px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.35); padding: 6px; display: flex; flex-direction: column; }
+        .dl-menu-list button { display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: none; border: 0; border-radius: var(--r-md); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+        .dl-menu-list button:hover { background: var(--surface-2); }
+        .dl-menu-list button .icon { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+        .dl-menu-list b { display: block; font-size: 14px; }
+        .dl-menu-list small { display: block; font-size: 12px; color: var(--text-3); line-height: 1.35; margin-top: 2px; }
         .sheet-add-row { display: flex; flex-wrap: wrap; gap: var(--sp-sm); }
         .sheet-add-row .btn { flex: 1 1 auto; }
         .sheet-reset { color: var(--danger); margin-top: var(--sp-sm); }
@@ -8359,8 +8395,8 @@
         return res.arrayBuffer();
     }
 
-    function saveBytesAs(bytes, filename) {
-        const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    function saveBytesAs(bytes, filename, type = 'application/pdf') {
+        const url = URL.createObjectURL(new Blob([bytes], { type }));
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
@@ -8597,7 +8633,7 @@
             s.fit = true;
             if (m && m.date) s.title = formatMesseDateLabel(m.date);
             s.subtitle = '';
-            s.blocks.forEach(b => { if (b.kind === 'note' && d.readings === 'full') b.showText = true; });
+            s.blocks.forEach(b => { if (b.kind === 'note' && d.readings === 'full') { b.showText = true; delete b.mode; } });
         } else {
             SHEET_DESIGN_KEYS.forEach(k => { s[k] = SHEET_DEFAULTS[k]; });
             s.cover = SHEET_DEFAULTS.cover;
@@ -8628,6 +8664,84 @@
 
     function sheetKeyOf(it) {
         return it.type === 'note' ? 'n:' + (it.name || '') + '|' + (it.ref || '') : 's:' + it.id;
+    }
+
+    /* Ce qu'un bloc imprime (b.mode) : un chant → paroles, refrain seul ou titre seul ; une
+       lecture → référence seule ou texte complet (+ refrain seul pour un psaume). Les feuilles
+       créées avant ce réglage n'ont que b.showText : on en déduit le mode équivalent. */
+    const SHEET_MODES = {
+        song: [['full', 'Paroles'], ['refrain', 'Refrain'], ['title', 'Titre seul']],
+        note: [['ref', 'Référence'], ['full', 'Texte complet']],
+        psalm: [['ref', 'Référence'], ['refrain', 'Refrain'], ['full', 'Texte complet']]
+    };
+    const sheetNorm = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    function sheetIsPsalm(b) { return /psaume/.test(sheetNorm(b.title) + ' ' + sheetNorm(b.label)); }
+    function sheetModeChoices(b) {
+        return b.kind === 'song' ? SHEET_MODES.song : b.kind === 'note' ? (sheetIsPsalm(b) ? SHEET_MODES.psalm : SHEET_MODES.note) : null;
+    }
+    function sheetModeOf(b, s) {
+        const choices = sheetModeChoices(b);
+        if (!choices) return 'full';
+        if (b.mode && choices.some(([v]) => v === b.mode)) return b.mode;
+        if (b.kind === 'note') return !b.showText ? 'ref' : sheetIsPsalm(b) && sheetDesignOf(s).style === 'parish' ? 'refrain' : 'full';
+        return 'full';
+    }
+    // Le bloc imprime-t-il du texte (et pas seulement un titre/une référence) ?
+    function sheetPrintsText(b, s) {
+        const mode = sheetModeOf(b, s);
+        return b.include !== false && (b.kind === 'song' ? mode !== 'title' && !!(b.text || '').trim() : b.kind === 'note' ? mode !== 'ref' : true);
+    }
+
+    // Strophes d'un texte : paragraphes séparés par une ligne vide ; une ligne « Refrain : » ou
+    // « Couplet 1 » en tête devient l'intitulé ; une strophe en « R. » ou annoncée par un intitulé
+    // « Refrain » seul est un refrain.
+    function sheetParseStanzas(text) {
+        let refrainNext = false;
+        return (text || '').replace(/\r/g, '').split(/\n\s*\n/).map(block => block.split('\n').map(l => l.trim()).filter(Boolean)).filter(ls => ls.length).map(lines => {
+            let heading = null, refrain = false;
+            if (isLyricsSectionHeading(lines[0])) {
+                heading = lines.shift().replace(/\s*:\s*$/, '');
+                refrain = /^refrain/i.test(heading.trim());
+            }
+            if (lines.length && /^(R\s*[./]|Refrain\b)/i.test(lines[0])) refrain = true;
+            if (!lines.length && refrain) { refrainNext = true; return { heading, lines, refrain }; }
+            if (refrainNext) { refrain = true; refrainNext = false; }
+            return { heading, lines, refrain };
+        });
+    }
+
+    // Contenu imprimé d'un bloc, indépendant du support (PDF ou Word) : liste de strophes
+    // { heading?, lines[], bold, italic, justify, big }.
+    function sheetBlockStanzas(b, s) {
+        const parish = sheetDesignOf(s).style === 'parish', mode = sheetModeOf(b, s);
+        const paras = () => (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+        if (b.kind === 'song') {
+            const titleOnly = () => parish && b.label ? [{ lines: [sheetTitleCase(b.title, 'sentence')], italic: true }] : [];
+            if (mode === 'title') return titleOnly();
+            const st = sheetParseStanzas(b.text).filter(x => x.lines.length || x.heading);
+            if (!st.some(x => x.lines.length)) return titleOnly();
+            if (mode === 'refrain') {
+                const r = st.find(x => x.refrain && x.lines.length) || st.find(x => x.lines.length);
+                return [{ lines: r.lines, bold: s.boldRefrain }];
+            }
+            return st.map(x => ({ heading: x.heading, lines: x.lines, bold: s.boldRefrain && x.refrain }));
+        }
+        if (b.kind === 'note') {
+            if (mode === 'ref') return [];
+            if (mode === 'refrain') {
+                // Psaume : l'antienne (1er paragraphe), en gras, précédée de R/.
+                const r = (paras()[0] || '').replace(/\n/g, ' ').replace(/^R\s*[/.]\s*/i, '');
+                return r ? [{ lines: ['R/ ' + r], bold: true, big: true }] : [];
+            }
+            if (sheetIsPsalm(b)) {
+                // Psaume complet : vers gardés à la ligne, antienne en gras.
+                return paras().map((p, k) => ({ lines: (k === 0 ? 'R/ ' + p.replace(/^R\s*[/.]\s*/i, '') : p).split('\n').map(l => l.trim()).filter(Boolean), bold: k === 0 }));
+            }
+            // Lecture : paragraphes justifiés.
+            return paras().map(p => ({ lines: [p.replace(/\n/g, ' ')], justify: true }));
+        }
+        if (b.kind === 'text') return sheetParseStanzas(b.text).filter(x => x.lines.length || x.heading).map(x => ({ heading: x.heading, lines: x.lines }));
+        return [];
     }
 
     async function sheetBlocksFromMesse(m, previous = []) {
@@ -8673,7 +8787,7 @@
             saveSheet();
         }
         // Sur téléphone, l'aperçu est sous les réglages : sections longues repliées au départ.
-        sheetEd = { idx, view: 'pages', closed: window.innerWidth < 900 ? { blocks: true, layout: true } : {}, token: 0 };
+        sheetEd = { idx, view: 'pages', closed: window.innerWidth < 900 ? { cover: true, layout: true } : { layout: true }, open: {}, token: 0 };
         renderSheetEditor();
     }
 
@@ -8703,6 +8817,7 @@
         const s = sheetCur(), j = i + delta;
         if (!s || j < 0 || j >= s.blocks.length) return;
         [s.blocks[i], s.blocks[j]] = [s.blocks[j], s.blocks[i]];
+        sheetEd.open = { [j]: !!sheetEd.open[i] };
         saveSheet();
         renderSheetEditor();
     }
@@ -8711,6 +8826,7 @@
         const s = sheetCur();
         if (!s || !confirm('Retirer ce bloc de la feuille ?')) return;
         s.blocks.splice(i, 1);
+        sheetEd.open = {};
         saveSheet();
         renderSheetEditor();
     }
@@ -8719,6 +8835,7 @@
         const s = sheetCur();
         if (!s) return;
         s.blocks.push({ kind: 'text', include: true, title: '', text: '' });
+        sheetEd.open = { [s.blocks.length - 1]: true };
         saveSheet();
         renderSheetEditor();
     }
@@ -8789,26 +8906,31 @@
         </select>`;
     }
 
+    // Un bloc = une ligne compacte : interrupteur « imprimer », moment + titre, choix de ce qui
+    // est imprimé (paroles / refrain / titre, référence / texte), poignée de déplacement. Les
+    // champs (titre, paroles…) ne s'ouvrent qu'à la demande, pour garder la liste lisible.
     function sheetBlockHtml(b, i, n) {
-        const kindLabel = { song: 'Chant', note: 'Lecture / note', text: 'Texte libre', image: 'Image' }[b.kind];
-        const on = b.include !== false;
+        const s = sheetCur();
+        const kindLabel = { song: 'Chant', note: 'Lecture', text: 'Texte', image: 'Image' }[b.kind];
+        const on = b.include !== false, open = !!sheetEd.open[i];
+        const mode = sheetModeOf(b, s), choices = sheetModeChoices(b);
         const field = (key, ph, val = b[key]) => `<input type="text" class="input-field" placeholder="${ph}" value="${escHtml(val || '')}" oninput="sheetBlockSet(${i}, '${key}', this.value)">`;
         const area = (key, ph, rows) => `<textarea class="input-field sheet-area" rows="${rows}" placeholder="${ph}" oninput="sheetBlockSet(${i}, '${key}', this.value)">${escHtml(b[key] || '')}</textarea>`;
+        const name = b.kind === 'image' ? (b.caption || 'Image') : (b.title || (b.kind === 'text' ? 'Texte libre' : ''));
+        const noLyrics = b.kind === 'song' && !(b.text || '').trim();
         let body = '';
-        if (on && b.kind === 'song') {
+        if (b.kind === 'song') {
             body = `
                 <div class="sheet-row2">${field('label', 'Moment (ex. Entrée)')}${field('title', 'Titre')}</div>
-                ${b.text ? '' : `<div class="sheet-warn">Pas de paroles enregistrées pour ce chant : saisissez-les ci-dessous, sinon seul le titre sera imprimé.</div>`}
-                ${area('text', 'Paroles… (une ligne vide entre les strophes ; « Refrain » seul sur une ligne)', 6)}`;
-        } else if (on && b.kind === 'note') {
+                ${area('text', 'Paroles… (une ligne vide entre les strophes ; « Refrain » seul sur une ligne)', 7)}`;
+        } else if (b.kind === 'note') {
             body = `
                 <div class="sheet-row2">${field('label', 'Moment (ex. 1re lecture)')}${field('title', 'Titre')}</div>
                 ${field('ref', 'Référence (ex. Is 55, 1-11)')}
-                <label class="sheet-check sheet-check--inline"><input type="checkbox" ${b.showText ? 'checked' : ''} onchange="sheetBlockSet(${i}, 'showText', this.checked, true)"><span>Imprimer le texte complet</span></label>
-                ${b.showText ? area('text', 'Texte', 5) : ''}`;
-        } else if (on && b.kind === 'text') {
+                ${area('text', 'Texte de la lecture', 6)}`;
+        } else if (b.kind === 'text') {
             body = `${field('title', 'Titre (optionnel)')}${area('text', 'Texte : annonce, prière, consigne…', 4)}`;
-        } else if (on && b.kind === 'image') {
+        } else if (b.kind === 'image') {
             body = `
                 <div class="sheet-img-row">
                     ${b.src ? `<img src="${b.src}" alt="">` : ''}
@@ -8818,19 +8940,92 @@
                 <input type="range" min="20" max="100" step="5" value="${b.width}" oninput="document.getElementById('sheet-w-${i}').textContent = this.value; sheetBlockSet(${i}, 'width', Number(this.value))">
                 ${field('caption', 'Légende (optionnel)')}`;
         }
-        return `
-            <div class="sheet-block ${on ? '' : 'is-off'}">
-                <div class="sheet-block-head">
-                    <label class="sheet-check"><input type="checkbox" ${on ? 'checked' : ''} onchange="sheetBlockSet(${i}, 'include', this.checked, true)">
-                        <span><b>${kindLabel}</b>${on ? '' : ' · ' + escHtml(b.title || b.caption || '')}</span></label>
-                    <div class="sheet-block-tools">
-                        <button class="btn btn-icon" onclick="sheetMoveBlock(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Monter" aria-label="Monter"><svg class="icon icon-sm" style="transform:rotate(180deg)"><use href="#ico-chevron"/></svg></button>
-                        <button class="btn btn-icon" onclick="sheetMoveBlock(${i}, 1)" ${i === n - 1 ? 'disabled' : ''} title="Descendre" aria-label="Descendre"><svg class="icon icon-sm"><use href="#ico-chevron"/></svg></button>
-                        ${b.src && b.kind !== 'image' ? '' : `<button class="btn btn-icon danger" onclick="sheetRemoveBlock(${i})" title="Retirer" aria-label="Retirer"><svg class="icon icon-sm"><use href="#ico-trash"/></svg></button>`}
-                    </div>
-                </div>
-                ${body}
+        body += `
+            <div class="sheet-block-foot">
+                <button class="btn btn-ghost btn-sm" onclick="sheetMoveBlock(${i}, -1)" ${i === 0 ? 'disabled' : ''}>Monter</button>
+                <button class="btn btn-ghost btn-sm" onclick="sheetMoveBlock(${i}, 1)" ${i === n - 1 ? 'disabled' : ''}>Descendre</button>
+                ${b.src && b.kind !== 'image' ? '' : `<button class="btn btn-ghost btn-sm danger" onclick="sheetRemoveBlock(${i})"><svg class="icon icon-sm"><use href="#ico-trash"/></svg>Supprimer</button>`}
             </div>`;
+        return `
+            <div class="sheet-block ${on ? '' : 'is-off'} ${open ? 'is-open' : ''}" data-i="${i}">
+                <div class="sheet-block-head">
+                    <span class="drag-handle sheet-drag" title="Glisser pour déplacer" aria-hidden="true"><svg class="icon icon-sm"><use href="#ico-grip"/></svg></span>
+                    <button class="sheet-block-name" onclick="sheetToggleOpen(${i})" aria-expanded="${open}">
+                        <small>${escHtml(b.label || kindLabel)}</small>
+                        <span>${escHtml(name)}${b.kind === 'note' && b.ref ? ` <em>${escHtml(b.ref)}</em>` : ''}</span>
+                    </button>
+                    <button class="btn btn-icon" onclick="sheetToggleOpen(${i})" title="${open ? 'Fermer' : 'Modifier le texte'}" aria-label="${open ? 'Fermer' : 'Modifier le texte'}"><svg class="icon icon-sm"><use href="#${open ? 'ico-x' : 'ico-edit'}"/></svg></button>
+                    <label class="toggle-switch toggle-switch--sm" title="${on ? 'Imprimé — toucher pour retirer de la feuille' : 'Non imprimé — toucher pour l’ajouter'}">
+                        <input type="checkbox" ${on ? 'checked' : ''} aria-label="Imprimer ce bloc" onchange="sheetBlockSet(${i}, 'include', this.checked, true)">
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                </div>
+                ${on && choices ? `<div class="seg seg-sm sheet-modes" role="group" aria-label="Contenu imprimé">${choices.map(([v, l]) =>
+                    `<button class="${v === mode ? 'active' : ''}" aria-pressed="${v === mode}" onclick="sheetBlockSet(${i}, 'mode', '${v}', true)">${l}</button>`).join('')}</div>` : ''}
+                ${on && noLyrics && mode !== 'title' ? `<div class="sheet-warn">Pas de paroles enregistrées : seul le titre sera imprimé. <button class="link-btn" onclick="sheetToggleOpen(${i}, true)">Saisir les paroles</button></div>` : ''}
+                ${open ? `<div class="sheet-block-body">${body}</div>` : ''}
+            </div>`;
+    }
+
+    function sheetToggleOpen(i, force) {
+        sheetEd.open[i] = force === undefined ? !sheetEd.open[i] : force;
+        renderSheetEditor();
+        if (sheetEd.open[i]) setTimeout(() => document.querySelector(`.sheet-block[data-i="${i}"] textarea, .sheet-block[data-i="${i}"] input[type=text]`)?.focus({ preventScroll: true }), 30);
+    }
+
+    // Réglages groupés : toutes les lectures d'un coup, et le psaume en double (texte AELF +
+    // partition du psaume chantée) — on n'en garde qu'un, au choix.
+    function sheetSetReadings(mode) {
+        const s = sheetCur();
+        if (!s) return;
+        // Le psaume a son propre réglage (refrain, texte, ou partition chantée à la place).
+        s.blocks.forEach(b => {
+            if (b.kind !== 'note' || sheetIsPsalm(b)) return;
+            if (mode === 'none') { b.include = false; return; }
+            b.include = true;
+            b.mode = mode;
+        });
+        saveSheet();
+        renderSheetEditor();
+    }
+    function sheetPsalmDuplicate(s) {
+        const printed = s.blocks.filter(b => sheetIsPsalm(b) && sheetPrintsText(b, s));
+        const note = printed.find(b => b.kind === 'note'), song = printed.find(b => b.kind === 'song');
+        return note && song ? { note: s.blocks.indexOf(note), song: s.blocks.indexOf(song) } : null;
+    }
+    function sheetKeepPsalm(which) {
+        const s = sheetCur(), d = s && sheetPsalmDuplicate(s);
+        if (!d) return;
+        if (which === 'note') s.blocks[d.song].mode = 'title';
+        else s.blocks[d.note].mode = 'ref';
+        saveSheet();
+        renderSheetEditor();
+    }
+    function sheetReadingsMode(s) {
+        const notes = s.blocks.filter(b => b.kind === 'note' && !sheetIsPsalm(b));
+        if (!notes.length) return null;
+        if (notes.every(b => b.include === false)) return 'none';
+        const modes = new Set(notes.filter(b => b.include !== false).map(b => sheetModeOf(b, s)));
+        return modes.size === 1 && notes.every(b => b.include !== false) ? [...modes][0] : 'mixed';
+    }
+
+    function mountSheetSortable() {
+        const el = document.querySelector('.sheet-blocks');
+        if (!el || typeof Sortable === 'undefined') return;
+        new Sortable(el, {
+            animation: 180, handle: '.sheet-drag', forceFallback: true, fallbackOnBody: true, fallbackTolerance: 3,
+            scroll: true, bubbleScroll: true, scrollSensitivity: 90, scrollSpeed: 16,
+            onChoose: () => haptic(12), onChange: () => haptic(4),
+            onEnd: ev => {
+                const s = sheetCur();
+                if (!s || ev.oldIndex === ev.newIndex) return;
+                const [moved] = s.blocks.splice(ev.oldIndex, 1);
+                s.blocks.splice(ev.newIndex, 0, moved);
+                sheetEd.open = {};
+                saveSheet();
+                renderSheetEditor();
+            }
+        });
     }
 
     function renderSheetEditor() {
@@ -8846,6 +9041,7 @@
             </details>`;
         const toggle = (key, label, desc) => toggleRowHtml(label, desc, !!s[key], `sheetSet('${key}', this.checked)`);
         const included = s.blocks.filter(b => b.include !== false).length;
+        const readingsMode = sheetReadingsMode(s), dup = sheetPsalmDuplicate(s);
 
         c.innerHTML = `
             <div class="sheet-editor">
@@ -8857,14 +9053,46 @@
                     <button class="btn btn-ghost sheet-jump" onclick="document.querySelector('.sheet-preview').scrollIntoView({ behavior: 'smooth' })" title="Voir l'aperçu" aria-label="Voir l'aperçu">
                         <svg class="icon icon-sm"><use href="#ico-eye"/></svg>
                     </button>
-                    <button class="btn btn-primary" onclick="downloadSheetPdf(this, 'print')">
-                        <svg class="icon icon-sm"><use href="#ico-download"/></svg>
-                        <span>Télécharger</span>
-                    </button>
+                    <details class="dl-menu">
+                        <summary class="btn btn-primary"><svg class="icon icon-sm"><use href="#ico-download"/></svg><span>Télécharger</span></summary>
+                        <div class="dl-menu-list">
+                            <button onclick="this.closest('details').open = false; downloadSheetPdf(this, 'print')">
+                                <svg class="icon"><use href="#ico-file-down"/></svg>
+                                <span><b>${booklet ? 'Livret à imprimer (PDF)' : 'PDF à imprimer'}</b><small>${booklet ? 'Pages déjà placées : imprimer recto-verso, plier.' : 'Prêt à imprimer, à 100 %.'}</small></span>
+                            </button>
+                            <button onclick="this.closest('details').open = false; downloadSheetDocx(this)">
+                                <svg class="icon"><use href="#ico-edit"/></svg>
+                                <span><b>Word (.docx) modifiable</b><small>Pour retoucher librement dans Word ou LibreOffice.</small></span>
+                            </button>
+                            ${booklet ? `<button onclick="this.closest('details').open = false; downloadSheetPdf(this, 'pages')">
+                                <svg class="icon"><use href="#ico-file"/></svg>
+                                <span><b>PDF pages dans l'ordre</b><small>Pour l'écran, la projection ou l'envoi.</small></span>
+                            </button>` : ''}
+                        </div>
+                    </details>
                 </div>
                 <div class="sheet-grid">
                     <div class="sheet-panel">
                         ${sec('design', 'Design', sheetDesignCardsHtml(s))}
+                        ${sec('blocks', 'Contenu de la feuille', `
+                            ${readingsMode ? `<div class="sheet-quick">
+                                <span class="sheet-quick-label">Toutes les lectures</span>
+                                <div class="seg seg-sm">${[['none', 'Aucune'], ['ref', 'Références'], ['full', 'Textes complets']].map(([v, l]) =>
+                                    `<button class="${readingsMode === v ? 'active' : ''}" aria-pressed="${readingsMode === v}" onclick="sheetSetReadings('${v}')">${l}</button>`).join('')}</div>
+                            </div>` : ''}
+                            ${dup ? `<div class="sheet-notice">
+                                <b>Le psaume est imprimé deux fois</b> : texte d'AELF et paroles de « ${escHtml(s.blocks[dup.song].title)} ». Lequel garder ?
+                                <div class="sheet-notice-actions">
+                                    <button class="btn btn-ghost btn-sm" onclick="sheetKeepPsalm('song')">Les paroles du chant</button>
+                                    <button class="btn btn-ghost btn-sm" onclick="sheetKeepPsalm('note')">Le texte d'AELF</button>
+                                </div>
+                            </div>` : ''}
+                            <p class="settings-note sheet-help">L'interrupteur retire un élément de la feuille sans toucher à la messe. Glissez <svg class="icon icon-sm" style="vertical-align:-3px"><use href="#ico-grip"/></svg> pour réordonner, touchez un titre pour modifier son texte.</p>
+                            <div class="sheet-blocks">${s.blocks.map((b, i) => sheetBlockHtml(b, i, s.blocks.length)).join('') || emptyState('ico-music', 'Aucun chant : ajoutez-en à la messe.')}</div>
+                            <div class="sheet-add-row">
+                                <button class="btn btn-ghost" onclick="sheetAddText()"><svg class="icon icon-sm"><use href="#ico-plus"/></svg>Texte libre</button>
+                                <label class="btn btn-ghost"><svg class="icon icon-sm"><use href="#ico-image"/></svg>Image<input type="file" accept="image/*" hidden onchange="sheetPickImage(event, 'new')"></label>
+                            </div>`, `<span class="sheet-count">${included} / ${s.blocks.length} imprimés</span>`)}
                         ${sec('cover', sheetDesignOf(s).style === 'parish' ? 'En-tête' : 'Titre et couverture', `
                             <label class="field-label">Titre</label>
                             <input type="text" class="input-field" value="${escHtml(s.title || '')}" oninput="sheetSet('title', this.value)">
@@ -8883,13 +9111,6 @@
                             ${toggleRowHtml('Page de couverture', 'Titre, image et texte d’accueil seuls sur la première page. Sinon, ils sont en tête de la première page.', !!s.cover, `sheetSet('cover', this.checked)`)}
                             ${booklet ? `<label class="field-label">Dernière page du livret (4e de couverture)</label>
                             <textarea class="input-field sheet-area" rows="3" placeholder="Ex : annonces, prochaines messes… (vide = page blanche)" oninput="sheetSet('backText', this.value)">${escHtml(s.backText || '')}</textarea>` : ''}`)}
-                        ${sec('blocks', 'Contenu', `
-                            <div class="sheet-blocks">${s.blocks.map((b, i) => sheetBlockHtml(b, i, s.blocks.length)).join('') || emptyState('ico-music', 'Aucun chant : ajoutez-en à la messe.')}</div>
-                            <div class="sheet-add-row">
-                                <button class="btn btn-ghost" onclick="sheetAddText()"><svg class="icon icon-sm"><use href="#ico-note"/></svg>Texte</button>
-                                <label class="btn btn-ghost"><svg class="icon icon-sm"><use href="#ico-image"/></svg>Image<input type="file" accept="image/*" hidden onchange="sheetPickImage(event, 'new')"></label>
-                                <button class="btn btn-ghost" onclick="sheetResync()" title="Ajoute les chants et notes ajoutés depuis à la messe, en gardant vos modifications">Mettre à jour depuis la messe</button>
-                            </div>`, `<span class="sheet-count">${included} / ${s.blocks.length}</span>`)}
                         ${sec('layout', 'Mise en page', `
                             <label class="field-label">Format</label>
                             ${sheetSelectHtml('format', [['booklet', 'Livret : feuille(s) A4 pliée(s) en deux'], ['a4', 'Feuilles A4'], ['a5', 'Feuilles A5']])}
@@ -8928,11 +9149,11 @@
                         </div>
                         <div id="sheet-pages" class="sheet-pages ${booklet && sheetEd.view === 'pages' ? 'is-spreads' : ''}"><div class="sheet-info">Génération de l'aperçu…</div></div>
                         <p class="settings-note" id="sheet-hint"></p>
-                        <button class="btn btn-ghost" style="width:100%; margin-top: var(--sp-sm);" onclick="downloadSheetPdf(this, 'pages')">PDF pages dans l'ordre (écran, projection)</button>
                     </div>
                 </div>
             </div>`;
         c.scrollTop = keepScroll;
+        mountSheetSortable();
         scheduleSheetPreview(0);
     }
 
@@ -9002,6 +9223,213 @@
             const base = sanitizePartitionFilename(s.title || 'Feuille de chants');
             if (which === 'print' && s.format === 'booklet') saveBytesAs(built.print, `${base}_-_livret_impression.pdf`);
             else saveBytesAs(built.pages, `${base}_-_feuille_de_chants.pdf`);
+        });
+    }
+
+    // Menu « Télécharger » : se referme quand on touche ailleurs.
+    document.addEventListener('click', e => {
+        document.querySelectorAll('details.dl-menu[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; });
+    });
+
+    /* ─── EXPORT WORD (.docx) ───
+       Même contenu que le PDF (sheetBlockStanzas), en vrais paragraphes Word modifiables.
+       Livret : A4 paysage en 2 colonnes, une colonne par page du livret plié, comme les feuilles
+       paroissiales faites à la main dans Word ; A4/A5 : portrait, colonnes de la feuille. Le
+       .docx est un zip (sans compression) écrit ici même, sans bibliothèque. */
+    const CRC_TABLE = (() => {
+        const t = new Uint32Array(256);
+        for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+        return t;
+    })();
+    function crc32(bytes) {
+        let c = 0xFFFFFFFF;
+        for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 255] ^ (c >>> 8);
+        return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    function zipStore(files) {
+        const enc = new TextEncoder(), parts = [], central = [];
+        let offset = 0;
+        for (const f of files) {
+            const name = enc.encode(f.name), data = typeof f.data === 'string' ? enc.encode(f.data) : f.data, crc = crc32(data);
+            const h = new DataView(new ArrayBuffer(30));
+            h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+            h.setUint16(12, 0x21, true); h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true);
+            h.setUint16(26, name.length, true);
+            const c = new DataView(new ArrayBuffer(46));
+            c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+            c.setUint16(14, 0x21, true); c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true);
+            c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+            parts.push(new Uint8Array(h.buffer), name, data);
+            central.push(new Uint8Array(c.buffer), name);
+            offset += 30 + name.length + data.length;
+        }
+        const cdSize = central.reduce((a, p) => a + p.length, 0);
+        const e = new DataView(new ArrayBuffer(22));
+        e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+        e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+        const all = [...parts, ...central, new Uint8Array(e.buffer)];
+        const out = new Uint8Array(all.reduce((a, p) => a + p.length, 0));
+        let o = 0;
+        all.forEach(p => { out.set(p, o); o += p.length; });
+        return out;
+    }
+
+    // Octets + dimensions d'une image (data: URL d'une image ajoutée, ou logo du dépôt).
+    async function sheetImageData(src) {
+        try {
+            const blob = await (await fetch(src)).blob();
+            const bytes = new Uint8Array(await blob.arrayBuffer());
+            const bmp = await createImageBitmap(blob);
+            const out = { bytes, w: bmp.width, h: bmp.height, ext: bytes[0] === 0x89 ? 'png' : 'jpeg' };
+            bmp.close && bmp.close();
+            return out;
+        } catch (e) {
+            console.warn('Image ignorée dans le Word :', e);
+            return null;
+        }
+    }
+
+    async function buildSheetDocx(s) {
+        const design = sheetDesignOf(s), parish = design.style === 'parish';
+        const hex = (h, d) => ((/^#?([0-9a-f]{6})$/i.exec(h || '') || [])[1] || d).toUpperCase();
+        const accent = hex(design.accent, '9A6338'), ink = hex(design.ink, '222222'), grey = '777777';
+        const font = design.wordFont || (s.font === 'sans' ? 'Arial' : 'Times New Roman');
+        const booklet = s.format === 'booklet', center = s.align === 'center';
+        const [pw, ph] = booklet ? [16838, 11906] : s.format === 'a5' ? [8391, 11906] : [11906, 16838];
+        const cols = booklet ? 2 : Math.max(1, Number(s.columns) || 1);
+        const mar = Math.round({ small: 24, normal: 36, large: 52 }[s.margin || 'normal'] * 20 * (s.format === 'a4' ? 1 : 0.85));
+        const space = booklet ? 2 * mar : 360;
+        const colWpt = ((pw - 2 * mar - (cols - 1) * space) / cols) / 20;
+        const fs = Number(s.size) || 11;
+        const lineTw = Math.round(240 * (Number(s.leading) || 1.3) / 1.17);
+        const media = [];
+
+        const xe = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const half = pt => Math.max(2, Math.round(pt * 2));
+        const run = (text, o = {}) => `<w:r><w:rPr>${o.b ? '<w:b/>' : ''}${o.i ? '<w:i/>' : ''}<w:color w:val="${o.color || ink}"/><w:sz w:val="${half(o.sz || fs)}"/><w:szCs w:val="${half(o.sz || fs)}"/></w:rPr><w:t xml:space="preserve">${xe(text)}</w:t></w:r>`;
+        const br = type => `<w:r><w:br${type ? ` w:type="${type}"` : ''}/></w:r>`;
+        const para = (runs, o = {}) => `<w:p><w:pPr>${o.keepNext ? '<w:keepNext/>' : ''}${o.keepLines ? '<w:keepLines/>' : ''}<w:spacing w:before="${Math.round((o.before || 0) * 20)}" w:after="${Math.round((o.after ?? fs * 0.5) * 20)}" w:line="${o.line || lineTw}" w:lineRule="auto"/><w:jc w:val="${o.jc || (center ? 'center' : 'left')}"/></w:pPr>${runs}</w:p>`;
+        const linesRuns = (ls, o) => ls.map(l => run(l, o)).join(br());
+        const image = async (src, wPt, maxHPt) => {
+            const im = await sheetImageData(src);
+            if (!im) return '';
+            let w = wPt, h = w * im.h / im.w;
+            if (maxHPt && h > maxHPt) { w *= maxHPt / h; h = maxHPt; }
+            const n = media.length + 1, rid = 'rIdImg' + n, name = `image${n}.${im.ext}`;
+            media.push({ name, bytes: im.bytes, rid });
+            const cx = Math.round(w * 12700), cy = Math.round(h * 12700);
+            return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${n}" name="Image ${n}"/>`
+                + `<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">`
+                + `<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${n}" name="${name}"/><pic:cNvPicPr/></pic:nvPicPr>`
+                + `<pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>`
+                + `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>`
+                + `</a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+        };
+        const centered = (runs, o = {}) => para(runs, { ...o, jc: 'center' });
+        const body = [];
+
+        // En-tête / couverture
+        if (parish) {
+            if (design.logo) {
+                const img = await image(sheetRepoUrl(design.logo), colWpt * (design.logoWidth || 80) / 100);
+                if (img) body.push(centered(img, { after: fs * 0.8 }));
+            }
+            if (s.title) body.push(centered(run(s.title.toLocaleUpperCase('fr'), { b: true, color: accent, sz: fs * 1.1 }), { after: fs * 0.2 }));
+            if (s.subtitle) body.push(centered(run(s.subtitle, { i: true }), { after: fs * 0.2 }));
+        } else {
+            const big = !!s.cover;
+            if (s.title) body.push(centered(run(s.title, { b: true, sz: fs * (big ? 2.4 : 1.8) }), { before: big ? fs * 6 : 0, after: fs * 0.3, line: 240 }));
+            if (s.subtitle) body.push(centered(run(s.subtitle, { i: true, color: grey, sz: fs * 1.15 }), { after: fs * 0.8 }));
+            if (s.image) {
+                const img = await image(s.image, colWpt * (s.imageWidth || 70) / 100, (ph / 20) * (big ? 0.45 : 0.22));
+                if (img) body.push(centered(img, { after: fs * 0.8 }));
+            }
+        }
+        if (s.intro) body.push(centered(linesRuns(s.intro.split('\n'), { i: true }), { before: fs * 0.3, after: fs * 0.8 }));
+        if (s.cover && body.length) body.push(para(br(booklet ? 'column' : 'page'), { after: 0 }));
+        else if (body.length) body.push(para('', { after: fs * 0.4 }));
+
+        // Blocs
+        for (const b of s.blocks.filter(b => b.include !== false)) {
+            if (b.kind === 'image') {
+                if (!b.src) continue;
+                const img = await image(b.src, colWpt * Math.min(100, b.width || 60) / 100);
+                if (img) body.push(centered(img, { before: fs * 0.6, after: b.caption ? fs * 0.2 : fs * 0.6, keepNext: !!b.caption }));
+                if (b.caption) body.push(centered(run(b.caption, { i: true, color: grey, sz: fs * 0.85 }), { after: fs * 0.6 }));
+                continue;
+            }
+            const stanzas = sheetBlockStanzas(b, s);
+            if (parish) {
+                const heading = b.label || b.title;
+                if (heading) body.push(para(run(heading.toLocaleUpperCase('fr'), { b: true, color: accent, sz: fs * 1.1 })
+                    + (b.kind === 'note' && b.ref ? run('  ' + b.ref) : ''), { keepNext: true, before: fs * 0.9, after: fs * 0.25, jc: 'left' }));
+            } else {
+                if (b.label) body.push(para(run(b.label.toLocaleUpperCase('fr'), { i: true, color: accent, sz: fs * 0.78 }), { keepNext: true, before: fs, after: 0 }));
+                if (b.kind !== 'text' || b.title) {
+                    const title = b.kind === 'song' ? sheetTitleCase(b.title, s.titleCase) : b.title;
+                    body.push(para(run(title, { b: true, sz: fs * 1.18 }), { keepNext: true, before: b.label ? 0 : fs, after: b.kind === 'note' && b.ref ? 0 : fs * 0.3 }));
+                }
+                if (b.kind === 'note' && b.ref) body.push(para(run(b.ref, { i: true, color: grey, sz: fs * 0.9 }), { keepNext: true, after: fs * 0.3 }));
+            }
+            stanzas.forEach(st => {
+                if (st.heading) body.push(para(run(st.heading, { i: true, color: accent, sz: fs * 0.85 }), { keepNext: true, after: 0 }));
+                const o = { b: st.bold, i: st.italic, sz: st.big ? fs * 1.1 : fs };
+                body.push(st.justify
+                    ? para(run(st.lines.join(' '), o), { after: fs * 0.45, jc: center ? 'center' : 'both' })
+                    : para(linesRuns(st.lines, o), { keepLines: true, after: fs * 0.55 }));
+            });
+        }
+
+        if (booklet && (s.backText || '').trim()) {
+            body.push(para(br('column'), { after: 0 }));
+            body.push(centered(linesRuns(s.backText.split('\n'), {}), { before: fs * 4 }));
+        }
+
+        const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+        const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+        const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="${W}" xmlns:r="${R}" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>${body.join('')}`
+            + `<w:sectPr><w:pgSz w:w="${pw}" w:h="${ph}"${booklet ? ' w:orient="landscape"' : ''}/>`
+            + `<w:pgMar w:top="${mar}" w:right="${mar}" w:bottom="${mar}" w:left="${mar}" w:header="400" w:footer="400" w:gutter="0"/>`
+            + `<w:cols w:num="${cols}" w:space="${space}"/></w:sectPr></w:body></w:document>`;
+        const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="${W}"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="${xe(font)}" w:hAnsi="${xe(font)}" w:eastAsia="${xe(font)}" w:cs="${xe(font)}"/><w:color w:val="${ink}"/><w:sz w:val="${half(fs)}"/><w:szCs w:val="${half(fs)}"/><w:lang w:val="fr-FR"/></w:rPr></w:rPrDefault>`
+            + `<w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="${lineTw}" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>`
+            + `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>`;
+        const settings = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:settings xmlns:w="${W}"><w:defaultTabStop w:val="708"/><w:hyphenationZone w:val="425"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>`;
+        const docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
+            + `<Relationship Id="rIdStyles" Type="${R}/styles" Target="styles.xml"/><Relationship Id="rIdSettings" Type="${R}/settings" Target="settings.xml"/>`
+            + media.map(m => `<Relationship Id="${m.rid}" Type="${R}/image" Target="media/${m.name}"/>`).join('') + `</Relationships>`;
+        const types = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="png" ContentType="image/png"/>`
+            + `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>`
+            + `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>`
+            + `<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>`;
+        const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/></Relationships>`;
+        return zipStore([
+            { name: '[Content_Types].xml', data: types },
+            { name: '_rels/.rels', data: rootRels },
+            { name: 'word/document.xml', data: docXml },
+            { name: 'word/styles.xml', data: styles },
+            { name: 'word/settings.xml', data: settings },
+            { name: 'word/_rels/document.xml.rels', data: docRels },
+            ...media.map(m => ({ name: 'word/media/' + m.name, data: m.bytes }))
+        ]);
+    }
+
+    async function downloadSheetDocx(btn) {
+        const s = sheetCur();
+        if (!s) return;
+        await withBusyButton(btn, 'Génération…', async () => {
+            const bytes = await buildSheetDocx(s);
+            saveBytesAs(bytes, `${sanitizePartitionFilename(s.title || 'Feuille de chants')}.docx`,
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            showToast(s.format === 'booklet'
+                ? 'Word prêt : A4 paysage en 2 colonnes, une colonne par page du livret.'
+                : 'Document Word prêt.');
         });
     }
 
@@ -9138,7 +9566,6 @@
             s.blocks.filter(b => b.include !== false).forEach((b, bi) => {
                 const sepBefore = bi > 0;
                 const head = [];
-                const isPsalmNote = b.kind === 'note' && /psaume/i.test((b.title || '').normalize('NFD').replace(/[̀-ͯ]/g, ''));
                 if (parish) {
                     // Rubrique = moment (ENTRÉE, KYRIE…) ; à défaut, le titre. Le titre d'un chant
                     // n'est pas répété : ce sont ses paroles qui suivent, comme sur la feuille papier.
@@ -9153,37 +9580,15 @@
                     if (b.kind === 'note' && b.ref) head.push(...textRows(b.ref, fI, fs * 0.9, 1.3, colW, grey, { center }));
                 }
 
-                let stanzas = [];
-                if (parish && isPsalmNote && b.showText) {
-                    // Psaume : seulement l'antienne (1er paragraphe), en gras, précédée de R/.
-                    const refrain = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/)[0].trim();
-                    if (refrain) stanzas = [textRows('R/ ' + refrain.replace(/\n/g, ' '), fB, fs * 1.1, lead, colW, ink)];
-                } else if (parish && b.kind === 'note' && b.showText) {
-                    // Lectures : texte complet, paragraphes justifiés.
-                    stanzas = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(p => p.replace(/\n/g, ' ').trim()).filter(Boolean)
-                        .map(p => textRows(p, fR, fs, lead, colW, ink, { justify: true }));
-                } else if (b.kind === 'song' || b.kind === 'text' || (b.kind === 'note' && b.showText)) {
-                    let refrainNext = false;
-                    stanzas = (b.text || '').replace(/\r/g, '').split(/\n\s*\n/).map(block => block.split('\n').map(l => l.trim()).filter(Boolean)).filter(ls => ls.length).map(lines => {
-                        const rows = [];
-                        let bold = false;
-                        if (isLyricsSectionHeading(lines[0])) {
-                            const heading = lines.shift();
-                            bold = /^refrain/i.test(heading.trim());
-                            rows.push(...textRows(heading.replace(/\s*:\s*$/, ''), fI, fs * 0.85, 1.3, colW, accent, { center }));
-                        }
-                        if (lines.length && /^(R\s*[./]|Refrain\b)/i.test(lines[0])) bold = true;
-                        if (!lines.length && bold) { refrainNext = true; return rows; }
-                        if (refrainNext) { bold = true; refrainNext = false; }
-                        const useBold = s.boldRefrain && bold && b.kind === 'song';
-                        lines.forEach(l => rows.push(...textRows(l, useBold ? fB : fR, fs, lead, colW, ink, { center, indent: fs })));
-                        return rows;
-                    }).filter(r => r.length);
-                }
-                // Chant sans paroles enregistrées : son titre, pour que la rubrique ne reste pas vide.
-                if (parish && b.kind === 'song' && !stanzas.length && b.label) {
-                    stanzas = [textRows(sheetTitleCase(b.title, 'sentence'), fI, fs, lead, colW, ink)];
-                }
+                // Strophes selon ce que le bloc doit imprimer (paroles, refrain, texte complet…).
+                let stanzas = sheetBlockStanzas(b, s).map(st => {
+                    const rows = [];
+                    if (st.heading) rows.push(...textRows(st.heading, fI, fs * 0.85, 1.3, colW, accent, { center }));
+                    const font = st.bold && st.italic ? fBI : st.bold ? fB : st.italic ? fI : fR;
+                    st.lines.forEach(l => rows.push(...textRows(l, font, fs * (st.big ? 1.1 : 1), lead, colW, ink,
+                        st.justify ? { justify: !center, center } : { center, indent: fs })));
+                    return rows;
+                }).filter(r => r.length);
                 if (b.kind === 'image' && b.src) {
                     const img = images.get(b.src);
                     const w = colW * Math.min(100, b.width || 60) / 100, h = w * img.height / img.width;

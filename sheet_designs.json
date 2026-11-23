@@ -18,6 +18,7 @@
     "titleCase": "upper",
     "readings": "full",
     "pageNumbers": false,
-    "separators": false
+    "separators": false,
+    "wordFont": "Open Sans"
   }
 ]
